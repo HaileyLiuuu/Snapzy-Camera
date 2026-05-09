@@ -3240,13 +3240,13 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "重新运行引导"
+            "value": "重启引导页"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "重新開始引導"
+            "value": "重啟引導頁"
           }
         }
       }
@@ -6626,7 +6626,7 @@
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "一般"
+            "value": "通用"
           }
         }
       }

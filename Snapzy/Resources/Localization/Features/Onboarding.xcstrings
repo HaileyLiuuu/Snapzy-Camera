@@ -1101,7 +1101,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "你之後可以隨時在「設定 -> 一般」中更改。"
+            "value" : "你之後可以隨時在「設定 -> 通用」中更改。"
           }
         }
       }
