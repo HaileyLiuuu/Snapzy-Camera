@@ -410,6 +410,7 @@ struct AnnotateCanvasView: View {
     if let sourceImage = state.effectiveSourceImage {
       Image(nsImage: sourceImage)
         .resizable()
+        .interpolation(.high)
         .aspectRatio(contentMode: .fit)
         .frame(width: imageBounds.width * scale, height: imageBounds.height * scale)
         .offset(x: imageOffset.x, y: imageOffset.y)

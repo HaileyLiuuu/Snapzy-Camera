@@ -64,15 +64,17 @@ final class FrozenAreaCaptureSessionTests: XCTestCase {
     width: Int = 200,
     height: Int = 200,
     scaleFactor: CGFloat = 2.0,
+    imageScaleFactor: CGFloat? = nil,
     screenOriginX: CGFloat = 0,
     screenOriginY: CGFloat = 0,
     red: UInt8 = 80,
     green: UInt8 = 120,
     blue: UInt8 = 180
   ) -> FrozenDisplaySnapshot? {
+    let bitmapScaleFactor = imageScaleFactor ?? scaleFactor
     guard let image = TestImageFactory.solidColor(
-      width: Int(CGFloat(width) * scaleFactor),
-      height: Int(CGFloat(height) * scaleFactor),
+      width: Int(CGFloat(width) * bitmapScaleFactor),
+      height: Int(CGFloat(height) * bitmapScaleFactor),
       red: red,
       green: green,
       blue: blue
@@ -278,6 +280,70 @@ final class FrozenAreaCaptureSessionTests: XCTestCase {
     XCTAssertEqual(result.image.height, 30)
   }
 
+  func testCropImage_usesBitmapScaleWhenReportedScaleFactorDiffers() throws {
+    guard let snapshot = makeSnapshot(
+      displayID: 2,
+      width: 200,
+      height: 100,
+      scaleFactor: 1.0,
+      imageScaleFactor: 1.5,
+      screenOriginX: 400
+    ) else {
+      XCTFail("Failed to create display snapshot")
+      return
+    }
+
+    let session = FrozenAreaCaptureSession.fromSnapshot(snapshot)
+    let selection = makeSelection(
+      rect: CGRect(x: 410, y: 10, width: 40, height: 20),
+      displayID: 2
+    )
+
+    let result = try session.cropImage(for: selection)
+
+    XCTAssertEqual(result.scaleFactor, 1.5)
+    XCTAssertEqual(result.screenRect.width, 40, accuracy: 0.0001)
+    XCTAssertEqual(result.screenRect.height, 20, accuracy: 0.0001)
+    XCTAssertEqual(result.image.width, 60)
+    XCTAssertEqual(result.image.height, 30)
+  }
+
+  func testCropImage_promotesOutputScaleForLowDensityDisplay() throws {
+    guard let session = makeSession(width: 200, height: 100, scaleFactor: 1.0) else {
+      XCTFail("Failed to create test session")
+      return
+    }
+
+    let selection = makeSelection(rect: CGRect(x: 10, y: 10, width: 40, height: 20))
+    let result = try session.cropImage(
+      for: selection,
+      minimumOutputScaleFactor: 2.0
+    )
+
+    XCTAssertEqual(result.scaleFactor, 2.0)
+    XCTAssertEqual(result.screenRect.width, 40, accuracy: 0.0001)
+    XCTAssertEqual(result.screenRect.height, 20, accuracy: 0.0001)
+    XCTAssertEqual(result.image.width, 80)
+    XCTAssertEqual(result.image.height, 40)
+  }
+
+  func testCropImage_keepsNativeScaleWhenAlreadyHigherThanMinimumOutputScale() throws {
+    guard let session = makeSession(width: 200, height: 100, scaleFactor: 2.0) else {
+      XCTFail("Failed to create test session")
+      return
+    }
+
+    let selection = makeSelection(rect: CGRect(x: 10, y: 10, width: 40, height: 20))
+    let result = try session.cropImage(
+      for: selection,
+      minimumOutputScaleFactor: 2.0
+    )
+
+    XCTAssertEqual(result.scaleFactor, 2.0)
+    XCTAssertEqual(result.image.width, 80)
+    XCTAssertEqual(result.image.height, 40)
+  }
+
   // MARK: - Very Small Selection
 
   func testCropImage_verySmallSelection_returnsMinimalImage() throws {
@@ -321,6 +387,26 @@ final class FrozenAreaCaptureSessionTests: XCTestCase {
     XCTAssertNotNil(backdrops[42])
     XCTAssertEqual(backdrops[42]?.displayID, 42)
     XCTAssertEqual(backdrops[42]?.scaleFactor, 2.0)
+  }
+
+  func testBackdrops_useBitmapScaleWhenReportedScaleFactorDiffers() {
+    guard let snapshot = makeSnapshot(
+      displayID: 42,
+      width: 200,
+      height: 100,
+      scaleFactor: 1.0,
+      imageScaleFactor: 1.5
+    ) else {
+      XCTFail("Failed to create display snapshot")
+      return
+    }
+
+    let session = FrozenAreaCaptureSession.fromSnapshot(snapshot)
+    let backdrop = session.backdrops[42]
+
+    XCTAssertEqual(backdrop?.scaleFactor, 1.5)
+    XCTAssertEqual(backdrop?.image.width, 300)
+    XCTAssertEqual(backdrop?.image.height, 150)
   }
 
   func testAddSnapshot_addsBackdropAndDisplayID() {
@@ -442,6 +528,70 @@ final class FrozenAreaCaptureSessionTests: XCTestCase {
     XCTAssertEqual(result.image.height, 81)
     XCTAssertEqual(CGFloat(result.image.width) / result.scaleFactor, result.screenRect.width, accuracy: 0.0001)
     XCTAssertEqual(CGFloat(result.image.height) / result.scaleFactor, result.screenRect.height, accuracy: 0.0001)
+  }
+
+  func testCropCompositeImage_usesBitmapScaleWhenReportedScaleFactorDiffers() throws {
+    guard let firstSnapshot = makeSnapshot(displayID: 1, scaleFactor: 1.0),
+          let secondSnapshot = makeSnapshot(
+            displayID: 2,
+            width: 200,
+            height: 100,
+            scaleFactor: 1.0,
+            imageScaleFactor: 1.5,
+            screenOriginX: 200
+          ) else {
+      XCTFail("Failed to create display snapshots")
+      return
+    }
+
+    let session = FrozenAreaCaptureSession.fromSnapshots([firstSnapshot, secondSnapshot])
+    let selection = AreaSelectionResult(
+      target: .rect(CGRect(x: 210, y: 10, width: 40, height: 20)),
+      displayID: 2,
+      mode: .screenshot,
+      displayIDs: [2]
+    )
+
+    let result = try session.cropCompositeImage(for: selection)
+
+    XCTAssertEqual(result.scaleFactor, 1.5)
+    XCTAssertEqual(result.screenRect.width, 40, accuracy: 0.0001)
+    XCTAssertEqual(result.screenRect.height, 20, accuracy: 0.0001)
+    XCTAssertEqual(result.image.width, 60)
+    XCTAssertEqual(result.image.height, 30)
+  }
+
+  func testCropCompositeImage_promotesOutputScaleForLowDensityDisplay() throws {
+    guard let firstSnapshot = makeSnapshot(displayID: 1, scaleFactor: 1.0),
+          let secondSnapshot = makeSnapshot(
+            displayID: 2,
+            width: 200,
+            height: 100,
+            scaleFactor: 1.0,
+            screenOriginX: 200
+          ) else {
+      XCTFail("Failed to create display snapshots")
+      return
+    }
+
+    let session = FrozenAreaCaptureSession.fromSnapshots([firstSnapshot, secondSnapshot])
+    let selection = AreaSelectionResult(
+      target: .rect(CGRect(x: 210, y: 10, width: 40, height: 20)),
+      displayID: 2,
+      mode: .screenshot,
+      displayIDs: [2]
+    )
+
+    let result = try session.cropCompositeImage(
+      for: selection,
+      minimumOutputScaleFactor: 2.0
+    )
+
+    XCTAssertEqual(result.scaleFactor, 2.0)
+    XCTAssertEqual(result.screenRect.width, 40, accuracy: 0.0001)
+    XCTAssertEqual(result.screenRect.height, 20, accuracy: 0.0001)
+    XCTAssertEqual(result.image.width, 80)
+    XCTAssertEqual(result.image.height, 40)
   }
 
   func testCropCompositeImage_preservesVerticalScreenOrientation() throws {

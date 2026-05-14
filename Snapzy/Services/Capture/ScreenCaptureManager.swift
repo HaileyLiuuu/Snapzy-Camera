@@ -102,12 +102,14 @@ final class ScreenCaptureManager: ObservableObject {
     let outputWidth: Int
     let outputHeight: Int
     let scaleFactor: CGFloat
+    let sharpensPromotedOutput: Bool
   }
 
   private struct DisplayCaptureTarget {
     let displayID: CGDirectDisplayID
     let order: Int
     let screen: NSScreen
+    let screenFrame: CGRect
     let display: SCDisplay?
     let scaleFactor: CGFloat
   }
@@ -138,6 +140,10 @@ final class ScreenCaptureManager: ObservableObject {
   private var standardShareableContentCache: ShareableContentCacheEntry?
   private var desktopInclusiveShareableContentCache: ShareableContentCacheEntry?
   private var screenParametersObserver: NSObjectProtocol?
+
+  private var preferredScreenshotOutputScaleFactor: CGFloat {
+    max(NSScreen.screens.map(\.backingScaleFactor).max() ?? 2.0, 2.0)
+  }
 
   private init() {
     screenParametersObserver = NotificationCenter.default.addObserver(
@@ -246,10 +252,16 @@ final class ScreenCaptureManager: ObservableObject {
       return nil
     }
 
+    let scaleFactor = Self.imageScaleFactor(
+      for: image,
+      screenFrame: screen.frame,
+      fallback: screen.backingScaleFactor
+    )
+
     return FrozenDisplaySnapshot(
       displayID: displayID,
       screenFrame: screen.frame,
-      scaleFactor: screen.backingScaleFactor,
+      scaleFactor: scaleFactor,
       colorSpaceName: preferredCaptureColorSpaceName(for: screen),
       image: image
     )
@@ -295,13 +307,17 @@ final class ScreenCaptureManager: ObservableObject {
         throw CaptureError.noDisplayFound
       }
 
-      let scaleFactor = screen.backingScaleFactor
       let filter = buildFilter(
         display: display,
         content: content,
         excludeDesktopIcons: excludeDesktopIcons,
         excludeDesktopWidgets: excludeDesktopWidgets,
         excludeOwnApplication: excludeOwnApplication
+      )
+      let scaleFactor = displaySnapshotScaleFactor(
+        for: screen,
+        display: display,
+        contentFilter: filter
       )
       let configuration = makeDisplaySnapshotConfiguration(
         for: screen,
@@ -312,11 +328,16 @@ final class ScreenCaptureManager: ObservableObject {
         contentFilter: filter,
         configuration: configuration
       )
+      let imageScaleFactor = Self.imageScaleFactor(
+        for: image,
+        screenFrame: screen.frame,
+        fallback: scaleFactor
+      )
 
       snapshots[displayID] = FrozenDisplaySnapshot(
         displayID: displayID,
         screenFrame: screen.frame,
-        scaleFactor: scaleFactor,
+        scaleFactor: imageScaleFactor,
         colorSpaceName: configuration.colorSpaceName,
         image: image
       )
@@ -387,18 +408,18 @@ final class ScreenCaptureManager: ObservableObject {
         Int($0.deviceDescription[NSDeviceDescriptionKey("NSScreenNumber")] as? CGDirectDisplayID ?? 0)
           == display.displayID
       })
-      let scaleFactor: CGFloat
-      if let matchedScreen {
-        scaleFactor = matchedScreen.backingScaleFactor
-      } else {
-        scaleFactor = display.frame.width > 0 ? CGFloat(display.width) / display.frame.width : 2.0
-      }
+      let scaleFactor = displaySnapshotScaleFactor(
+        for: matchedScreen,
+        display: display,
+        contentFilter: filter
+      )
 
       let config = SCStreamConfiguration()
       if #available(macOS 14.0, *) { config.ignoreShadowsSingleWindow = false }
       if #available(macOS 14.2, *) { config.captureResolution = .best }
-      config.width = Int(CGFloat(display.width) * scaleFactor)
-      config.height = Int(CGFloat(display.height) * scaleFactor)
+      let captureFrame = matchedScreen?.frame ?? display.frame
+      config.width = max(1, Int((captureFrame.width * scaleFactor).rounded()))
+      config.height = max(1, Int((captureFrame.height * scaleFactor).rounded()))
       config.pixelFormat = kCVPixelFormatType_32BGRA
       config.showsCursor = showCursor
       if let matchedScreen, let colorSpaceName = preferredCaptureColorSpaceName(for: matchedScreen) {
@@ -410,6 +431,9 @@ final class ScreenCaptureManager: ObservableObject {
         contentFilter: filter,
         configuration: config
       )
+      let imageScaleFactor = matchedScreen.map {
+        Self.imageScaleFactor(for: image, screenFrame: $0.frame, fallback: scaleFactor)
+      } ?? scaleFactor
 
       // Save the image
       return await saveImage(
@@ -417,7 +441,7 @@ final class ScreenCaptureManager: ObservableObject {
         to: saveDirectory,
         fileName: fileName,
         format: format,
-        scaleFactor: scaleFactor
+        scaleFactor: imageScaleFactor
       )
 
     } catch {
@@ -561,8 +585,9 @@ final class ScreenCaptureManager: ObservableObject {
         displayID: displayID,
         order: order,
         screen: screen,
+        screenFrame: screen.frame,
         display: display,
-        scaleFactor: screen.backingScaleFactor
+        scaleFactor: displaySnapshotScaleFactor(for: screen, display: display)
       )
     }
   }
@@ -574,6 +599,7 @@ final class ScreenCaptureManager: ObservableObject {
         displayID: displayID,
         order: order,
         screen: screen,
+        screenFrame: screen.frame,
         display: nil,
         scaleFactor: screen.backingScaleFactor
       )
@@ -610,7 +636,15 @@ final class ScreenCaptureManager: ObservableObject {
       return targets.map { .failure($0.displayID, .noDisplayFound) }
     }
 
-    let requests = targets.compactMap { target -> (target: DisplayCaptureTarget, filter: SCContentFilter, configuration: SCStreamConfiguration)? in
+    let requests = targets.compactMap {
+      target -> (
+        displayID: CGDirectDisplayID,
+        order: Int,
+        screenFrame: CGRect,
+        filter: SCContentFilter,
+        configuration: SCStreamConfiguration,
+        scaleFactor: CGFloat
+      )? in
       guard let display = target.display else { return nil }
       let filter = buildFilter(
         display: display,
@@ -619,12 +653,17 @@ final class ScreenCaptureManager: ObservableObject {
         excludeDesktopWidgets: excludeDesktopWidgets,
         excludeOwnApplication: excludeOwnApplication
       )
+      let scaleFactor = displaySnapshotScaleFactor(
+        for: target.screen,
+        display: display,
+        contentFilter: filter
+      )
       let configuration = makeDisplaySnapshotConfiguration(
         for: target.screen,
-        scaleFactor: target.scaleFactor,
+        scaleFactor: scaleFactor,
         showsCursor: showCursor
       )
-      return (target, filter, configuration)
+      return (target.displayID, target.order, target.screenFrame, filter, configuration, scaleFactor)
     }
 
     return await withTaskGroup(of: DisplayPayloadResult.self) { group in
@@ -635,16 +674,21 @@ final class ScreenCaptureManager: ObservableObject {
               contentFilter: request.filter,
               configuration: request.configuration
             )
+            let imageScaleFactor = Self.imageScaleFactor(
+              for: image,
+              screenFrame: request.screenFrame,
+              fallback: request.scaleFactor
+            )
             return .success(
               DisplayCapturePayload(
-                displayID: request.target.displayID,
-                order: request.target.order,
+                displayID: request.displayID,
+                order: request.order,
                 image: image,
-                scaleFactor: request.target.scaleFactor
+                scaleFactor: imageScaleFactor
               )
             )
           } catch {
-            return .failure(request.target.displayID, .captureFailed(error.localizedDescription))
+            return .failure(request.displayID, .captureFailed(error.localizedDescription))
           }
         }
       }
@@ -660,19 +704,32 @@ final class ScreenCaptureManager: ObservableObject {
   private nonisolated func captureDisplayPayloadsUsingCoreGraphics(
     targets: [DisplayCaptureTarget]
   ) async -> [DisplayPayloadResult] {
-    await withTaskGroup(of: DisplayPayloadResult.self) { group in
-      for target in targets {
+    let requests = targets.map {
+      (
+        displayID: $0.displayID,
+        order: $0.order,
+        screenFrame: $0.screenFrame,
+        scaleFactor: $0.scaleFactor
+      )
+    }
+
+    return await withTaskGroup(of: DisplayPayloadResult.self) { group in
+      for request in requests {
         group.addTask {
-          guard let image = CGDisplayCreateImage(target.displayID) else {
-            return .failure(target.displayID, .captureFailed(L10n.ScreenCapture.unableToCaptureSelectedArea))
+          guard let image = CGDisplayCreateImage(request.displayID) else {
+            return .failure(request.displayID, .captureFailed(L10n.ScreenCapture.unableToCaptureSelectedArea))
           }
 
           return .success(
             DisplayCapturePayload(
-              displayID: target.displayID,
-              order: target.order,
+              displayID: request.displayID,
+              order: request.order,
               image: image,
-              scaleFactor: target.scaleFactor
+              scaleFactor: Self.imageScaleFactor(
+                for: image,
+                screenFrame: request.screenFrame,
+                fallback: request.scaleFactor
+              )
             )
           )
         }
@@ -786,7 +843,8 @@ final class ScreenCaptureManager: ObservableObject {
         excludeDesktopIcons: excludeDesktopIcons,
         excludeDesktopWidgets: excludeDesktopWidgets,
         excludeOwnApplication: excludeOwnApplication,
-        prefetchedContentTask: prefetchedContentTask
+        prefetchedContentTask: prefetchedContentTask,
+        minimumOutputScaleFactor: preferredScreenshotOutputScaleFactor
       )
 
       guard let croppedImage = try await capturePreparedArea(context) else {
@@ -1118,11 +1176,25 @@ final class ScreenCaptureManager: ObservableObject {
       width: fullImage.width,
       height: fullImage.height
     )
+    let capturedImage: CGImage?
     if context.pixelCropRect.integral == fullImageBounds.integral {
-      return fullImage
+      capturedImage = fullImage
+    } else {
+      capturedImage = fullImage.cropping(to: context.pixelCropRect)
     }
 
-    return fullImage.cropping(to: context.pixelCropRect)
+    guard let capturedImage else {
+      return nil
+    }
+
+    if context.sharpensPromotedOutput {
+      return FrozenAreaCaptureSession.sharpenPromotedImageIfUseful(
+        capturedImage,
+        colorSpaceName: context.configuration.colorSpaceName
+      )
+    }
+
+    return capturedImage
   }
 
   func makeAreaStreamConfiguration(
@@ -1157,7 +1229,8 @@ final class ScreenCaptureManager: ObservableObject {
     excludeDesktopIcons: Bool,
     excludeDesktopWidgets: Bool,
     excludeOwnApplication: Bool,
-    prefetchedContentTask: ShareableContentPrefetchTask?
+    prefetchedContentTask: ShareableContentPrefetchTask?,
+    minimumOutputScaleFactor: CGFloat = 1
   ) async throws -> PreparedAreaCaptureContext {
     let includeDesktopWindows = excludeDesktopIcons || excludeDesktopWidgets
     let content = try await loadShareableContent(
@@ -1194,18 +1267,6 @@ final class ScreenCaptureManager: ObservableObject {
       excludeDesktopWidgets: excludeDesktopWidgets,
       excludeOwnApplication: excludeOwnApplication
     )
-    let scaleFactor: CGFloat
-    if let screen = targetScreen {
-      scaleFactor = screen.backingScaleFactor
-    } else if let screen = NSScreen.screens.first(where: {
-      Int($0.deviceDescription[NSDeviceDescriptionKey("NSScreenNumber")] as? CGDirectDisplayID ?? 0)
-        == display.displayID
-    }) {
-      scaleFactor = screen.backingScaleFactor
-    } else {
-      scaleFactor = display.frame.width > 0 ? CGFloat(display.width) / display.frame.width : 2.0
-    }
-
     guard let matchingScreen = targetScreen ?? NSScreen.screens.first(where: {
       Int($0.deviceDescription[NSDeviceDescriptionKey("NSScreenNumber")] as? CGDirectDisplayID ?? 0)
         == display.displayID
@@ -1214,6 +1275,12 @@ final class ScreenCaptureManager: ObservableObject {
     }
 
     let screenFrame = matchingScreen.frame
+    let nativeScaleFactor = displaySnapshotScaleFactor(
+      for: matchingScreen,
+      display: display,
+      contentFilter: contentFilter
+    )
+    let scaleFactor = max(nativeScaleFactor, minimumOutputScaleFactor)
 
     let relativeRect = CGRect(
       x: rect.origin.x - screenFrame.origin.x,
@@ -1273,7 +1340,8 @@ final class ScreenCaptureManager: ObservableObject {
       sourceRect: sourceRect,
       outputWidth: outputWidth,
       outputHeight: outputHeight,
-      scaleFactor: scaleFactor
+      scaleFactor: scaleFactor,
+      sharpensPromotedOutput: scaleFactor > nativeScaleFactor + 0.0001
     )
   }
 
@@ -1283,7 +1351,10 @@ final class ScreenCaptureManager: ObservableObject {
     showCursor: Bool
   ) async throws -> (image: CGImage, scaleFactor: CGFloat) {
     let contentFilter = SCContentFilter(desktopIndependentWindow: window)
-    let scaleFactor = resolvedWindowScaleFactor(window: window, fallbackDisplayID: fallbackTarget.displayID)
+    let scaleFactor = max(
+      resolvedWindowScaleFactor(window: window, fallbackDisplayID: fallbackTarget.displayID),
+      preferredScreenshotOutputScaleFactor
+    )
     let contentRect: CGRect
     if #available(macOS 14.0, *) {
       contentRect = contentFilter.contentRect.isEmpty ? window.frame : contentFilter.contentRect
@@ -1558,6 +1629,65 @@ final class ScreenCaptureManager: ObservableObject {
     default:
       return nil
     }
+  }
+
+  private func displaySnapshotScaleFactor(
+    for screen: NSScreen?,
+    display: SCDisplay,
+    contentFilter: SCContentFilter? = nil
+  ) -> CGFloat {
+    if #available(macOS 14.0, *), let contentFilter {
+      let pointPixelScale = CGFloat(contentFilter.pointPixelScale)
+      if pointPixelScale.isFinite, pointPixelScale > 0 {
+        return pointPixelScale
+      }
+    }
+
+    if let screen,
+       let displayScale = Self.dimensionScale(
+        pixelWidth: display.width,
+        pixelHeight: display.height,
+        frame: screen.frame
+       ) {
+      return displayScale
+    }
+
+    if let displayScale = Self.dimensionScale(
+      pixelWidth: display.width,
+      pixelHeight: display.height,
+      frame: display.frame
+    ) {
+      return displayScale
+    }
+
+    if let screen {
+      return max(screen.backingScaleFactor, 1)
+    }
+
+    return 2
+  }
+
+  private nonisolated static func imageScaleFactor(
+    for image: CGImage,
+    screenFrame: CGRect,
+    fallback: CGFloat
+  ) -> CGFloat {
+    dimensionScale(
+      pixelWidth: image.width,
+      pixelHeight: image.height,
+      frame: screenFrame
+    ) ?? max(fallback, 1)
+  }
+
+  private nonisolated static func dimensionScale(
+    pixelWidth: Int,
+    pixelHeight: Int,
+    frame: CGRect
+  ) -> CGFloat? {
+    let widthScale = frame.width > 0 ? CGFloat(pixelWidth) / frame.width : 0
+    let heightScale = frame.height > 0 ? CGFloat(pixelHeight) / frame.height : 0
+    let candidates = [widthScale, heightScale].filter { $0.isFinite && $0 > 0 }
+    return candidates.max()
   }
 
   private func pixelAlignedRect(_ rect: CGRect, scaleFactor: CGFloat, bounds: CGRect) -> CGRect {

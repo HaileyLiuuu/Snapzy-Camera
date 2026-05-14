@@ -145,6 +145,10 @@ final class ScreenCaptureViewModel: ObservableObject, KeyboardShortcutDelegate {
     return .png
   }
 
+  private var preferredScreenshotOutputScaleFactor: CGFloat {
+    max(NSScreen.screens.map(\.backingScaleFactor).max() ?? 2.0, 2.0)
+  }
+
   private var includesOwnAppInRecordings: Bool {
     UserDefaults.standard.bool(forKey: PreferencesKeys.recordingIncludeOwnApp)
   }
@@ -789,10 +793,17 @@ final class ScreenCaptureViewModel: ObservableObject, KeyboardShortcutDelegate {
                 )
               }
               let cropResult: FrozenAreaCropResult
+              let outputScaleFactor = self.preferredScreenshotOutputScaleFactor
               if selection.spansMultipleDisplays {
-                cropResult = try frozenSession.cropCompositeImage(for: selection)
+                cropResult = try frozenSession.cropCompositeImage(
+                  for: selection,
+                  minimumOutputScaleFactor: outputScaleFactor
+                )
               } else {
-                cropResult = try frozenSession.cropImage(for: selection)
+                cropResult = try frozenSession.cropImage(
+                  for: selection,
+                  minimumOutputScaleFactor: outputScaleFactor
+                )
               }
               let result = await self.captureManager.saveProcessedImage(
                 cropResult.image,

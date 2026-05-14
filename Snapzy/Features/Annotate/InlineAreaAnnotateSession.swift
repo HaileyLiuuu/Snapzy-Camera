@@ -274,9 +274,16 @@ final class InlineAreaAnnotateSession: ObservableObject {
         mode: .screenshot,
         displayIDs: displayIDs.isEmpty ? [displayID] : displayIDs
       )
+      let outputScaleFactor = Self.preferredOutputScaleFactor
       let result = selection.spansMultipleDisplays
-        ? try frozenSession.cropCompositeImage(for: selection)
-        : try frozenSession.cropImage(for: selection)
+        ? try frozenSession.cropCompositeImage(
+          for: selection,
+          minimumOutputScaleFactor: outputScaleFactor
+        )
+        : try frozenSession.cropImage(
+          for: selection,
+          minimumOutputScaleFactor: outputScaleFactor
+        )
       let image = NSImage(cgImage: result.image, size: result.screenRect.size)
       let localRect = Self.localRect(for: result.screenRect, in: desktopFrame)
       return InlineAreaCrop(image: image, localRect: clampedSelectionRect(localRect))
@@ -380,6 +387,10 @@ final class InlineAreaAnnotateSession: ObservableObject {
           image.size.width > 0,
           image.size.height > 0 else { return 1 }
     return max(CGFloat(rep.pixelsWide) / image.size.width, CGFloat(rep.pixelsHigh) / image.size.height, 1)
+  }
+
+  private static var preferredOutputScaleFactor: CGFloat {
+    max(NSScreen.screens.map(\.backingScaleFactor).max() ?? 2.0, 2.0)
   }
 
   private func isCommandSaveShortcut(_ event: NSEvent) -> Bool {

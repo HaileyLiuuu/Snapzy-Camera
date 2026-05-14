@@ -5,6 +5,7 @@
 //  Owns frozen display snapshots used for static area selection.
 //
 
+import Accelerate
 import CoreGraphics
 import Foundation
 
@@ -14,6 +15,18 @@ nonisolated struct FrozenDisplaySnapshot {
   let scaleFactor: CGFloat
   let colorSpaceName: CFString?
   let image: CGImage
+
+  var pixelScaleFactor: CGFloat {
+    let widthScale = screenFrame.width > 0 ? CGFloat(image.width) / screenFrame.width : 0
+    let heightScale = screenFrame.height > 0 ? CGFloat(image.height) / screenFrame.height : 0
+    let candidates = [widthScale, heightScale].filter { $0.isFinite && $0 > 0 }
+
+    guard let imageScale = candidates.max() else {
+      return max(scaleFactor, 1)
+    }
+
+    return imageScale
+  }
 }
 
 nonisolated struct FrozenAreaCropResult {
@@ -23,6 +36,8 @@ nonisolated struct FrozenAreaCropResult {
 }
 
 nonisolated final class FrozenAreaCaptureSession {
+  private static let sharpenPromotedOutputPixelLimit = 12_000_000
+
   private var snapshots: [CGDirectDisplayID: FrozenDisplaySnapshot]
 
   private init(snapshots: [CGDirectDisplayID: FrozenDisplaySnapshot]) {
@@ -69,7 +84,7 @@ nonisolated final class FrozenAreaCaptureSession {
       result[displayID] = AreaSelectionBackdrop(
         displayID: displayID,
         image: snapshot.image,
-        scaleFactor: snapshot.scaleFactor
+        scaleFactor: snapshot.pixelScaleFactor
       )
     }
     return result
@@ -92,7 +107,7 @@ nonisolated final class FrozenAreaCaptureSession {
     return AreaSelectionBackdrop(
       displayID: displayID,
       image: snapshot.image,
-      scaleFactor: snapshot.scaleFactor
+      scaleFactor: snapshot.pixelScaleFactor
     )
   }
 
@@ -100,10 +115,14 @@ nonisolated final class FrozenAreaCaptureSession {
     Set(displayIDs.filter { snapshots[$0] == nil })
   }
 
-  func cropImage(for selection: AreaSelectionResult) throws -> FrozenAreaCropResult {
+  func cropImage(
+    for selection: AreaSelectionResult,
+    minimumOutputScaleFactor: CGFloat = 1
+  ) throws -> FrozenAreaCropResult {
     guard let snapshot = snapshots[selection.displayID] else {
       throw CaptureError.captureFailed(L10n.ScreenCapture.selectionOutsideDisplayBounds)
     }
+    let scaleFactor = snapshot.pixelScaleFactor
 
     let relativeRect = CGRect(
       x: selection.rect.origin.x - snapshot.screenFrame.origin.x,
@@ -124,7 +143,7 @@ nonisolated final class FrozenAreaCaptureSession {
 
     let alignedRect = Self.pixelAlignedRect(
       clampedRect,
-      scaleFactor: snapshot.scaleFactor,
+      scaleFactor: scaleFactor,
       bounds: screenBounds
     )
     guard !alignedRect.isEmpty else {
@@ -133,10 +152,10 @@ nonisolated final class FrozenAreaCaptureSession {
 
     let flippedY = snapshot.screenFrame.height - alignedRect.origin.y - alignedRect.height
     let pixelCropRect = CGRect(
-      x: (alignedRect.origin.x * snapshot.scaleFactor).rounded(),
-      y: (flippedY * snapshot.scaleFactor).rounded(),
-      width: CGFloat(max(1, Int((alignedRect.width * snapshot.scaleFactor).rounded()))),
-      height: CGFloat(max(1, Int((alignedRect.height * snapshot.scaleFactor).rounded())))
+      x: (alignedRect.origin.x * scaleFactor).rounded(),
+      y: (flippedY * scaleFactor).rounded(),
+      width: CGFloat(max(1, Int((alignedRect.width * scaleFactor).rounded()))),
+      height: CGFloat(max(1, Int((alignedRect.height * scaleFactor).rounded())))
     ).intersection(
       CGRect(
         x: 0,
@@ -157,14 +176,25 @@ nonisolated final class FrozenAreaCaptureSession {
       height: alignedRect.height
     )
 
+    let promotedImage = Self.imageByPromotingScaleIfNeeded(
+      croppedImage,
+      logicalSize: alignedScreenRect.size,
+      sourceScaleFactor: scaleFactor,
+      minimumOutputScaleFactor: minimumOutputScaleFactor,
+      colorSpaceName: snapshot.colorSpaceName
+    )
+
     return FrozenAreaCropResult(
-      image: croppedImage,
-      scaleFactor: snapshot.scaleFactor,
+      image: promotedImage.image,
+      scaleFactor: promotedImage.scaleFactor,
       screenRect: alignedScreenRect
     )
   }
 
-  func cropCompositeImage(for selection: AreaSelectionResult) throws -> FrozenAreaCropResult {
+  func cropCompositeImage(
+    for selection: AreaSelectionResult,
+    minimumOutputScaleFactor: CGFloat = 1
+  ) throws -> FrozenAreaCropResult {
     let requestedSelectionRect = selection.rect
     let requestedDisplayIDs = selection.displayIDs.isEmpty ? [selection.displayID] : selection.displayIDs
     let candidateSnapshots = snapshots.values.filter { snapshot in
@@ -175,7 +205,8 @@ nonisolated final class FrozenAreaCaptureSession {
       throw CaptureError.captureFailed(L10n.ScreenCapture.selectionOutsideDisplayBounds)
     }
 
-    let outputScaleFactor = candidateSnapshots.map(\.scaleFactor).max() ?? 1.0
+    let sourceScaleFactor = candidateSnapshots.map(\.pixelScaleFactor).max() ?? 1.0
+    let outputScaleFactor = max(sourceScaleFactor, minimumOutputScaleFactor)
     let captureBounds = candidateSnapshots.reduce(CGRect.null) { partialResult, snapshot in
       partialResult.union(snapshot.screenFrame)
     }
@@ -214,9 +245,13 @@ nonisolated final class FrozenAreaCaptureSession {
     }
 
     context.clear(CGRect(x: 0, y: 0, width: outputWidth, height: outputHeight))
-    context.interpolationQuality = .none
+    let needsScalePromotion = matchingSnapshots.contains {
+      outputScaleFactor > $0.pixelScaleFactor + 0.0001
+    }
+    context.interpolationQuality = needsScalePromotion ? .high : .none
 
     for snapshot in matchingSnapshots {
+      let snapshotScaleFactor = snapshot.pixelScaleFactor
       let screenBounds = CGRect(
         x: 0,
         y: 0,
@@ -232,17 +267,17 @@ nonisolated final class FrozenAreaCaptureSession {
       )
       let alignedRect = Self.pixelAlignedRect(
         relativeRect,
-        scaleFactor: snapshot.scaleFactor,
+        scaleFactor: snapshotScaleFactor,
         bounds: screenBounds
       )
       guard !alignedRect.isEmpty else { continue }
 
       let flippedY = snapshot.screenFrame.height - alignedRect.origin.y - alignedRect.height
       let pixelCropRect = CGRect(
-        x: (alignedRect.origin.x * snapshot.scaleFactor).rounded(),
-        y: (flippedY * snapshot.scaleFactor).rounded(),
-        width: CGFloat(max(1, Int((alignedRect.width * snapshot.scaleFactor).rounded()))),
-        height: CGFloat(max(1, Int((alignedRect.height * snapshot.scaleFactor).rounded())))
+        x: (alignedRect.origin.x * snapshotScaleFactor).rounded(),
+        y: (flippedY * snapshotScaleFactor).rounded(),
+        width: CGFloat(max(1, Int((alignedRect.width * snapshotScaleFactor).rounded()))),
+        height: CGFloat(max(1, Int((alignedRect.height * snapshotScaleFactor).rounded())))
       ).intersection(
         CGRect(
           x: 0,
@@ -271,9 +306,15 @@ nonisolated final class FrozenAreaCaptureSession {
       context.draw(croppedImage, in: destinationRect)
     }
 
-    guard let image = context.makeImage() else {
+    guard let renderedImage = context.makeImage() else {
       throw CaptureError.captureFailed(L10n.ScreenCapture.failedToCropCapturedImage)
     }
+    let allSnapshotsPromoted = matchingSnapshots.allSatisfy {
+      outputScaleFactor > $0.pixelScaleFactor + 0.0001
+    }
+    let image = needsScalePromotion && allSnapshotsPromoted
+      ? Self.sharpenPromotedImageIfUseful(renderedImage, colorSpaceName: nil)
+      : renderedImage
 
     return FrozenAreaCropResult(
       image: image,
@@ -304,6 +345,179 @@ nonisolated final class FrozenAreaCaptureSession {
       width: max(0, maxX - minX),
       height: max(0, maxY - minY)
     ).intersection(bounds)
+  }
+
+  private static func imageByPromotingScaleIfNeeded(
+    _ image: CGImage,
+    logicalSize: CGSize,
+    sourceScaleFactor: CGFloat,
+    minimumOutputScaleFactor: CGFloat,
+    colorSpaceName: CFString?
+  ) -> (image: CGImage, scaleFactor: CGFloat) {
+    let outputScaleFactor = max(sourceScaleFactor, minimumOutputScaleFactor)
+    let targetWidth = max(1, Int((logicalSize.width * outputScaleFactor).rounded()))
+    let targetHeight = max(1, Int((logicalSize.height * outputScaleFactor).rounded()))
+
+    guard outputScaleFactor > sourceScaleFactor + 0.0001,
+          targetWidth != image.width || targetHeight != image.height,
+          let scaledImage = scaledImage(
+            image,
+            width: targetWidth,
+            height: targetHeight,
+            colorSpaceName: colorSpaceName
+          )
+    else {
+      return (image, sourceScaleFactor)
+    }
+
+    return (scaledImage, outputScaleFactor)
+  }
+
+  static func sharpenPromotedImageIfUseful(
+    _ image: CGImage,
+    colorSpaceName: CFString?
+  ) -> CGImage {
+    let pixelCount = image.width * image.height
+    guard pixelCount > 0,
+          pixelCount <= sharpenPromotedOutputPixelLimit,
+          let sharpenedImage = sharpenedImage(image, colorSpaceName: colorSpaceName)
+    else {
+      return image
+    }
+
+    return sharpenedImage
+  }
+
+  private static func scaledImage(
+    _ image: CGImage,
+    width: Int,
+    height: Int,
+    colorSpaceName: CFString?
+  ) -> CGImage? {
+    let colorSpace = colorSpace(from: colorSpaceName)
+      ?? image.colorSpace
+      ?? CGColorSpaceCreateDeviceRGB()
+
+    if let acceleratedImage = acceleratedScaledImage(
+      image,
+      width: width,
+      height: height,
+      colorSpace: colorSpace
+    ) {
+      return sharpenPromotedImageIfUseful(acceleratedImage, colorSpaceName: colorSpaceName)
+    }
+
+    guard let context = CGContext(
+      data: nil,
+      width: width,
+      height: height,
+      bitsPerComponent: 8,
+      bytesPerRow: 0,
+      space: colorSpace,
+      bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue
+    ) else {
+      return nil
+    }
+
+    context.interpolationQuality = .high
+    context.draw(image, in: CGRect(x: 0, y: 0, width: width, height: height))
+    guard let scaledImage = context.makeImage() else { return nil }
+    return sharpenPromotedImageIfUseful(scaledImage, colorSpaceName: colorSpaceName)
+  }
+
+  private static func acceleratedScaledImage(
+    _ image: CGImage,
+    width: Int,
+    height: Int,
+    colorSpace: CGColorSpace
+  ) -> CGImage? {
+    let format = vImage_CGImageFormat(
+      bitsPerComponent: 8,
+      bitsPerPixel: 32,
+      colorSpace: Unmanaged.passUnretained(colorSpace),
+      bitmapInfo: CGBitmapInfo(rawValue: CGImageAlphaInfo.premultipliedLast.rawValue),
+      version: 0,
+      decode: nil,
+      renderingIntent: .defaultIntent
+    )
+
+    do {
+      var sourceBuffer = try vImage_Buffer(cgImage: image, format: format)
+      defer { sourceBuffer.free() }
+
+      var destinationBuffer = try vImage_Buffer(
+        width: width,
+        height: height,
+        bitsPerPixel: format.bitsPerPixel
+      )
+      defer { destinationBuffer.free() }
+
+      let error = vImageScale_ARGB8888(
+        &sourceBuffer,
+        &destinationBuffer,
+        nil,
+        vImage_Flags(kvImageHighQualityResampling)
+      )
+      guard error == kvImageNoError else { return nil }
+
+      return try destinationBuffer.createCGImage(format: format)
+    } catch {
+      return nil
+    }
+  }
+
+  private static func sharpenedImage(
+    _ image: CGImage,
+    colorSpaceName: CFString?
+  ) -> CGImage? {
+    let colorSpace = colorSpace(from: colorSpaceName)
+      ?? image.colorSpace
+      ?? CGColorSpaceCreateDeviceRGB()
+    let format = vImage_CGImageFormat(
+      bitsPerComponent: 8,
+      bitsPerPixel: 32,
+      colorSpace: Unmanaged.passUnretained(colorSpace),
+      bitmapInfo: CGBitmapInfo(rawValue: CGImageAlphaInfo.premultipliedLast.rawValue),
+      version: 0,
+      decode: nil,
+      renderingIntent: .defaultIntent
+    )
+
+    do {
+      var sourceBuffer = try vImage_Buffer(cgImage: image, format: format)
+      defer { sourceBuffer.free() }
+
+      var destinationBuffer = try vImage_Buffer(
+        width: image.width,
+        height: image.height,
+        bitsPerPixel: format.bitsPerPixel
+      )
+      defer { destinationBuffer.free() }
+
+      var kernel: [Int16] = [
+        0, -1, 0,
+        -1, 10, -1,
+        0, -1, 0
+      ]
+      let error = vImageConvolve_ARGB8888(
+        &sourceBuffer,
+        &destinationBuffer,
+        nil,
+        0,
+        0,
+        &kernel,
+        3,
+        3,
+        6,
+        nil,
+        vImage_Flags(kvImageEdgeExtend)
+      )
+      guard error == kvImageNoError else { return nil }
+
+      return try destinationBuffer.createCGImage(format: format)
+    } catch {
+      return nil
+    }
   }
 
   private static func colorSpace(from name: CFString?) -> CGColorSpace? {
