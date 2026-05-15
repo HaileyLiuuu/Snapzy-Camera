@@ -48,6 +48,31 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 
 
+
+## [1.15.0] - 2026-05-15
+
+### Features
+-  Implement pinned screenshot windows with QuickAccessPinWindow and manager (#183) (2464978)
+-  Add refresh icon to status bar menu for improved user experience (#182) (0b2c6f9)
+-  Enhance image cropping functionality with improved scaling and pixel alignment for multi-display support (ddabdaa)
+-  Enhance inline area annotation with multi-display support (#178) (0b46662)
+-  Enhance multi-display screenshot functionality and improve capture session management (#178) (b847718)
+-  Add cloud upload functionality for capture history items with localization support (13c242f)
+-  Implement Quick Access action customization and configuration (6ce0b1a)
+
+### Bug Fixes
+-  Enhance localization error reporting with detailed missing and extra keys (ed15e1d)
+-  Enhance multi-display capture functionality with target display selection (e5fe606)
+-  Improve capture markup sharpness by aligning cropped images to display pixel grid (#180) (3bf8565)
+
+### Chore
+- chore: Enhance Quick Access action configuration UI with improved layout and styling (ae428ee)
+- chore: update appcast, cask, and readme for v1.14.3 (e41eb87)
+
+### Contributors
+- @duongductrong
+- @github-actions[bot]
+
 ## [1.14.3] - 2026-05-12
 
 ### Features
