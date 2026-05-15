@@ -296,7 +296,7 @@ flowchart TD
     P -->|Saved file| S["Open / drag / copy / delete"]
 
     J --> T{"Screenshot or video?"}
-    T -->|Screenshot| U["Annotate, drag, cloud upload, save/open, delete"]
+    T -->|Screenshot| U["Annotate, pin window, drag, cloud upload, save/open, delete"]
     T -->|Video or GIF| V["Video editor, drag, cloud upload, copy, save/open, delete"]
 ```
 
@@ -307,6 +307,8 @@ flowchart TD
 - Quick Access countdowns pause while a card is converting to GIF or uploading to cloud, then resume after the active work finishes.
 - Temp captures are intentionally stored in Application Support, not `/tmp`, so drag-and-drop remains stable.
 - Quick Access cards expose hover actions plus a matching context menu, opened with the cursor near the tail actions, for copy, save/open, edit, cloud upload, dismiss, and delete/trash actions. Settings → Quick Access lets users toggle actions and drag list rows to reorder the context menu. Card placement is separate: users drag actions onto the preview's center and corner slots, or drag preview actions outside the card to clear a slot.
+- Screenshot pin opens a separate always-on-top pin window. Closing it or pressing Esc while unlocked unpins the Quick Access item; lock mode keeps the screenshot on top, fades the image on mouse-over, and passes pointer events through to underlying apps except the unlock control.
+- Pinned screenshot windows size from the source image aspect ratio, keep a minimum interactive footprint for tiny captures, fit inside the active screen, and expose compact zoom and drag-to-app controls.
 - Quick Access action labels and post-capture error states are localized.
 
 ## Capture History Restore
@@ -362,6 +364,7 @@ flowchart TD
 - Watermark annotations are editable items with text, style, opacity, size, rotation, and color controls; export/copy/share/upload render them through the same final image pipeline as other annotations.
 - The crop tool can shrink or expand the editable canvas. Dragging crop handles outside the source image creates empty canvas space that accepts the same annotations as the original image area and is included in export/copy/share/upload.
 - Drag-to-app starts with a lazy file promise and guarantees a rendered file-URL fallback for apps that do not support file promises, so the first drag attempt can be accepted by file-url-only targets.
+- When Annotate saves a Quick Access screenshot, any open pin window receives the newly rendered image immediately; pin drag-to-app uses the current pinned pixels so saved edits are included even while the file write finishes in the background.
 - After a successful Annotate drag-to-app from a Quick Access item, Snapzy saves the current edits back to the source file before dismissing the Quick Access card.
 - Manually opened Annotate windows from the menu bar, global shortcut, or toolbar plus button are independent, so users can work with multiple clipboard/drop sessions side by side.
 - If a screenshot was already uploaded, later edits mark the cloud state stale until the user re-uploads.
@@ -416,6 +419,7 @@ flowchart TD
 | `Snapzy/Features/QuickAccess/QuickAccessManager.swift` | Floating stack state and countdown behavior |
 | `Snapzy/Features/QuickAccess/Models/QuickAccessActionConfigurationStore.swift` | User-configurable Quick Access action visibility, context menu order, and card slot assignments |
 | `Snapzy/Features/QuickAccess/Components/QuickAccessCardView.swift` | Card hover and context-menu actions including screenshot, video, and GIF cloud upload |
+| `Snapzy/Features/QuickAccess/Managers/QuickAccessPinWindowManager.swift` | Independent always-on-top pinned screenshot windows |
 | `Snapzy/Features/History/HistoryWindowController.swift` | History restore routing through Quick Access |
 | `Snapzy/Features/Annotate/AnnotateManager.swift` | Annotate window lifecycle and session caching |
 | `Snapzy/Features/Annotate/InlineAreaAnnotateSession.swift` | Session state machine (selecting → annotating), key handling, finish/cancel |

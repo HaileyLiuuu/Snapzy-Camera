@@ -77,6 +77,7 @@ enum QuickAccessActionKind: String, CaseIterable, Codable, Hashable, Identifiabl
   case delete
   case edit
   case uploadToCloud
+  case pinToScreen
 
   var id: String { rawValue }
 
@@ -87,13 +88,14 @@ enum QuickAccessActionKind: String, CaseIterable, Codable, Hashable, Identifiabl
     .delete,
     .edit,
     .uploadToCloud,
+    .pinToScreen,
   ]
 
   var displayStyle: QuickAccessActionDisplayStyle {
     switch self {
     case .copy, .saveOrOpen:
       return .primary
-    case .dismiss, .delete, .edit, .uploadToCloud:
+    case .dismiss, .delete, .edit, .uploadToCloud, .pinToScreen:
       return .corner
     }
   }
@@ -112,6 +114,8 @@ enum QuickAccessActionKind: String, CaseIterable, Codable, Hashable, Identifiabl
       return L10n.PreferencesQuickAccess.editAction
     case .uploadToCloud:
       return L10n.AnnotateUI.uploadToCloud
+    case .pinToScreen:
+      return L10n.PreferencesQuickAccess.pinToScreenAction
     }
   }
 
@@ -128,7 +132,7 @@ enum QuickAccessActionKind: String, CaseIterable, Codable, Hashable, Identifiabl
     switch self {
     case .dismiss, .delete:
       return true
-    case .copy, .saveOrOpen, .edit, .uploadToCloud:
+    case .copy, .saveOrOpen, .edit, .uploadToCloud, .pinToScreen:
       return false
     }
   }
@@ -153,6 +157,8 @@ enum QuickAccessActionKind: String, CaseIterable, Codable, Hashable, Identifiabl
       return "pencil"
     case .uploadToCloud:
       return "icloud.and.arrow.up"
+    case .pinToScreen:
+      return "pin"
     }
   }
 }

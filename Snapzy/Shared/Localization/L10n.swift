@@ -1725,6 +1725,16 @@ enum L10n {
       defaultValue: "Edit",
       comment: "Quick access configurable action title"
     )
+    static let pinToScreenAction = string(
+      "preferences-quick-access.action-pin-to-screen",
+      defaultValue: "Pin to Screen",
+      comment: "Quick access configurable action title"
+    )
+    static let unpinAction = string(
+      "preferences-quick-access.action-unpin",
+      defaultValue: "Unpin",
+      comment: "Quick access configurable action title"
+    )
     static let primaryActionBadge = string(
       "preferences-quick-access.badge-primary",
       defaultValue: "Primary",
@@ -5540,6 +5550,26 @@ enum L10n {
       "quick-access.edit-video",
       defaultValue: "Edit Video",
       comment: "Quick Access tooltip for opening the video editor"
+    )
+    static let lockPinnedWindow = string(
+      "quick-access.pin-window.lock",
+      defaultValue: "Lock and hide on mouse over",
+      comment: "Pinned screenshot window tooltip for enabling click-through lock mode"
+    )
+    static let unlockPinnedWindow = string(
+      "quick-access.pin-window.unlock",
+      defaultValue: "Unlock pinned window",
+      comment: "Pinned screenshot window tooltip for disabling click-through lock mode"
+    )
+    static let zoomPinnedWindow = string(
+      "quick-access.pin-window.zoom",
+      defaultValue: "Zoom pinned window",
+      comment: "Pinned screenshot window tooltip for the zoom menu"
+    )
+    static let fitPinnedWindow = string(
+      "quick-access.pin-window.fit",
+      defaultValue: "Fit",
+      comment: "Pinned screenshot window zoom menu item that returns to fitted size"
     )
   }
 

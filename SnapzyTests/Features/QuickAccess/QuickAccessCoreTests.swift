@@ -14,6 +14,7 @@ final class QuickAccessCoreTests: XCTestCase {
   // Keep MainActor ObservableObjects alive for the test process; XCTest scope
   // cleanup can crash while deinitializing app-level observable stores.
   private static var retainedActionStores: [QuickAccessActionConfigurationStore] = []
+  private static var retainedPinWindowStates: [QuickAccessPinWindowState] = []
 
   func testQuickAccessItem_formatsVideoDurationAndOmitsInvalidDurations() {
     let thumbnail = NSImage(size: CGSize(width: 16, height: 16))
@@ -69,6 +70,44 @@ final class QuickAccessCoreTests: XCTestCase {
 
     XCTAssertEqual(base, base)
     XCTAssertNotEqual(base, uploaded)
+
+    var pinned = base
+    pinned.isPinned = true
+    XCTAssertNotEqual(base, pinned)
+  }
+
+  func testQuickAccessPinWindowSizing_enforcesMinimumInteractiveSizeForTinyImages() {
+    let sizes = QuickAccessPinWindowSizing.sizes(
+      for: CGSize(width: 24, height: 16),
+      visibleSize: CGSize(width: 1440, height: 900)
+    )
+    let minimumSize = QuickAccessPinWindowSizing.minimumInteractiveSize
+
+    XCTAssertGreaterThanOrEqual(sizes.base.width, minimumSize.width)
+    XCTAssertGreaterThanOrEqual(sizes.base.height, minimumSize.height)
+    XCTAssertLessThanOrEqual(sizes.base.width, sizes.max.width)
+    XCTAssertLessThanOrEqual(sizes.base.height, sizes.max.height)
+  }
+
+  func testQuickAccessPinWindowState_clampsZoomToInteractiveMinimum() {
+    let minimumSize = QuickAccessPinWindowSizing.minimumInteractiveSize
+    let image = NSImage(size: CGSize(width: 24, height: 16))
+    let state = QuickAccessPinWindowState(
+      id: UUID(),
+      url: URL(fileURLWithPath: "/tmp/tiny.png"),
+      image: image,
+      thumbnail: image,
+      baseSize: minimumSize,
+      maxSize: CGSize(width: 1200, height: 900)
+    )
+    Self.retainedPinWindowStates.append(state)
+
+    let displaySize = state.setZoomPercent(50)
+
+    XCTAssertEqual(displaySize.width, minimumSize.width, accuracy: 0.001)
+    XCTAssertEqual(displaySize.height, minimumSize.height, accuracy: 0.001)
+    XCTAssertEqual(state.zoomPercent, 100)
+    XCTAssertFalse(state.zoomMenuPercents.contains(50))
   }
 
   func testQuickAccessActionConfigurationStore_usesDefaultOrderAndEnabledActions() {
@@ -88,11 +127,12 @@ final class QuickAccessCoreTests: XCTestCase {
       .delete,
       .edit,
       .uploadToCloud,
+      .pinToScreen,
     ]
 
     XCTAssertEqual(
       QuickAccessActionKind.contextMenuOrder(from: configuredOrder),
-      [.copy, .saveOrOpen, .edit, .uploadToCloud, .dismiss, .delete]
+      [.copy, .saveOrOpen, .edit, .uploadToCloud, .pinToScreen, .dismiss, .delete]
     )
   }
 
@@ -119,7 +159,7 @@ final class QuickAccessCoreTests: XCTestCase {
 
     XCTAssertEqual(
       store.actionOrder,
-      [.delete, .copy, .saveOrOpen, .dismiss, .edit, .uploadToCloud]
+      [.delete, .copy, .saveOrOpen, .dismiss, .edit, .uploadToCloud, .pinToScreen]
     )
     XCTAssertEqual(store.orderedActions(includeDisabled: false), [.copy])
   }
@@ -134,7 +174,7 @@ final class QuickAccessCoreTests: XCTestCase {
     XCTAssertFalse(store.isEnabled(.uploadToCloud))
     XCTAssertEqual(
       store.actionOrder,
-      [.saveOrOpen, .dismiss, .copy, .delete, .edit, .uploadToCloud]
+      [.saveOrOpen, .dismiss, .copy, .delete, .edit, .uploadToCloud, .pinToScreen]
     )
     XCTAssertEqual(store.slotAssignments, QuickAccessActionSlot.defaultAssignments)
 

@@ -44,6 +44,8 @@ struct QuickAccessItem: Identifiable, Equatable {
   var cloudKey: String?
   /// True when image has changed since last cloud upload (needs re-upload)
   var isCloudStale: Bool = false
+  /// True when the item should remain visible and bypass auto-dismiss
+  var isPinned: Bool = false
 
   /// Initializer for screenshots (backward compatible)
   init(url: URL, thumbnail: NSImage) {
@@ -56,6 +58,7 @@ struct QuickAccessItem: Identifiable, Equatable {
     self.thumbnailVersion = UUID()
     self.cloudURL = nil
     self.cloudKey = nil
+    self.isPinned = false
   }
 
   /// Initializer for videos with duration
@@ -69,10 +72,11 @@ struct QuickAccessItem: Identifiable, Equatable {
     self.thumbnailVersion = UUID()
     self.cloudURL = nil
     self.cloudKey = nil
+    self.isPinned = false
   }
 
   /// Initializer with explicit id (used for thumbnail retry updates)
-  init(id: UUID, url: URL, thumbnail: NSImage, capturedAt: Date, itemType: QuickAccessItemType, duration: TimeInterval?, thumbnailVersion: UUID = UUID(), cloudURL: URL? = nil, cloudKey: String? = nil, isCloudStale: Bool = false) {
+  init(id: UUID, url: URL, thumbnail: NSImage, capturedAt: Date, itemType: QuickAccessItemType, duration: TimeInterval?, thumbnailVersion: UUID = UUID(), cloudURL: URL? = nil, cloudKey: String? = nil, isCloudStale: Bool = false, isPinned: Bool = false) {
     self.id = id
     self.url = url
     self.thumbnail = thumbnail
@@ -83,10 +87,11 @@ struct QuickAccessItem: Identifiable, Equatable {
     self.cloudURL = cloudURL
     self.cloudKey = cloudKey
     self.isCloudStale = isCloudStale
+    self.isPinned = isPinned
   }
 
   static func == (lhs: QuickAccessItem, rhs: QuickAccessItem) -> Bool {
-    lhs.id == rhs.id && lhs.processingState == rhs.processingState && lhs.thumbnailVersion == rhs.thumbnailVersion && lhs.cloudURL == rhs.cloudURL && lhs.isCloudStale == rhs.isCloudStale
+    lhs.id == rhs.id && lhs.processingState == rhs.processingState && lhs.thumbnailVersion == rhs.thumbnailVersion && lhs.cloudURL == rhs.cloudURL && lhs.isCloudStale == rhs.isCloudStale && lhs.isPinned == rhs.isPinned
   }
 
   /// Whether this item is a video

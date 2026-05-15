@@ -72,6 +72,7 @@ final class QuickAccessManager: ObservableObject {
   // MARK: - Private
 
   private let panelController = QuickAccessPanelController()
+  private let pinWindowManager = QuickAccessPinWindowManager.shared
   private let fileAccessManager = SandboxFileAccessManager.shared
   private let tempCaptureManager = TempCaptureManager.shared
   private var dismissTimers: [UUID: QuickAccessCountdownTimer] = [:]
@@ -172,6 +173,7 @@ final class QuickAccessManager: ObservableObject {
     withAnimation(QuickAccessAnimations.cardInsert) {
       if items.count >= maxVisibleItems, let oldestId = items.last?.id {
         cancelDismissTimer(for: oldestId)
+        pinWindowManager.close(id: oldestId)
         items.removeLast()
         DiagnosticLogger.shared.log(
           .debug,
@@ -246,6 +248,7 @@ final class QuickAccessManager: ObservableObject {
     withAnimation(QuickAccessAnimations.cardInsert) {
       if items.count >= maxVisibleItems, let oldestId = items.last?.id {
         cancelDismissTimer(for: oldestId)
+        pinWindowManager.close(id: oldestId)
         items.removeLast()
         DiagnosticLogger.shared.log(
           .debug,
@@ -420,6 +423,7 @@ final class QuickAccessManager: ObservableObject {
     }
 
     cancelDismissTimer(for: id)
+    pinWindowManager.close(id: id)
     editingItemIds.remove(id)
     activityHoldItemIds.remove(id)
     // Clear annotation session cache for this item
@@ -450,6 +454,7 @@ final class QuickAccessManager: ObservableObject {
       context: ["itemId": id.uuidString]
     )
     cancelDismissTimer(for: id)
+    pinWindowManager.close(id: id)
     editingItemIds.remove(id)
     activityHoldItemIds.remove(id)
     // Clear annotation session cache for this item
@@ -460,6 +465,84 @@ final class QuickAccessManager: ObservableObject {
     if items.isEmpty {
       panelController.hide()
     }
+  }
+
+  /// Toggle pin state for an item. Pinned items bypass auto-dismiss.
+  func togglePin(id: UUID) {
+    guard let index = items.firstIndex(where: { $0.id == id }) else {
+      DiagnosticLogger.shared.log(
+        .warning,
+        .action,
+        "Quick access toggle pin missed item",
+        context: ["itemId": id.uuidString]
+      )
+      return
+    }
+
+    setPinState(id: id, isPinned: !items[index].isPinned, closePinWindow: true)
+  }
+
+  private func setPinState(id: UUID, isPinned: Bool, closePinWindow: Bool) {
+    guard let index = items.firstIndex(where: { $0.id == id }) else {
+      if closePinWindow {
+        pinWindowManager.close(id: id)
+      }
+      return
+    }
+
+    guard !items[index].isVideo else {
+      items[index].isPinned = false
+      pinWindowManager.close(id: id)
+      return
+    }
+
+    items[index].isPinned = isPinned
+
+    if isPinned {
+      let didShowWindow = pinWindowManager.show(item: items[index]) { [weak self] closedId in
+        self?.handlePinWindowClosed(id: closedId)
+      }
+
+      guard didShowWindow else {
+        items[index].isPinned = false
+        return
+      }
+
+      cancelDismissTimer(for: id)
+      DiagnosticLogger.shared.log(
+        .info,
+        .action,
+        "Quick access item pinned",
+        context: ["itemId": id.uuidString]
+      )
+    } else {
+      if closePinWindow {
+        pinWindowManager.close(id: id)
+      }
+      if autoDismissEnabled {
+        startDismissTimer(for: id)
+      }
+      DiagnosticLogger.shared.log(
+        .info,
+        .action,
+        "Quick access item unpinned",
+        context: ["itemId": id.uuidString]
+      )
+    }
+  }
+
+  private func handlePinWindowClosed(id: UUID) {
+    guard let index = items.firstIndex(where: { $0.id == id }) else { return }
+    items[index].isPinned = false
+    if autoDismissEnabled {
+      startDismissTimer(for: id)
+    }
+    DiagnosticLogger.shared.log(
+      .info,
+      .action,
+      "Quick access item unpinned from pin window close",
+      context: ["itemId": id.uuidString]
+    )
   }
 
   /// Update processing state for an item (used during GIF conversion)
@@ -509,8 +592,10 @@ final class QuickAccessManager: ObservableObject {
       duration: existing.duration,
       cloudURL: existing.cloudURL,
       cloudKey: existing.cloudKey,
-      isCloudStale: existing.isCloudStale
+      isCloudStale: existing.isCloudStale,
+      isPinned: existing.isPinned
     )
+    pinWindowManager.update(item: items[index])
     DiagnosticLogger.shared.log(
       .info,
       .action,
@@ -536,8 +621,10 @@ final class QuickAccessManager: ObservableObject {
       duration: existing.duration,
       cloudURL: existing.cloudURL,
       cloudKey: existing.cloudKey,
-      isCloudStale: existing.isCloudStale
+      isCloudStale: existing.isCloudStale,
+      isPinned: existing.isPinned
     )
+    pinWindowManager.update(item: items[index], imageOverride: image)
     logger.info("Thumbnail updated directly for item \(id)")
   }
 
@@ -608,8 +695,10 @@ final class QuickAccessManager: ObservableObject {
       duration: existing.duration,
       cloudURL: existing.cloudURL,
       cloudKey: existing.cloudKey,
-      isCloudStale: existing.isCloudStale
+      isCloudStale: existing.isCloudStale,
+      isPinned: existing.isPinned
     )
+    pinWindowManager.update(item: items[freshIndex])
     logger.info("Thumbnail refreshed for \(url.lastPathComponent)")
     DiagnosticLogger.shared.log(
       .debug,
@@ -627,6 +716,7 @@ final class QuickAccessManager: ObservableObject {
       // Clear annotation session cache
       AnnotateManager.shared.clearSessionData(for: item.id)
     }
+    pinWindowManager.closeAll()
     items.removeAll()
     editingItemIds.removeAll()
     activityHoldItemIds.removeAll()
@@ -814,6 +904,7 @@ final class QuickAccessManager: ObservableObject {
 
     // Remove card immediately (don't trigger temp file deletion since we're saving)
     cancelDismissTimer(for: id)
+    pinWindowManager.close(id: id)
     editingItemIds.remove(id)
     activityHoldItemIds.remove(id)
     withAnimation(.spring(response: 0.15, dampingFraction: 0.8)) {
@@ -902,6 +993,7 @@ final class QuickAccessManager: ObservableObject {
     withAnimation(QuickAccessAnimations.cardInsert) {
       if items.count >= maxVisibleItems, let oldestId = items.last?.id {
         cancelDismissTimer(for: oldestId)
+        pinWindowManager.close(id: oldestId)
         items.removeLast()
         DiagnosticLogger.shared.log(
           .debug,
@@ -939,6 +1031,7 @@ final class QuickAccessManager: ObservableObject {
   }
 
   private func startDismissTimer(for id: UUID) {
+    guard let index = items.firstIndex(where: { $0.id == id }), !items[index].isPinned else { return }
     let delay = autoDismissDelay
     let timer = QuickAccessCountdownTimer(duration: delay) { [weak self] in
       self?.removeScreenshot(id: id)

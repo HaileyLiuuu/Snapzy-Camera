@@ -61,6 +61,11 @@ struct QuickAccessCardView: View {
         .blur(radius: isHovering ? 2 : 0)
         .cornerRadius(cornerRadius)
 
+      // Pin indicator (pinned items when pin action is NOT assigned to a slot)
+      if item.isPinned, !isPinActionOnCard {
+        pinIndicator
+      }
+
       // Duration badge (videos only, bottom-right)
       if let duration = item.formattedDuration {
         durationBadge(duration)
@@ -371,6 +376,8 @@ struct QuickAccessCardView: View {
       return editActionTitle
     case .uploadToCloud:
       return cloudActionTitle
+    case .pinToScreen:
+      return item.isPinned ? L10n.PreferencesQuickAccess.unpinAction : L10n.PreferencesQuickAccess.pinToScreenAction
     }
   }
 
@@ -380,6 +387,8 @@ struct QuickAccessCardView: View {
       return isTempFile ? "square.and.arrow.down" : "folder"
     case .uploadToCloud:
       return cloudActionIcon
+    case .pinToScreen:
+      return item.isPinned ? "pin.fill" : "pin"
     default:
       return action.systemImage
     }
@@ -392,6 +401,8 @@ struct QuickAccessCardView: View {
     switch action {
     case .copy, .dismiss, .edit:
       return true
+    case .pinToScreen:
+      return !item.isVideo
     case .saveOrOpen:
       return shouldShowSaveOrOpenAction
     case .uploadToCloud:
@@ -429,6 +440,9 @@ struct QuickAccessCardView: View {
       handleDoubleClick()
     case .uploadToCloud:
       uploadToCloud()
+    case .pinToScreen:
+      guard !item.isVideo else { return }
+      manager.togglePin(id: item.id)
     }
   }
 
@@ -494,6 +508,26 @@ struct QuickAccessCardView: View {
           .padding(6)
       }
     }
+  }
+
+  private var isPinActionOnCard: Bool {
+    actionConfiguration.assignedSlot(for: .pinToScreen) != nil
+      && actionConfiguration.isEnabled(.pinToScreen)
+  }
+
+  private var pinIndicator: some View {
+    Image(systemName: "pin.fill")
+      .font(.system(size: 10, weight: .bold))
+      .foregroundColor(.white)
+      .frame(width: 20, height: 20)
+      .background(Circle().fill(Color.black.opacity(0.6)))
+      .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+      .padding(6)
+      .contentShape(Circle())
+      .onTapGesture {
+        manager.togglePin(id: item.id)
+      }
+      .help(item.isPinned ? L10n.PreferencesQuickAccess.unpinAction : L10n.PreferencesQuickAccess.pinToScreenAction)
   }
 
   private var hoverOverlay: some View {

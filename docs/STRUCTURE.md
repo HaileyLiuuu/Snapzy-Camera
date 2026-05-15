@@ -189,7 +189,7 @@ SnapzyUITests/
 | `Features/Onboarding/` | Onboarding step views and visual system, including first-run language selection |
 | `Features/Capture/` | High-level screenshot, OCR, cutout, scrolling-capture, and recording entry actions |
 | `Features/Recording/` | Recording toolbar, overlays, live annotation, stop/GIF handoff |
-| `Features/QuickAccess/` | Floating post-capture stack, temp-file persistence UX, drag-to-app |
+| `Features/QuickAccess/` | Floating post-capture stack, temp-file persistence UX, drag-to-app, pinned screenshot windows |
 | `Features/Annotate/` | Image editor, export, crop, blur, mockup, cutout-aware editing, inline area annotate |
 | `Features/VideoEditor/` | Trim, zoom, background, Smart Camera, GIF/video export |
 | `Features/Preferences/` | General, Capture, Quick Access, Shortcuts, Permissions, History storage/retention, Cloud, About tabs |
@@ -326,6 +326,7 @@ Directory structure mirrors the app: `SnapzyTests/Services/Cloud/AWSV4SignerTest
 
 - `Upload to Cloud & copy link` in Preferences enables manual cloud actions in Quick Access for screenshots, videos, and GIFs, plus Annotate for screenshots; it does not auto-run inside `PostCaptureActionHandler`.
 - Quick Access can outlive the original capture location: saved captures stay in the export folder, temp captures are deleted when dismissed unless the user explicitly saves them.
+- Quick Access screenshot pin opens an independent always-on-top pin window with fit-based sizing, a minimum interactive footprint, compact zoom/drag controls, close or Esc-to-unpin, drag-to-app from the current pinned image, and a lock mode that fades the screenshot while allowing pointer interaction with windows underneath except for the unlock control.
 - Annotate, Video Editor, GIF conversion, and cloud upload pause Quick Access countdowns for the active item and resume them when the activity ends.
 - During recording, the menu bar item no longer turns into a left-click stop button. It keeps the normal menu path available, adds a live timer to the status item, and exposes stop plus pause/resume from the active menu section.
 - When Preferences is opened during an active recording with own-app capture enabled, Snapzy temporarily excludes that Settings window from the stream instead of forcing the user to stop recording first.
