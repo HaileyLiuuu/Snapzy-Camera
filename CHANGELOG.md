@@ -49,6 +49,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 
 
+
+## [1.15.1] - 2026-05-15
+
+### Chore
+- chore: Introduce default enabled actions for Quick Access and update reset logic (67053fd)
+- chore: update appcast, cask, and readme for v1.15.0 (1dc4122)
+
+### Contributors
+- @duongductrong
+- @github-actions[bot]
+
 ## [1.15.0] - 2026-05-15
 
 ### Features
