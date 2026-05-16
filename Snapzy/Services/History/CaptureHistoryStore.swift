@@ -24,6 +24,8 @@ final class CaptureHistoryStore: ObservableObject {
 
   @Published private(set) var records: [CaptureHistoryRecord] = []
 
+  var userDefaults: UserDefaults = .standard
+
   private let dbPool: DatabasePool
   private var cancellable: AnyDatabaseCancellable?
 
@@ -42,17 +44,31 @@ final class CaptureHistoryStore: ObservableObject {
         .order(Column("capturedAt").desc)
         .fetchAll(db)
     }
-    cancellable = observation.start(
-      in: dbPool,
-      scheduling: .async(onQueue: DispatchQueue.main),
-      onError: { error in
-        logger.error("Database observation error: \(error.localizedDescription)")
-        DiagnosticLogger.shared.logError(.history, error, "Capture history database observation failed")
-      },
-      onChange: { [weak self] newRecords in
-        self?.records = newRecords
-      }
-    )
+    if DatabaseManager.isRunningUnderXCTest {
+      cancellable = observation.start(
+        in: dbPool,
+        scheduling: .immediate,
+        onError: { error in
+          logger.error("Database observation error: \(error.localizedDescription)")
+          DiagnosticLogger.shared.logError(.history, error, "Capture history database observation failed")
+        },
+        onChange: { [weak self] newRecords in
+          self?.records = newRecords
+        }
+      )
+    } else {
+      cancellable = observation.start(
+        in: dbPool,
+        scheduling: .async(onQueue: DispatchQueue.main),
+        onError: { error in
+          logger.error("Database observation error: \(error.localizedDescription)")
+          DiagnosticLogger.shared.logError(.history, error, "Capture history database observation failed")
+        },
+        onChange: { [weak self] newRecords in
+          self?.records = newRecords
+        }
+      )
+    }
     DiagnosticLogger.shared.log(.debug, .history, "Capture history observation started")
   }
 
@@ -61,7 +77,7 @@ final class CaptureHistoryStore: ObservableObject {
   /// Add a new capture record.
   /// Respects the `historyEnabled` preference; no-op if disabled.
   func add(_ record: CaptureHistoryRecord) {
-    guard UserDefaults.standard.bool(forKey: PreferencesKeys.historyEnabled) else {
+    guard userDefaults.bool(forKey: PreferencesKeys.historyEnabled) else {
       logger.debug("History disabled, skipping record for \(record.fileName)")
       DiagnosticLogger.shared.log(
         .debug,
@@ -214,10 +230,8 @@ final class CaptureHistoryStore: ObservableObject {
       // Collect all thumbnail paths before deletion
       let thumbnailPaths: [String] = try dbPool.read { db in
         try CaptureHistoryRecord
-          .select(Column("thumbnailPath"))
-          .asRequest(of: String.self)
           .fetchAll(db)
-          .compactMap { $0 }
+          .compactMap(\.thumbnailPath)
       }
 
       try dbPool.write { db in
@@ -564,7 +578,7 @@ final class CaptureHistoryStore: ObservableObject {
     Array(records.prefix(limit))
   }
 
-  private func refreshRecords() {
+  func refreshRecords() {
     do {
       records = try dbPool.read { db in
         try CaptureHistoryRecord

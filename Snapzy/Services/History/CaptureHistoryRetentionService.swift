@@ -17,6 +17,7 @@ final class CaptureHistoryRetentionService {
   static let shared = CaptureHistoryRetentionService()
 
   private var timer: Timer?
+  var userDefaults: UserDefaults = .standard
 
   private init() {}
 
@@ -45,16 +46,14 @@ final class CaptureHistoryRetentionService {
 
   /// Perform a single retention sweep based on current preferences
   func sweep() async {
-    let defaults = UserDefaults.standard
-
     // Only sweep if history is enabled
-    guard defaults.bool(forKey: PreferencesKeys.historyEnabled) else {
+    guard userDefaults.bool(forKey: PreferencesKeys.historyEnabled) else {
       DiagnosticLogger.shared.log(.debug, .history, "Capture history retention sweep skipped; history disabled")
       return
     }
 
-    let retentionDays = defaults.integer(forKey: PreferencesKeys.historyRetentionDays)
-    let maxCount = defaults.integer(forKey: PreferencesKeys.historyMaxCount)
+    let retentionDays = userDefaults.integer(forKey: PreferencesKeys.historyRetentionDays)
+    let maxCount = userDefaults.integer(forKey: PreferencesKeys.historyMaxCount)
 
     logger.info("Starting retention sweep (days: \(retentionDays), maxCount: \(maxCount))")
     DiagnosticLogger.shared.log(

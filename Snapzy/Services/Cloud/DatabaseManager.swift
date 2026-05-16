@@ -49,7 +49,7 @@ final class DatabaseManager: @unchecked Sendable {
     return appSupport.appendingPathComponent("Snapzy", isDirectory: true)
   }
 
-  private static var isRunningUnderXCTest: Bool {
+  static var isRunningUnderXCTest: Bool {
     ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil
   }
 
