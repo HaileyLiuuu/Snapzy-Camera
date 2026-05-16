@@ -143,6 +143,13 @@ final class AnnotateState: ObservableObject {
   static let hardMaximumZoomLevel: CGFloat = 16.0
   static let zoomPresetPercents = [25, 50, 75, 100, 125, 150, 200, 300, 400, 600, 800, 1200, 1600]
 
+  func toggleSidebarVisibility() {
+    guard editorMode != .preview else { return }
+    withAnimation(.easeInOut(duration: 0.2)) {
+      showSidebar.toggle()
+    }
+  }
+
   /// Base fitted canvas size before zoom is applied.
   @Published private(set) var baseCanvasDisplaySize: CGSize = .zero
 

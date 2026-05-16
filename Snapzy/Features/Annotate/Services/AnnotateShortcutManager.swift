@@ -13,6 +13,7 @@ import Foundation
 
 enum AnnotateActionShortcutKind: String, CaseIterable, Codable {
   case copyAndClose
+  case toggleSidebar
   case togglePin
   case cloudUpload
 }
@@ -29,6 +30,7 @@ final class AnnotateShortcutManager: ObservableObject {
 
   /// Configurable action shortcuts (modifier+key combos)
   @Published private(set) var copyAndCloseShortcut: ShortcutConfig?
+  @Published private(set) var toggleSidebarShortcut: ShortcutConfig?
   @Published private(set) var togglePinShortcut: ShortcutConfig?
   @Published private(set) var cloudUploadShortcut: ShortcutConfig?
   @Published private(set) var disabledActionShortcuts: Set<AnnotateActionShortcutKind> = []
@@ -36,6 +38,7 @@ final class AnnotateShortcutManager: ObservableObject {
   /// UserDefaults key prefix
   private let keyPrefix = "annotate.shortcut."
   private let copyAndCloseKey = "annotate.action.copyAndClose"
+  private let toggleSidebarKey = "annotate.action.toggleSidebar"
   private let togglePinKey = "annotate.action.togglePin"
   private let cloudUploadKey = "annotate.action.cloudUpload"
   private let disabledToolShortcutsKey = PreferencesKeys.disabledAnnotateToolShortcuts
@@ -54,6 +57,12 @@ final class AnnotateShortcutManager: ObservableObject {
     modifiers: UInt32(cmdKey | shiftKey)
   )
 
+  /// Default: ⌘B
+  static let defaultToggleSidebar = ShortcutConfig(
+    keyCode: UInt32(kVK_ANSI_B),
+    modifiers: UInt32(cmdKey)
+  )
+
   /// Default: ⌃⌘P
   static let defaultTogglePin = ShortcutConfig(
     keyCode: UInt32(kVK_ANSI_P),
@@ -68,6 +77,7 @@ final class AnnotateShortcutManager: ObservableObject {
 
   private init() {
     copyAndCloseShortcut = Self.defaultCopyAndClose
+    toggleSidebarShortcut = Self.defaultToggleSidebar
     togglePinShortcut = Self.defaultTogglePin
     cloudUploadShortcut = Self.defaultCloudUpload
     loadShortcuts()
@@ -129,6 +139,7 @@ final class AnnotateShortcutManager: ObservableObject {
     disabledActionShortcuts = []
     saveDisabledActionShortcuts()
     setCopyAndCloseShortcut(Self.defaultCopyAndClose)
+    setToggleSidebarShortcut(Self.defaultToggleSidebar)
     setTogglePinShortcut(Self.defaultTogglePin)
     setCloudUploadShortcut(Self.defaultCloudUpload)
   }
@@ -138,6 +149,11 @@ final class AnnotateShortcutManager: ObservableObject {
   func setCopyAndCloseShortcut(_ config: ShortcutConfig?) {
     copyAndCloseShortcut = config
     saveActionShortcut(config, forKey: copyAndCloseKey)
+  }
+
+  func setToggleSidebarShortcut(_ config: ShortcutConfig?) {
+    toggleSidebarShortcut = config
+    saveActionShortcut(config, forKey: toggleSidebarKey)
   }
 
   func setTogglePinShortcut(_ config: ShortcutConfig?) {
@@ -158,6 +174,8 @@ final class AnnotateShortcutManager: ObservableObject {
     switch kind {
     case .copyAndClose:
       return copyAndCloseShortcut
+    case .toggleSidebar:
+      return toggleSidebarShortcut
     case .togglePin:
       return togglePinShortcut
     case .cloudUpload:
@@ -182,6 +200,13 @@ final class AnnotateShortcutManager: ObservableObject {
     guard isActionShortcutEnabled(for: .copyAndClose) else { return false }
     guard let copyAndCloseShortcut else { return false }
     return matchesShortcut(copyAndCloseShortcut, event: event)
+  }
+
+  /// Check if an NSEvent matches the Toggle Sidebar shortcut
+  func matchesToggleSidebar(_ event: NSEvent) -> Bool {
+    guard isActionShortcutEnabled(for: .toggleSidebar) else { return false }
+    guard let toggleSidebarShortcut else { return false }
+    return matchesShortcut(toggleSidebarShortcut, event: event)
   }
 
   /// Check if an NSEvent matches the Toggle Pin shortcut
@@ -251,6 +276,7 @@ final class AnnotateShortcutManager: ObservableObject {
 
   private func loadActionShortcuts() {
     copyAndCloseShortcut = loadActionShortcut(forKey: copyAndCloseKey, defaultValue: Self.defaultCopyAndClose)
+    toggleSidebarShortcut = loadActionShortcut(forKey: toggleSidebarKey, defaultValue: Self.defaultToggleSidebar)
     togglePinShortcut = loadActionShortcut(forKey: togglePinKey, defaultValue: Self.defaultTogglePin)
     cloudUploadShortcut = loadActionShortcut(forKey: cloudUploadKey, defaultValue: Self.defaultCloudUpload)
   }

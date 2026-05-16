@@ -195,6 +195,8 @@ private extension AnnotateActionShortcutKind {
     switch self {
     case .copyAndClose:
       return L10n.ShortcutOverlay.copyAndClose
+    case .toggleSidebar:
+      return L10n.AnnotateUI.toggleSidebar
     case .togglePin:
       return L10n.ShortcutOverlay.togglePin
     case .cloudUpload:

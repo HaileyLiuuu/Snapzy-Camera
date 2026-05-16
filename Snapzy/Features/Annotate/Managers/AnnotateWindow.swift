@@ -122,6 +122,15 @@ final class AnnotateWindow: NSWindow {
       return true
     }
 
+    // Toggle Sidebar — configurable (default: ⌘B)
+    if AnnotateShortcutManager.shared.matchesToggleSidebar(event) {
+      guard !isTextInputActive, let interactionState else {
+        return super.performKeyEquivalent(with: event)
+      }
+      interactionState.toggleSidebarVisibility()
+      return true
+    }
+
     // Copy & Close — configurable (default: ⌘⇧C)
     if AnnotateShortcutManager.shared.matchesCopyAndClose(event) {
       NotificationCenter.default.post(name: .annotateCopyAndClose, object: self)

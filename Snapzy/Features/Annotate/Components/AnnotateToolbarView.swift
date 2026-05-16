@@ -74,9 +74,7 @@ struct AnnotateToolbarView: View {
         isSelected: state.showSidebar,
         highlightColor: .blue
       ) {
-        withAnimation(.easeInOut(duration: 0.2)) {
-          state.showSidebar.toggle()
-        }
+        state.toggleSidebarVisibility()
       }
       .help(L10n.AnnotateUI.toggleSidebar)
     }

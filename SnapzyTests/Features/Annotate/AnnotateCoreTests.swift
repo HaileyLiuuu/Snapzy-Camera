@@ -41,6 +41,22 @@ final class AnnotateCoreTests: XCTestCase {
     XCTAssertEqual(AnnotationCanvasEffects().blurredBackgroundEffect, .soft)
   }
 
+  @MainActor
+  func testAnnotateStateToggleSidebarVisibilitySkipsPreviewMode() {
+    let state = makeAnnotateState()
+
+    state.toggleSidebarVisibility()
+    XCTAssertTrue(state.showSidebar)
+
+    state.editorMode = .preview
+    state.toggleSidebarVisibility()
+    XCTAssertTrue(state.showSidebar)
+
+    state.editorMode = .annotate
+    state.toggleSidebarVisibility()
+    XCTAssertFalse(state.showSidebar)
+  }
+
   func testInlineAreaControls_nearFullscreenSelectionUsesBottomInnerPlacement() {
     let containerSize = CGSize(width: 1512, height: 982)
     let rect = CGRect(origin: .zero, size: containerSize)

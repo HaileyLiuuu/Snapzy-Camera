@@ -25,6 +25,7 @@ struct ShortcutsSettingsView: View {
   @State private var shortcutListShortcut: ShortcutConfig?
   @State private var historyShortcut: ShortcutConfig?
   @State private var copyAndCloseShortcut: ShortcutConfig?
+  @State private var toggleSidebarShortcut: ShortcutConfig?
   @State private var togglePinShortcut: ShortcutConfig?
   @State private var cloudUploadShortcut: ShortcutConfig?
   @State private var globalShortcutEnabled: [GlobalShortcutKind: Bool]
@@ -63,6 +64,7 @@ struct ShortcutsSettingsView: View {
     _shortcutListShortcut = State(initialValue: KeyboardShortcutManager.shared.shortcut(for: .shortcutList))
     _historyShortcut = State(initialValue: KeyboardShortcutManager.shared.shortcut(for: .history))
     _copyAndCloseShortcut = State(initialValue: AnnotateShortcutManager.shared.copyAndCloseShortcut)
+    _toggleSidebarShortcut = State(initialValue: AnnotateShortcutManager.shared.toggleSidebarShortcut)
     _togglePinShortcut = State(initialValue: AnnotateShortcutManager.shared.togglePinShortcut)
     _cloudUploadShortcut = State(initialValue: AnnotateShortcutManager.shared.cloudUploadShortcut)
     _globalShortcutEnabled = State(
@@ -448,6 +450,16 @@ struct ShortcutsSettingsView: View {
           )
 
           ShortcutRecorderView(
+            label: L10n.AnnotateUI.toggleSidebar,
+            icon: "rectangle.on.rectangle",
+            shortcut: $toggleSidebarShortcut,
+            defaultShortcut: AnnotateShortcutManager.defaultToggleSidebar,
+            isEnabled: annotateActionEnabledBinding(for: .toggleSidebar),
+            validationIssue: annotateActionValidationIssues[.toggleSidebar],
+            onShortcutChanged: { handleAnnotateActionShortcutChange($0, for: .toggleSidebar) }
+          )
+
+          ShortcutRecorderView(
             label: L10n.ShortcutOverlay.togglePin,
             icon: "pin",
             description: L10n.PreferencesShortcuts.togglePinDescription,
@@ -544,6 +556,7 @@ struct ShortcutsSettingsView: View {
     shortcutListShortcut = .defaultShortcutList
     historyShortcut = .defaultHistory
     copyAndCloseShortcut = AnnotateShortcutManager.defaultCopyAndClose
+    toggleSidebarShortcut = AnnotateShortcutManager.defaultToggleSidebar
     togglePinShortcut = AnnotateShortcutManager.defaultTogglePin
     cloudUploadShortcut = AnnotateShortcutManager.defaultCloudUpload
     globalShortcutEnabled = Dictionary(
@@ -742,6 +755,9 @@ struct ShortcutsSettingsView: View {
       case .copyAndClose:
         copyAndCloseShortcut = config
         annotateManager.setCopyAndCloseShortcut(config)
+      case .toggleSidebar:
+        toggleSidebarShortcut = config
+        annotateManager.setToggleSidebarShortcut(config)
       case .togglePin:
         togglePinShortcut = config
         annotateManager.setTogglePinShortcut(config)

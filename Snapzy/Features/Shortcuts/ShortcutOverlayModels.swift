@@ -163,6 +163,8 @@ enum ShortcutOverlayContentBuilder {
     switch kind {
     case .copyAndClose:
       return (L10n.ShortcutOverlay.copyAndClose, "doc.on.doc")
+    case .toggleSidebar:
+      return (L10n.AnnotateUI.toggleSidebar, "rectangle.on.rectangle")
     case .togglePin:
       return (L10n.ShortcutOverlay.togglePin, "pin")
     case .cloudUpload:
