@@ -147,7 +147,20 @@ final class InlineAreaAnnotatePanel: NSPanel {
   }
 }
 
-private final class InlineAreaHostingView<Content: View>: NSHostingView<Content> {
+private final class InlineAreaHostingView: NSHostingView<AnyView> {
+  convenience init<Content: View>(rootView: Content) {
+    self.init(rootView: AnyView(rootView))
+  }
+
+  required init(rootView: AnyView) {
+    super.init(rootView: rootView)
+  }
+
+  @available(*, unavailable)
+  required init?(coder: NSCoder) {
+    fatalError("init(coder:) has not been implemented")
+  }
+
   override func acceptsFirstMouse(for event: NSEvent?) -> Bool {
     true
   }

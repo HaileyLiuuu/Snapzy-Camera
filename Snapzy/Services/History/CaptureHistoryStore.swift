@@ -592,19 +592,29 @@ final class CaptureHistoryStore: ObservableObject {
   }
 
   private func currentFileSize(at url: URL) -> Int64 {
-    SandboxFileAccessManager.shared.withScopedAccess(to: url) {
-      do {
-        let attrs = try FileManager.default.attributesOfItem(atPath: url.path)
-        return (attrs[.size] as? NSNumber)?.int64Value ?? 0
-      } catch {
+    if let fileSize = fileSizeFromAttributes(at: url, logsFailure: false) {
+      return fileSize
+    }
+
+    return SandboxFileAccessManager.shared.withScopedAccess(to: url) {
+      fileSizeFromAttributes(at: url, logsFailure: true) ?? 0
+    }
+  }
+
+  private func fileSizeFromAttributes(at url: URL, logsFailure: Bool) -> Int64? {
+    do {
+      let attrs = try FileManager.default.attributesOfItem(atPath: url.path)
+      return (attrs[.size] as? NSNumber)?.int64Value ?? 0
+    } catch {
+      if logsFailure {
         DiagnosticLogger.shared.logError(
           .history,
           error,
           "Capture history current file size failed",
           context: ["fileName": url.lastPathComponent]
         )
-        return 0
       }
+      return nil
     }
   }
 }

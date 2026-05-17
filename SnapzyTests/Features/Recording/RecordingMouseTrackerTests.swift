@@ -29,23 +29,51 @@ final class RecordingMouseTrackerTests: XCTestCase {
   }
 
   func testInit_samplesPerSecond_matchesResolved() {
-    let tracker = RecordingMouseTracker(recordingRect: CGRect(x: 0, y: 0, width: 100, height: 100), fps: 30)
+    let tracker = makeTracker()
     XCTAssertEqual(tracker.samplesPerSecond, 60)
   }
 
   func testStartStop_returnsSamples() {
-    let tracker = RecordingMouseTracker(recordingRect: CGRect(x: 0, y: 0, width: 100, height: 100), fps: 30)
+    let clock = TestClock()
+    let tracker = makeTracker(clock: clock)
+
     tracker.start()
+    clock.uptime += 0.02
     let samples = tracker.stop()
-    XCTAssertGreaterThanOrEqual(samples.count, 1)
+    XCTAssertGreaterThanOrEqual(samples.count, 2)
+    XCTAssertEqual(samples.first?.normalizedX, 0.5)
+    XCTAssertEqual(samples.first?.normalizedY, 0.5)
     tracker.reset()
   }
 
   func testReset_clearsSamples() {
-    let tracker = RecordingMouseTracker(recordingRect: CGRect(x: 0, y: 0, width: 100, height: 100), fps: 30)
+    let clock = TestClock()
+    let tracker = makeTracker(clock: clock)
+
     tracker.start()
+    clock.uptime += 0.02
     _ = tracker.stop()
+    XCTAssertNotNil(tracker.diagnostics)
+
     tracker.reset()
-    // After reset, diagnostics should be nil
+    XCTAssertNil(tracker.diagnostics)
   }
+
+  private func makeTracker(clock: TestClock = TestClock()) -> RecordingMouseTracker {
+    RecordingMouseTracker(
+      recordingRect: CGRect(x: 0, y: 0, width: 100, height: 100),
+      fps: 30,
+      uptimeProvider: { clock.uptime },
+      mouseLocationProvider: { CGPoint(x: 50, y: 50) },
+      mouseMonitorInstaller: { _ in TestMouseMonitor() },
+      mouseMonitorRemover: { _ in }
+    )
+  }
+}
+
+private final class TestClock {
+  var uptime: TimeInterval = 100
+}
+
+private final class TestMouseMonitor {
 }

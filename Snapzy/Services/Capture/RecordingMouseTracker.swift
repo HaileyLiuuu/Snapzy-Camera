@@ -20,7 +20,12 @@ final class RecordingMouseTracker {
   }
 
   private let recordingRect: CGRect
+  private let samplesPerSecondValue: Int
   private let sampleInterval: TimeInterval
+  private let uptimeProvider: () -> TimeInterval
+  private let mouseLocationProvider: () -> CGPoint
+  private let mouseMonitorInstaller: (@escaping () -> Void) -> Any?
+  private let mouseMonitorRemover: (Any) -> Void
 
   private var timer: Timer?
   private var globalMouseMonitor: Any?
@@ -34,20 +39,38 @@ final class RecordingMouseTracker {
     min(max(fps * 2, 60), 120)
   }
 
-  init(recordingRect: CGRect, fps: Int) {
+  init(
+    recordingRect: CGRect,
+    fps: Int,
+    uptimeProvider: @escaping () -> TimeInterval = { ProcessInfo.processInfo.systemUptime },
+    mouseLocationProvider: @escaping () -> CGPoint = { NSEvent.mouseLocation },
+    mouseMonitorInstaller: @escaping (@escaping () -> Void) -> Any? = { onMouseEvent in
+      NSEvent.addGlobalMonitorForEvents(
+        matching: [.mouseMoved, .leftMouseDragged, .rightMouseDragged, .otherMouseDragged]
+      ) { _ in
+        onMouseEvent()
+      }
+    },
+    mouseMonitorRemover: @escaping (Any) -> Void = { NSEvent.removeMonitor($0) }
+  ) {
     self.recordingRect = recordingRect
     let samplesPerSecond = Self.resolvedSamplesPerSecond(for: fps)
+    self.samplesPerSecondValue = samplesPerSecond
     self.sampleInterval = 1.0 / Double(samplesPerSecond)
+    self.uptimeProvider = uptimeProvider
+    self.mouseLocationProvider = mouseLocationProvider
+    self.mouseMonitorInstaller = mouseMonitorInstaller
+    self.mouseMonitorRemover = mouseMonitorRemover
   }
 
   var samplesPerSecond: Int {
-    Int((1.0 / sampleInterval).rounded())
+    samplesPerSecondValue
   }
 
   func start() {
     reset()
 
-    startUptime = ProcessInfo.processInfo.systemUptime
+    startUptime = uptimeProvider()
     appendCurrentSample(force: true, location: nil)
     installGlobalMouseMonitor()
 
@@ -63,13 +86,13 @@ final class RecordingMouseTracker {
   func pause() {
     guard startUptime != nil, pausedAtUptime == nil else { return }
     appendCurrentSample(force: true, location: nil)
-    pausedAtUptime = ProcessInfo.processInfo.systemUptime
+    pausedAtUptime = uptimeProvider()
   }
 
   func resume() {
     guard let pausedAtUptime else { return }
 
-    accumulatedPausedDuration += ProcessInfo.processInfo.systemUptime - pausedAtUptime
+    accumulatedPausedDuration += uptimeProvider() - pausedAtUptime
     self.pausedAtUptime = nil
     appendCurrentSample(force: true, location: nil)
   }
@@ -79,7 +102,7 @@ final class RecordingMouseTracker {
     timer?.invalidate()
     timer = nil
     if let globalMouseMonitor {
-      NSEvent.removeMonitor(globalMouseMonitor)
+      mouseMonitorRemover(globalMouseMonitor)
       self.globalMouseMonitor = nil
     }
     pausedAtUptime = nil
@@ -91,7 +114,7 @@ final class RecordingMouseTracker {
     timer?.invalidate()
     timer = nil
     if let globalMouseMonitor {
-      NSEvent.removeMonitor(globalMouseMonitor)
+      mouseMonitorRemover(globalMouseMonitor)
       self.globalMouseMonitor = nil
     }
     samples.removeAll(keepingCapacity: true)
@@ -113,7 +136,7 @@ final class RecordingMouseTracker {
       return
     }
 
-    let cursorLocation = location ?? NSEvent.mouseLocation
+    let cursorLocation = location ?? mouseLocationProvider()
     let rawX = (cursorLocation.x - recordingRect.minX) / recordingRect.width
     let rawY = (cursorLocation.y - recordingRect.minY) / recordingRect.height
     // Convert AppKit global coordinates (bottom-left origin) into top-left normalized space.
@@ -143,9 +166,7 @@ final class RecordingMouseTracker {
   private func installGlobalMouseMonitor() {
     guard globalMouseMonitor == nil else { return }
 
-    globalMouseMonitor = NSEvent.addGlobalMonitorForEvents(
-      matching: [.mouseMoved, .leftMouseDragged, .rightMouseDragged, .otherMouseDragged]
-    ) { [weak self] _ in
+    globalMouseMonitor = mouseMonitorInstaller { [weak self] in
       Task { @MainActor [weak self] in
         self?.appendCurrentSample(force: false, location: nil)
       }
@@ -194,7 +215,7 @@ final class RecordingMouseTracker {
   private func currentElapsedTime() -> TimeInterval? {
     guard let startUptime else { return nil }
 
-    let referenceUptime = pausedAtUptime ?? ProcessInfo.processInfo.systemUptime
+    let referenceUptime = pausedAtUptime ?? uptimeProvider()
     return max(0, referenceUptime - startUptime - accumulatedPausedDuration)
   }
 }
