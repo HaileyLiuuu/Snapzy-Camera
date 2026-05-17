@@ -35,7 +35,7 @@ final class RecordingMouseTracker {
   private var accumulatedPausedDuration: TimeInterval = 0
   private(set) var diagnostics: TrackingDiagnostics?
 
-  static func resolvedSamplesPerSecond(for fps: Int) -> Int {
+  nonisolated static func resolvedSamplesPerSecond(for fps: Int) -> Int {
     min(max(fps * 2, 60), 120)
   }
 

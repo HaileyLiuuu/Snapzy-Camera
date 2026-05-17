@@ -9,7 +9,6 @@ import CoreGraphics
 import XCTest
 @testable import Snapzy
 
-@MainActor
 final class RecordingMouseTrackerTests: XCTestCase {
 
   func testResolvedSamplesPerSecond_fps15_clampedToMin() {
@@ -28,38 +27,50 @@ final class RecordingMouseTrackerTests: XCTestCase {
     XCTAssertEqual(RecordingMouseTracker.resolvedSamplesPerSecond(for: 120), 120)
   }
 
-  func testInit_samplesPerSecond_matchesResolved() {
-    let tracker = makeTracker()
-    XCTAssertEqual(tracker.samplesPerSecond, 60)
+  func testInit_samplesPerSecond_matchesResolved() async {
+    await MainActor.run {
+      let tracker = makeTracker()
+      XCTAssertEqual(tracker.samplesPerSecond, 60)
+    }
   }
 
-  func testStartStop_returnsSamples() {
-    let clock = TestClock()
-    let tracker = makeTracker(clock: clock)
+  func testStartStop_returnsSamples() async {
+    await MainActor.run {
+      let clock = TestClock()
+      let tracker = makeTracker(clock: clock)
 
-    tracker.start()
-    clock.uptime += 0.02
-    let samples = tracker.stop()
-    XCTAssertGreaterThanOrEqual(samples.count, 2)
-    XCTAssertEqual(samples.first?.normalizedX, 0.5)
-    XCTAssertEqual(samples.first?.normalizedY, 0.5)
-    tracker.reset()
+      tracker.start()
+      clock.uptime += 0.02
+      let samples = tracker.stop()
+      XCTAssertGreaterThanOrEqual(samples.count, 2)
+      XCTAssertEqual(samples.first?.normalizedX, 0.5)
+      XCTAssertEqual(samples.first?.normalizedY, 0.5)
+      tracker.reset()
+    }
   }
 
-  func testReset_clearsSamples() {
-    let clock = TestClock()
-    let tracker = makeTracker(clock: clock)
+  func testReset_clearsSamples() async {
+    await MainActor.run {
+      let clock = TestClock()
+      let tracker = makeTracker(clock: clock)
 
-    tracker.start()
-    clock.uptime += 0.02
-    _ = tracker.stop()
-    XCTAssertNotNil(tracker.diagnostics)
+      tracker.start()
+      clock.uptime += 0.02
+      _ = tracker.stop()
+      XCTAssertNotNil(tracker.diagnostics)
 
-    tracker.reset()
-    XCTAssertNil(tracker.diagnostics)
+      tracker.reset()
+      XCTAssertNil(tracker.diagnostics)
+    }
   }
 
-  private func makeTracker(clock: TestClock = TestClock()) -> RecordingMouseTracker {
+  @MainActor
+  private func makeTracker() -> RecordingMouseTracker {
+    makeTracker(clock: TestClock())
+  }
+
+  @MainActor
+  private func makeTracker(clock: TestClock) -> RecordingMouseTracker {
     RecordingMouseTracker(
       recordingRect: CGRect(x: 0, y: 0, width: 100, height: 100),
       fps: 30,

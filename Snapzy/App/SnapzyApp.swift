@@ -5,6 +5,7 @@
 //  Main app entry point - Menu Bar App
 //
 
+import AppKit
 import Carbon
 import SwiftUI
 
@@ -32,14 +33,58 @@ struct SnapzyApp: App {
   }
 }
 
+struct AppLaunchPolicy {
+  private let environment: [String: String]
+  private let screenCountProvider: () -> Int
+
+  init(
+    environment: [String: String] = ProcessInfo.processInfo.environment,
+    screenCountProvider: @escaping () -> Int = { NSScreen.screens.count }
+  ) {
+    self.environment = environment
+    self.screenCountProvider = screenCountProvider
+  }
+
+  var shouldStartInteractiveApplication: Bool {
+    if isRunningUnderXCTest && !allowsInteractiveXCTestHost {
+      return false
+    }
+
+    return !isHeadlessDisplaySession
+  }
+
+  var isRunningUnderXCTest: Bool {
+    environment["XCTestConfigurationFilePath"] != nil
+  }
+
+  var isHeadlessDisplaySession: Bool {
+    screenCountProvider() == 0
+  }
+
+  private var allowsInteractiveXCTestHost: Bool {
+    environment["SNAPZY_ALLOW_INTERACTIVE_XCTEST_HOST"] == "1"
+  }
+}
+
 // MARK: - App Delegate
 
 @MainActor
 class AppDelegate: NSObject, NSApplicationDelegate {
+  private let launchPolicyProvider: () -> AppLaunchPolicy
   private var coordinator: AppCoordinator?
   private var pendingDeepLinkURLs: [URL] = []
   private var pendingOpenFileURLs: [URL] = []
   private var didFinishLaunching = false
+
+  override init() {
+    self.launchPolicyProvider = { AppLaunchPolicy() }
+    super.init()
+  }
+
+  init(launchPolicyProvider: @escaping () -> AppLaunchPolicy) {
+    self.launchPolicyProvider = launchPolicyProvider
+    super.init()
+  }
 
   func applicationWillFinishLaunching(_ notification: Notification) {
     NSAppleEventManager.shared().setEventHandler(
@@ -51,6 +96,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
   }
 
   func applicationDidFinishLaunching(_ notification: Notification) {
+    guard launchPolicyProvider().shouldStartInteractiveApplication else {
+      return
+    }
+
     AppIdentityManager.shared.refresh()
 
     // Cleanup orphaned temp capture files from previous sessions
@@ -146,4 +195,18 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     pendingOpenFileURLs.removeAll()
     openImageURLs(urls)
   }
+
+  #if DEBUG
+    var hasCoordinatorForTesting: Bool {
+      coordinator != nil
+    }
+
+    var didFinishLaunchingForTesting: Bool {
+      didFinishLaunching
+    }
+
+    var pendingOpenFileURLCountForTesting: Int {
+      pendingOpenFileURLs.count
+    }
+  #endif
 }
