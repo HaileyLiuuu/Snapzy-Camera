@@ -54,6 +54,22 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 
 
+
+## [1.16.4] - 2026-05-19
+
+### Bug Fixes
+-  correct Simplified and Traditional Chinese UI translations (#202) (3b9a9d4)
+-  Update ClipboardHelper to write single pasteboard item with multiple representations (#199) (0d85eb8)
+-  Use native keyEquivalent column for overlay menu shortcuts (#200) (f5d3d9b)
+
+### Chore
+- chore: update appcast, cask, and readme for v1.16.3 (639a01a)
+
+### Contributors
+- @duongductrong
+- @gengjiawen
+- @github-actions[bot]
+
 ## [1.16.3] - 2026-05-19
 
 ### Chore
