@@ -6,6 +6,22 @@
     <description>Snapzy application updates</description>
     <language>en</language>
     <item>
+      <title>Version 1.17.0</title>
+      <sparkle:version>103</sparkle:version>
+      <sparkle:shortVersionString>1.17.0</sparkle:shortVersionString>
+      <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+      <pubDate>Wed, 20 May 2026 09:23:48 +0000</pubDate>
+      <description><![CDATA[
+        <style>:root { color-scheme: light dark; } body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; font-size: 13px; line-height: 1.5; padding: 8px 16px; } h3 { font-size: 14px; margin: 12px 0 6px; } ul { padding-left: 20px; margin: 4px 0; } li { margin: 3px 0; }</style>
+        <h3>✨ Features</h3><ul><li>Add clipboard image behavior settings and localization for Annotate</li><li>Implement color palette management for annotation tools (#189, #188)</li></ul>
+      ]]></description>
+      <enclosure
+        url="https://github.com/duongductrong/Snapzy/releases/download/v1.17.0/Snapzy-v1.17.0.dmg"
+        sparkle:edSignature="JMcVg4YdV8Jckj/i0jP+EiZXF7Hc2arT1FPsiEc5G/zM2zMepivpWnsKDJqZnB8tlrXTO8gVQ5E8amIyn0wFDw=="
+        length="46197690"
+        type="application/octet-stream"/>
+    </item>
+    <item>
       <title>Version 1.16.4</title>
       <sparkle:version>102</sparkle:version>
       <sparkle:shortVersionString>1.16.4</sparkle:shortVersionString>
