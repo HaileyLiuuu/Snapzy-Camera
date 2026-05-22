@@ -167,6 +167,8 @@ private enum SnapzyDeepLinkAction {
       return .general
     case "capture", "screenshots", "screenshot":
       return .capture
+    case "annotate", "annotation", "annotations":
+      return .annotate
     case "quick-access", "quickaccess":
       return .quickAccess
     case "history":

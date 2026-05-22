@@ -51,6 +51,8 @@ enum PreferencesKeys {
   static let annotateCanvasPresets = "annotate.canvasPresets.v1"
   static let annotateDefaultCanvasPresetId = "annotate.defaultCanvasPresetId.v1"
   static let annotateClipboardImageOpenBehavior = "annotate.clipboardImageOpenBehavior"
+  static let annotateCloseAfterDrag = "annotate.closeAfterDrag"
+  static let annotateBringForwardAfterDrag = "annotate.bringForwardAfterDrag"
   static let annotatePrimaryColor = "annotate.primaryColor.v1"
   static let annotateParameterDefaults = "annotate.parameterDefaults.v1"
   static let annotateCustomColors = "annotate.customColors.v1"

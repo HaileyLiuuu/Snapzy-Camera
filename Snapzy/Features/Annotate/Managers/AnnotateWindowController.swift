@@ -10,6 +10,30 @@ import Combine
 import SwiftUI
 import UniformTypeIdentifiers
 
+enum AnnotateDragCompletionAction: Equatable {
+  case closeAndDismiss
+  case restore(presentation: AnnotateDragRestorePresentation)
+}
+
+enum AnnotateDragRestorePresentation: Equatable {
+  case background
+  case foreground
+}
+
+enum AnnotateDragCompletionPolicy {
+  static func action(
+    success: Bool,
+    closeAfterDrag: Bool,
+    bringForwardAfterDrag: Bool
+  ) -> AnnotateDragCompletionAction {
+    guard success else { return .restore(presentation: .foreground) }
+    if closeAfterDrag {
+      return .closeAndDismiss
+    }
+    return .restore(presentation: bringForwardAfterDrag ? .foreground : .background)
+  }
+}
+
 /// Manages annotation window lifecycle and content
 @MainActor
 final class AnnotateWindowController: NSWindowController, NSWindowDelegate {
@@ -273,6 +297,14 @@ final class AnnotateWindowController: NSWindowController, NSWindowDelegate {
 
   private var requiresCloudOverwriteConfirmation: Bool {
     state.cloudURL != nil && (state.requiresRenderedOutputForSharing || state.isCloudStale)
+  }
+
+  private var shouldCloseAfterDrag: Bool {
+    UserDefaults.standard.object(forKey: PreferencesKeys.annotateCloseAfterDrag) as? Bool ?? true
+  }
+
+  private var shouldBringForwardAfterDrag: Bool {
+    UserDefaults.standard.object(forKey: PreferencesKeys.annotateBringForwardAfterDrag) as? Bool ?? false
   }
 
   private enum PasteboardImageCandidate {
@@ -575,7 +607,12 @@ final class AnnotateWindowController: NSWindowController, NSWindowDelegate {
   }
 
   private func handleDragEnded(success: Bool) {
-    if success {
+    switch AnnotateDragCompletionPolicy.action(
+      success: success,
+      closeAfterDrag: shouldCloseAfterDrag,
+      bringForwardAfterDrag: shouldBringForwardAfterDrag
+    ) {
+    case .closeAndDismiss:
       commitDragSuccessChangesIfNeeded()
       forceClose()
       // Also dismiss the Quick Access card (without deleting the file)
@@ -584,17 +621,30 @@ final class AnnotateWindowController: NSWindowController, NSWindowDelegate {
       }
       print("[AnnotateDrag] Drag succeeded — window + QA card dismissed")
 
-    } else {
-      // Cancelled/failed — restore window
-      guard let window = self.window else { return }
-      if let frame = savedWindowFrame {
-        window.setFrame(frame, display: true)
+    case .restore(let presentation):
+      restoreWindowAfterDrag(presentation: presentation)
+      if success {
+        print("[AnnotateDrag] Drag succeeded — editor preserved")
+      } else {
+        print("[AnnotateDrag] Drag cancelled — window restored")
       }
-      window.makeKeyAndOrderFront(nil)
-      NSApp.activate(ignoringOtherApps: true)
-      print("[AnnotateDrag] Drag cancelled — window restored")
     }
     savedWindowFrame = nil
+  }
+
+  private func restoreWindowAfterDrag(presentation: AnnotateDragRestorePresentation) {
+    guard let window = self.window else { return }
+    if let frame = savedWindowFrame {
+      window.setFrame(frame, display: true)
+    }
+
+    switch presentation {
+    case .foreground:
+      window.makeKeyAndOrderFront(nil)
+      NSApp.activate(ignoringOtherApps: true)
+    case .background:
+      window.orderBack(nil)
+    }
   }
 
   private func commitDragSuccessChangesIfNeeded() {

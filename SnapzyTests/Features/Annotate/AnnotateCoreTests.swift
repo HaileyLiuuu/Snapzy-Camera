@@ -49,6 +49,58 @@ final class AnnotateCoreTests: XCTestCase {
     XCTAssertEqual(AnnotationCanvasEffects().blurredBackgroundEffect, .soft)
   }
 
+  func testAnnotateDragCompletionPolicyClosesOnSuccessfulDragWhenEnabled() {
+    XCTAssertEqual(
+      AnnotateDragCompletionPolicy.action(
+        success: true,
+        closeAfterDrag: true,
+        bringForwardAfterDrag: false
+      ),
+      .closeAndDismiss
+    )
+  }
+
+  func testAnnotateDragCompletionPolicyRestoresInBackgroundWhenKeepingEditor() {
+    XCTAssertEqual(
+      AnnotateDragCompletionPolicy.action(
+        success: true,
+        closeAfterDrag: false,
+        bringForwardAfterDrag: false
+      ),
+      .restore(presentation: .background)
+    )
+  }
+
+  func testAnnotateDragCompletionPolicyRestoresInForegroundWhenRequested() {
+    XCTAssertEqual(
+      AnnotateDragCompletionPolicy.action(
+        success: true,
+        closeAfterDrag: false,
+        bringForwardAfterDrag: true
+      ),
+      .restore(presentation: .foreground)
+    )
+  }
+
+  func testAnnotateDragCompletionPolicyRestoresWithActivationWhenDragFails() {
+    XCTAssertEqual(
+      AnnotateDragCompletionPolicy.action(
+        success: false,
+        closeAfterDrag: true,
+        bringForwardAfterDrag: false
+      ),
+      .restore(presentation: .foreground)
+    )
+    XCTAssertEqual(
+      AnnotateDragCompletionPolicy.action(
+        success: false,
+        closeAfterDrag: false,
+        bringForwardAfterDrag: true
+      ),
+      .restore(presentation: .foreground)
+    )
+  }
+
   @MainActor
   func testAnnotateWindowFocusSyncKeepsInactiveWindowAtRestingLevel() {
     let window = AnnotateWindow(

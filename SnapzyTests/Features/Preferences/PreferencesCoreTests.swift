@@ -50,6 +50,7 @@ final class PreferencesCoreTests: XCTestCase {
     let tabs: Set<PreferencesTab> = [
       .general,
       .capture,
+      .annotate,
       .quickAccess,
       .history,
       .shortcuts,
@@ -58,7 +59,7 @@ final class PreferencesCoreTests: XCTestCase {
       .about,
     ]
 
-    XCTAssertEqual(tabs.count, 8)
+    XCTAssertEqual(tabs.count, 9)
   }
 
   private func makeDefaults(

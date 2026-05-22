@@ -21,6 +21,10 @@ struct PreferencesView: View {
         .tabItem { Label(L10n.Preferences.captureTab, systemImage: "camera.fill") }
         .tag(PreferencesTab.capture)
 
+      LazyView(AnnotateSettingsView())
+        .tabItem { Label(L10n.Preferences.annotateTab, systemImage: "pencil.and.scribble") }
+        .tag(PreferencesTab.annotate)
+
       LazyView(QuickAccessSettingsView())
         .tabItem { Label(L10n.Preferences.quickAccessTab, systemImage: "square.stack.fill") }
         .tag(PreferencesTab.quickAccess)
@@ -45,7 +49,7 @@ struct PreferencesView: View {
         .tabItem { Label(L10n.Preferences.aboutTab, systemImage: "info.circle.fill") }
         .tag(PreferencesTab.about)
     }
-    .frame(width: 700, height: 550)
+    .frame(width: 760, height: 550)
   }
 }
 

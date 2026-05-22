@@ -10,6 +10,7 @@ import Combine
 enum PreferencesTab: Hashable {
   case general
   case capture
+  case annotate
   case quickAccess
   case history
   case shortcuts

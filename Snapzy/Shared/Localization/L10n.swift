@@ -151,6 +151,11 @@ enum L10n {
       defaultValue: "Capture",
       comment: "Preferences tab title"
     )
+    static let annotateTab = string(
+      "preferences.tab.annotate",
+      defaultValue: "Annotate",
+      comment: "Preferences tab title"
+    )
     static let quickAccessTab = string(
       "preferences.tab.quick-access",
       defaultValue: "Quick Access",
@@ -1803,11 +1808,6 @@ enum L10n {
       defaultValue: "Desktop",
       comment: "Capture preferences section title"
     )
-    static let annotateSection = string(
-      "preferences-capture.section-annotate",
-      defaultValue: "Annotate",
-      comment: "Capture preferences section title"
-    )
     static let screenshotFormatSection = string(
       "preferences-capture.section-screenshot-format",
       defaultValue: "Screenshot Format",
@@ -1879,31 +1879,6 @@ enum L10n {
       "preferences-capture.include-in-recordings-description",
       defaultValue: "Show Snapzy windows such as Annotate in recorded videos",
       comment: "Capture preferences setting description"
-    )
-    static let annotateClipboardTitle = string(
-      "preferences-capture.annotate-clipboard-title",
-      defaultValue: "Clipboard image on Open Annotate",
-      comment: "Capture preferences setting title for clipboard image behavior"
-    )
-    static let annotateClipboardDescription = string(
-      "preferences-capture.annotate-clipboard-description",
-      defaultValue: "Choose what happens when a clipboard image is available while opening Annotate",
-      comment: "Capture preferences setting description for clipboard image behavior"
-    )
-    static let annotateClipboardAsk = string(
-      "preferences-capture.annotate-clipboard-ask",
-      defaultValue: "Ask every time",
-      comment: "Picker option for asking before loading a clipboard image into Annotate"
-    )
-    static let annotateClipboardLoadAutomatically = string(
-      "preferences-capture.annotate-clipboard-load-automatically",
-      defaultValue: "Load automatically",
-      comment: "Picker option for automatically loading a clipboard image into Annotate"
-    )
-    static let annotateClipboardDoNothing = string(
-      "preferences-capture.annotate-clipboard-do-nothing",
-      defaultValue: "Do nothing",
-      comment: "Picker option for not loading a clipboard image into Annotate"
     )
     static let hideDesktopIconsTitle = string(
       "preferences-capture.hide-desktop-icons-title",
@@ -2216,6 +2191,59 @@ enum L10n {
       "preferences-capture.ocr-success-notification-description",
       defaultValue: "Show a toast when text is copied to clipboard",
       comment: "Capture preferences setting description"
+    )
+  }
+
+  enum PreferencesAnnotate {
+    static let behaviorSection = string(
+      "preferences-capture.section-annotate",
+      defaultValue: "Behavior",
+      comment: "Annotate preferences section title"
+    )
+    static let clipboardTitle = string(
+      "preferences-capture.annotate-clipboard-title",
+      defaultValue: "Clipboard image on Open Annotate",
+      comment: "Annotate preferences setting title for clipboard image behavior"
+    )
+    static let clipboardDescription = string(
+      "preferences-capture.annotate-clipboard-description",
+      defaultValue: "Choose what happens when a clipboard image is available while opening Annotate",
+      comment: "Annotate preferences setting description for clipboard image behavior"
+    )
+    static let clipboardAsk = string(
+      "preferences-capture.annotate-clipboard-ask",
+      defaultValue: "Ask every time",
+      comment: "Picker option for asking before loading a clipboard image into Annotate"
+    )
+    static let clipboardLoadAutomatically = string(
+      "preferences-capture.annotate-clipboard-load-automatically",
+      defaultValue: "Load automatically",
+      comment: "Picker option for automatically loading a clipboard image into Annotate"
+    )
+    static let clipboardDoNothing = string(
+      "preferences-capture.annotate-clipboard-do-nothing",
+      defaultValue: "Do nothing",
+      comment: "Picker option for not loading a clipboard image into Annotate"
+    )
+    static let closeAfterDragTitle = string(
+      "preferences-capture.annotate-close-after-drag-title",
+      defaultValue: "Close after drop",
+      comment: "Annotate preferences setting title for closing Annotate after drag-to-app"
+    )
+    static let closeAfterDragDescription = string(
+      "preferences-capture.annotate-close-after-drag-description",
+      defaultValue: "Automatically close the Annotate editor after a successful drag-to-app drop",
+      comment: "Annotate preferences setting description for closing Annotate after drag-to-app"
+    )
+    static let bringForwardAfterDragTitle = string(
+      "preferences-capture.annotate-bring-forward-after-drag-title",
+      defaultValue: "Reactivate after drop",
+      comment: "Annotate preferences setting title for activating Annotate after drag-to-app"
+    )
+    static let bringForwardAfterDragDescription = string(
+      "preferences-capture.annotate-bring-forward-after-drag-description",
+      defaultValue: "When the editor stays open, bring Snapzy to the front and focus Annotate after the drop completes",
+      comment: "Annotate preferences setting description for activating Annotate after drag-to-app"
     )
   }
 

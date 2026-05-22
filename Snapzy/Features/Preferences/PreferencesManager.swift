@@ -53,11 +53,11 @@ enum AnnotateClipboardImageBehavior: String, CaseIterable, Identifiable {
   var displayName: String {
     switch self {
     case .ask:
-      return L10n.PreferencesCapture.annotateClipboardAsk
+      return L10n.PreferencesAnnotate.clipboardAsk
     case .loadAutomatically:
-      return L10n.PreferencesCapture.annotateClipboardLoadAutomatically
+      return L10n.PreferencesAnnotate.clipboardLoadAutomatically
     case .doNothing:
-      return L10n.PreferencesCapture.annotateClipboardDoNothing
+      return L10n.PreferencesAnnotate.clipboardDoNothing
     }
   }
 

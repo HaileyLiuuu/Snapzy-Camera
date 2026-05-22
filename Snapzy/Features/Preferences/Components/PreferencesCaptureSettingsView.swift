@@ -38,8 +38,6 @@ struct CaptureSettingsView: View {
   @AppStorage(PreferencesKeys.scrollingCaptureShowHints) private var scrollingCaptureShowHints = true
   @AppStorage(PreferencesKeys.backgroundCutoutAutoCropEnabled) private var backgroundCutoutAutoCropEnabled = true
   @AppStorage(PreferencesKeys.ocrSuccessNotificationEnabled) private var ocrSuccessNotification = false
-  @AppStorage(PreferencesKeys.annotateClipboardImageOpenBehavior)
-  private var annotateClipboardImageOpenBehavior = AnnotateClipboardImageBehavior.ask.rawValue
   @AppStorage(PreferencesKeys.screenshotFileNameTemplate)
   private var screenshotFileNameTemplate = CaptureOutputKind.screenshot.defaultTemplate
 
@@ -131,26 +129,6 @@ struct CaptureSettingsView: View {
             ) {
               Toggle("", isOn: $includeOwnAppInRecordings)
                 .labelsHidden()
-            }
-          }
-        }
-
-        if selectedPane == .general {
-          Section(L10n.PreferencesCapture.annotateSection) {
-            SettingRow(
-              icon: "doc.on.clipboard",
-              title: L10n.PreferencesCapture.annotateClipboardTitle,
-              description: L10n.PreferencesCapture.annotateClipboardDescription
-            ) {
-              Picker("", selection: $annotateClipboardImageOpenBehavior) {
-                ForEach(AnnotateClipboardImageBehavior.allCases) { behavior in
-                  Text(behavior.displayName).tag(behavior.rawValue)
-                }
-              }
-              .labelsHidden()
-              .pickerStyle(.menu)
-              .fixedSize()
-              .frame(width: 180, alignment: .trailing)
             }
           }
         }

@@ -1886,6 +1886,266 @@
         }
       }
     },
+    "preferences-capture.annotate-close-after-drag-description" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Den Annotate-Editor nach einem erfolgreichen Drag-to-App-Drop automatisch schließen"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Automatically close the Annotate editor after a successful drag-to-app drop"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cerrar automáticamente el editor Annotate tras soltar correctamente en otra app"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fermer automatiquement l’éditeur Annotate après un dépôt réussi dans une autre app"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "別のアプリへのドラッグ＆ドロップが成功した後、Annotate エディタを自動的に閉じる"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "다른 앱으로 드래그 앤 드롭에 성공한 후 Annotate 편집기를 자동으로 닫기"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Автоматически закрывать редактор Annotate после успешного перетаскивания в другое приложение"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tự động đóng trình chỉnh sửa Annotate sau khi thả thành công sang ứng dụng khác"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "成功拖放到其他应用后自动关闭 Annotate 编辑器"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "成功拖放到其他 App 後自動關閉 Annotate 編輯器"
+          }
+        }
+      }
+    },
+    "preferences-capture.annotate-close-after-drag-title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nach Drop schließen"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Close after drop"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cerrar tras soltar"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fermer après dépôt"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ドロップ後に閉じる"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "드롭 후 닫기"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Закрывать после переноса"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Đóng sau khi thả"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "放下后关闭"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "放開後關閉"
+          }
+        }
+      }
+    },
+    "preferences-capture.annotate-bring-forward-after-drag-description" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wenn der Editor geöffnet bleibt, Snapzy nach Abschluss des Drops nach vorn holen und Annotate fokussieren"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "When the editor stays open, bring Snapzy to the front and focus Annotate after the drop completes"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cuando el editor permanezca abierto, traer Snapzy al frente y enfocar Annotate después de soltar"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Quand l’éditeur reste ouvert, remettre Snapzy au premier plan et focaliser Annotate une fois le dépôt terminé"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "エディタを開いたままにする場合、ドロップ完了後に Snapzy を前面へ移動し Annotate にフォーカス"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "편집기를 열어 둔 경우 드롭이 완료된 뒤 Snapzy를 앞으로 가져오고 Annotate에 포커스"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Если редактор остается открытым, вывести Snapzy на передний план и сфокусировать Annotate после завершения перетаскивания"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Khi trình chỉnh sửa vẫn mở, đưa Snapzy lên trước và focus Annotate sau khi thao tác thả hoàn tất"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "编辑器保持打开时，在放下完成后将 Snapzy 置于前台并聚焦 Annotate"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "編輯器保持開啟時，在放開完成後將 Snapzy 帶到前景並聚焦 Annotate"
+          }
+        }
+      }
+    },
+    "preferences-capture.annotate-bring-forward-after-drag-title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nach Drop reaktivieren"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reactivate after drop"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reactivar tras soltar"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Réactiver après dépôt"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ドロップ後に再アクティブ化"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "드롭 후 다시 활성화"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Активировать после переноса"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kích hoạt lại sau khi thả"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "放下后重新激活编辑器"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "放開後重新啟用編輯器"
+          }
+        }
+      }
+    },
     "preferences-capture.annotate-clipboard-ask" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -5503,61 +5763,61 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Annotate"
+            "value" : "Verhalten"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Annotate"
+            "value" : "Behavior"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Annotate"
+            "value" : "Comportamiento"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Annotate"
+            "value" : "Comportement"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Annotate"
+            "value" : "動作"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Annotate"
+            "value" : "동작"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Annotate"
+            "value" : "Поведение"
           }
         },
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Annotate"
+            "value" : "Hành vi"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Annotate"
+            "value" : "行为"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Annotate"
+            "value" : "行為"
           }
         }
       }
