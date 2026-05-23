@@ -35,27 +35,22 @@ final class ScrollingCaptureWindowSharingTests: XCTestCase {
     XCTAssertEqual(window.sharingType, NSWindow.SharingType.none)
   }
 
-  func testHUDWindow_resizesWhenAutoScrollButtonAppears() {
-    let model = ScrollingCaptureSessionModel(selectedRect: sampleAnchorRect)
-    let window = ScrollingCaptureHUDWindow(
-      anchorRect: sampleAnchorRect,
-      model: model,
-      onStart: {},
-      onDone: {},
-      onCancel: {},
-      onToggleAutoScroll: {}
-    )
+  func testAreaSelectionWindow_isExcludedFromScreenCapture() throws {
+    let screen = try XCTUnwrap(NSScreen.main ?? NSScreen.screens.first)
+    let window = AreaSelectionWindow(screen: screen, pooled: true)
     defer { window.close() }
 
-    let readyWidth = window.frame.width
-    model.phase = .capturing
-    model.acceptedFrameCount = 1
-    window.refreshContentSize()
-
-    XCTAssertGreaterThan(window.frame.width, readyWidth)
+    XCTAssertEqual(window.sharingType, NSWindow.SharingType.none)
   }
 
-  func testSessionModel_canToggleAutoScrollOnlyAfterFirstFrameLocks() {
+  private var sampleAnchorRect: CGRect {
+    CGRect(x: 120, y: 120, width: 360, height: 480)
+  }
+}
+
+final class ScrollingCaptureAutoScrollPolicyTests: XCTestCase {
+
+  func testCanToggleAutoScrollOnlyAfterFirstFrameLocks() {
     assertCanToggleAutoScroll(
       phase: .ready,
       acceptedFrameCount: 0,
@@ -103,6 +98,20 @@ final class ScrollingCaptureWindowSharingTests: XCTestCase {
       return
     }
     XCTFail("Expected warning guidance tone")
+  }
+
+  func testHUDWindowContentSize_usesMinimumForCompactContent() {
+    XCTAssertEqual(
+      ScrollingCaptureHUDWindow.resolvedContentSize(for: CGSize(width: 240.1, height: 32.4)),
+      CGSize(width: 380, height: 44)
+    )
+  }
+
+  func testHUDWindowContentSize_expandsToFitAutoScrollControls() {
+    XCTAssertEqual(
+      ScrollingCaptureHUDWindow.resolvedContentSize(for: CGSize(width: 431.2, height: 45.1)),
+      CGSize(width: 432, height: 46)
+    )
   }
 
   func testAutoScrollPolicy_usesCurrentPointerAsScrollTarget() {
@@ -170,14 +179,6 @@ final class ScrollingCaptureWindowSharingTests: XCTestCase {
     )
   }
 
-  func testAreaSelectionWindow_isExcludedFromScreenCapture() throws {
-    let screen = try XCTUnwrap(NSScreen.main ?? NSScreen.screens.first)
-    let window = AreaSelectionWindow(screen: screen, pooled: true)
-    defer { window.close() }
-
-    XCTAssertEqual(window.sharingType, NSWindow.SharingType.none)
-  }
-
   private var sampleAnchorRect: CGRect {
     CGRect(x: 120, y: 120, width: 360, height: 480)
   }
@@ -190,13 +191,12 @@ final class ScrollingCaptureWindowSharingTests: XCTestCase {
     file: StaticString = #filePath,
     line: UInt = #line
   ) {
-    let model = ScrollingCaptureSessionModel(selectedRect: sampleAnchorRect)
-    model.phase = phase
-    model.acceptedFrameCount = acceptedFrameCount
-    model.isAutoScrolling = isAutoScrolling
-
     XCTAssertEqual(
-      model.canToggleAutoScroll,
+      ScrollingCaptureAutoScrollPolicy.canToggle(
+        phase: phase,
+        acceptedFrameCount: acceptedFrameCount,
+        isAutoScrolling: isAutoScrolling
+      ),
       expected,
       "phase=\(phase), acceptedFrameCount=\(acceptedFrameCount), isAutoScrolling=\(isAutoScrolling)",
       file: file,

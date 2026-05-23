@@ -262,6 +262,19 @@ enum ScrollingCaptureAutoScrollPolicy {
   static let hoverPadding: CGFloat = 16
   static let alignmentFailureStopThreshold = 3
 
+  static func canToggle(
+    phase: ScrollingCapturePhase,
+    acceptedFrameCount: Int,
+    isAutoScrolling: Bool
+  ) -> Bool {
+    switch phase {
+    case .capturing:
+      return isAutoScrolling || acceptedFrameCount > 0
+    case .ready, .finalizing, .saving:
+      return false
+    }
+  }
+
   static func scrollTargetPoint(mouseLocation: CGPoint, selectedRect: CGRect) -> CGPoint? {
     let hoverRect = selectedRect.insetBy(dx: -hoverPadding, dy: -hoverPadding)
     guard hoverRect.contains(mouseLocation) else { return nil }
@@ -332,12 +345,11 @@ final class ScrollingCaptureSessionModel: ObservableObject {
   }
 
   var canToggleAutoScroll: Bool {
-    switch phase {
-    case .capturing:
-      return isAutoScrolling || acceptedFrameCount > 0
-    case .ready, .finalizing, .saving:
-      return false
-    }
+    ScrollingCaptureAutoScrollPolicy.canToggle(
+      phase: phase,
+      acceptedFrameCount: acceptedFrameCount,
+      isAutoScrolling: isAutoScrolling
+    )
   }
 
   var isShowingLiveViewport: Bool {

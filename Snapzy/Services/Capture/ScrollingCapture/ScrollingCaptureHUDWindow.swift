@@ -64,13 +64,16 @@ final class ScrollingCaptureHUDWindow: NSPanel {
     guard let contentView else { return }
 
     contentView.layoutSubtreeIfNeeded()
-    let fittingSize = contentView.fittingSize
-    let size = CGSize(
+    let size = Self.resolvedContentSize(for: contentView.fittingSize)
+    setContentSize(size)
+    position(near: anchorRect, size: size)
+  }
+
+  nonisolated static func resolvedContentSize(for fittingSize: CGSize) -> CGSize {
+    CGSize(
       width: max(380, fittingSize.width.rounded(.up)),
       height: max(44, fittingSize.height.rounded(.up))
     )
-    setContentSize(size)
-    position(near: anchorRect, size: size)
   }
 
   private func position(near rect: CGRect, size: CGSize) {
