@@ -1,6 +1,198 @@
 {
   "sourceLanguage": "en",
   "strings": {
+    "preferences-advanced.restore-defaults-confirm-button": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Standardeinstellungen wiederherstellen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restore Defaults"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restaurar valores predeterminados"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restaurer les réglages par défaut"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "デフォルトに戻す"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "기본값 복원"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Восстановить умолчания"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Khôi phục mặc định"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "恢复默认设置"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "恢復預設值"
+          }
+        }
+      }
+    },
+    "preferences-advanced.restore-defaults-confirmation-message": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wenn du bestätigst, ersetzt Snapzy config.toml durch Standardwerte, setzt App-Einstellungen zurück und löscht Cloud-Zugangsdaten. Gespeicherte Aufnahmen werden nicht gelöscht."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "If you confirm, Snapzy will replace config.toml with default values, reset app settings, and clear cloud credentials. Saved captures are not deleted."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Si confirmas, Snapzy reemplazará config.toml con valores predeterminados, restablecerá los ajustes de la app y borrará las credenciales de la nube. Las capturas guardadas no se eliminan."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Si vous confirmez, Snapzy remplacera config.toml par les valeurs par défaut, réinitialisera les réglages de l’app et effacera les identifiants cloud. Les captures enregistrées ne sont pas supprimées."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "確認すると、Snapzy は config.toml をデフォルト値で置き換え、アプリ設定をリセットし、クラウド認証情報を消去します。保存済みのキャプチャは削除されません。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "확인하면 Snapzy가 config.toml을 기본값으로 교체하고 앱 설정을 재설정하며 클라우드 자격 증명을 지웁니다. 저장된 캡처는 삭제되지 않습니다."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Если подтвердить действие, Snapzy заменит config.toml значениями по умолчанию, сбросит настройки приложения и удалит облачные учетные данные. Сохраненные снимки не удаляются."
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nếu xác nhận, Snapzy sẽ thay config.toml bằng giá trị mặc định, đặt lại cài đặt ứng dụng và xóa thông tin đăng nhập cloud. Ảnh và bản ghi đã lưu sẽ không bị xóa."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "确认后，Snapzy 会用默认值替换 config.toml，重置应用设置，并清除云端凭据。已保存的捕捉内容不会被删除。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "確認後，Snapzy 會用預設值取代 config.toml，重置 App 設定，並清除雲端憑證。已儲存的擷取內容不會被刪除。"
+          }
+        }
+      }
+    },
+    "preferences-advanced.restore-defaults-confirmation-title": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Standardeinstellungen wiederherstellen?"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restore default settings?"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "¿Restaurar ajustes predeterminados?"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restaurer les réglages par défaut ?"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "設定をデフォルトに戻しますか？"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "기본 설정을 복원할까요?"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Восстановить настройки по умолчанию?"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Khôi phục cài đặt mặc định?"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "要恢复默认设置吗？"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "要恢復預設設定嗎？"
+          }
+        }
+      }
+    },
     "history-background-style.glass": {
       "extractionState": "stale",
       "localizations": {

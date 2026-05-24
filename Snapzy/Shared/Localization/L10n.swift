@@ -256,6 +256,11 @@ enum L10n {
       defaultValue: "Restore",
       comment: "Restore default config button"
     )
+    static let restoreDefaultsConfirmButton = string(
+      "preferences-advanced.restore-defaults-confirm-button",
+      defaultValue: "Restore Defaults",
+      comment: "Destructive confirmation button for restoring default settings"
+    )
     static let openConfigButton = string(
       "preferences-advanced.open-config-button",
       defaultValue: "Open config.toml",
@@ -425,7 +430,7 @@ enum L10n {
     )
     static let restoreDefaultsConfirmationMessage = string(
       "preferences-advanced.restore-defaults-confirmation-message",
-      defaultValue: "Snapzy will replace config.toml with default values, reset app settings, and clear cloud credentials. Saved captures are not deleted.",
+      defaultValue: "If you confirm, Snapzy will replace config.toml with default values, reset app settings, and clear cloud credentials. Saved captures are not deleted.",
       comment: "Restore defaults confirmation alert message"
     )
     static func importFailedWithErrors(_ count: Int) -> String {

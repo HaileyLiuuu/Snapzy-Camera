@@ -67,8 +67,7 @@ struct AdvancedSettingsView: View {
           description: L10n.PreferencesAdvanced.restoreDefaultsDescription
         ) {
           Button(L10n.PreferencesAdvanced.restoreDefaultsButton, role: .destructive) {
-            guard backupActionsAreAvailable() else { return }
-            isRestoreConfirmationPresented = true
+            requestRestoreDefaults()
           }
           .buttonStyle(.bordered)
           .controlSize(.small)
@@ -145,8 +144,8 @@ struct AdvancedSettingsView: View {
       isPresented: $isRestoreConfirmationPresented
     ) {
       Button(L10n.Common.cancel, role: .cancel) {}
-      Button(L10n.PreferencesAdvanced.restoreDefaultsButton, role: .destructive) {
-        restoreDefaults()
+      Button(L10n.PreferencesAdvanced.restoreDefaultsConfirmButton, role: .destructive) {
+        performRestoreDefaults()
       }
     } message: {
       Text(L10n.PreferencesAdvanced.restoreDefaultsConfirmationMessage)
@@ -155,6 +154,11 @@ struct AdvancedSettingsView: View {
 
   private var disabledBackupActionHelp: String {
     needsConfigAccess ? L10n.PreferencesAdvanced.configAccessRequiredToast : ""
+  }
+
+  private func requestRestoreDefaults() {
+    guard backupActionsAreAvailable() else { return }
+    isRestoreConfirmationPresented = true
   }
 
   private func exportConfig() {
@@ -200,7 +204,7 @@ struct AdvancedSettingsView: View {
     }
   }
 
-  private func restoreDefaults() {
+  private func performRestoreDefaults() {
     guard backupActionsAreAvailable() else { return }
 
     do {
