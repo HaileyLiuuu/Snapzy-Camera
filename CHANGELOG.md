@@ -61,6 +61,21 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 
 
+
+## [1.20.1] - 2026-05-27
+
+### Features
+-  Enhance color palette functionality with favorite selection and custom color drafting (1c6ac2a)
+-  add application capture and recording actions to deep link handler and update documentation (c45585e)
+
+### Chore
+- chore: Remove duplicate payment link from FUNDING.yml (33e9672)
+- chore: update appcast, cask, and readme for v1.20.0 (0a9f419)
+
+### Contributors
+- @duongductrong
+- @github-actions[bot]
+
 ## [1.20.0] - 2026-05-24
 
 ### Features
