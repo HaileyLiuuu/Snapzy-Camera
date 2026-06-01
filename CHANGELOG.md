@@ -63,6 +63,21 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 
 
+
+## [1.20.3] - 2026-06-01
+
+### Features
+-  Add pinning functionality for screenshots in Quick Access and update related components (#225) (60ca604)
+-  Enhance keyboard shortcuts for inline annotation, adding Cmd+C for copying images and updating documentation (#217) (cda583a)
+
+### Chore
+- refactor: Implement stepped value binding for sliders to enhance user control in annotation and preferences settings (933ffa2)
+- chore: update appcast, cask, and readme for v1.20.2 (8ae6e65)
+
+### Contributors
+- @duongductrong
+- @github-actions[bot]
+
 ## [1.20.2] - 2026-05-30
 
 ### Features
