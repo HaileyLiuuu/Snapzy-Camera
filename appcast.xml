@@ -6,6 +6,22 @@
     <description>Snapzy application updates</description>
     <language>en</language>
     <item>
+      <title>Version 1.20.6</title>
+      <sparkle:version>114</sparkle:version>
+      <sparkle:shortVersionString>1.20.6</sparkle:shortVersionString>
+      <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+      <pubDate>Fri, 05 Jun 2026 16:26:55 +0000</pubDate>
+      <description><![CDATA[
+        <style>:root { color-scheme: light dark; } body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; font-size: 13px; line-height: 1.5; padding: 8px 16px; } h3 { font-size: 14px; margin: 12px 0 6px; } ul { padding-left: 20px; margin: 4px 0; } li { margin: 3px 0; }</style>
+        <h3>🐛 Bug Fixes</h3><ul><li>Implement database recovery flow and enhance error handling for database operations</li></ul>
+      ]]></description>
+      <enclosure
+        url="https://github.com/duongductrong/Snapzy/releases/download/v1.20.6/Snapzy-v1.20.6.dmg"
+        sparkle:edSignature="CqEQfFpD4auulotaPsaFxxp4cT02GvGZPWct7oDK0wm/YQjqX40kMA0CAAnKSnf21yorvd3R3FGD5DGo1n0vDQ=="
+        length="46923789"
+        type="application/octet-stream"/>
+    </item>
+    <item>
       <title>Version 1.20.5</title>
       <sparkle:version>113</sparkle:version>
       <sparkle:shortVersionString>1.20.5</sparkle:shortVersionString>
