@@ -65,6 +65,22 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 
 
+
+## [1.20.5] - 2026-06-05
+
+### Features
+-  Implement zoom functionality for Quick Access pin window with scroll and pinch gestures (d678ca9)
+
+### Chore
+- chore: Update localized strings for sponsor and donation buttons in Settings (26e37c4)
+- refactor: Refactor HistoryBackdropView for improved layout and styling in HistorySettingsView (8e93613)
+- chore: Enhance sponsor section with improved layout and action buttons (e5b8900)
+- chore: update appcast, cask, and readme for v1.20.4 (aa52e7c)
+
+### Contributors
+- @duongductrong
+- @github-actions[bot]
+
 ## [1.20.4] - 2026-06-03
 
 ### Features
