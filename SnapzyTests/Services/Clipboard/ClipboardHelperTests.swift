@@ -60,7 +60,11 @@ final class ClipboardHelperTests: XCTestCase {
     let pasteboard = NSPasteboard.general
     let item = try XCTUnwrap(pasteboard.pasteboardItems?.first)
     XCTAssertEqual(pasteboard.pasteboardItems?.count, 1)
+    
+    // Core Sandbox Compatibility: writeObjects([NSURL]) registers the file URL type
     XCTAssertTrue(item.types.contains(.fileURL))
+    
+    // Image Augmentation
     XCTAssertTrue(item.types.contains(.png))
     XCTAssertTrue(item.types.contains(.tiff))
     XCTAssertEqual((pasteboard.readObjects(forClasses: [NSURL.self], options: nil) as? [URL])?.count, 1)
@@ -104,6 +108,25 @@ final class ClipboardHelperTests: XCTestCase {
     XCTAssertEqual((pasteboard.readObjects(forClasses: [NSImage.self], options: nil) as? [NSImage])?.count, 1)
   }
 
+  func testCopyRenderedImage_withWebPFormat() throws {
+    UserDefaults.standard.set(ImageFormatOption.webp.rawValue, forKey: PreferencesKeys.screenshotFormat)
+    guard let cgImage = TestImageFactory.solidColor(width: 10, height: 10) else {
+      XCTFail("Failed to create test image")
+      return
+    }
+    let nsImage = NSImage(cgImage: cgImage, size: NSSize(width: 10, height: 10))
+    ClipboardHelper.copyImage(nsImage)
+    let pasteboard = NSPasteboard.general
+    let item = try XCTUnwrap(pasteboard.pasteboardItems?.first)
+    let webpType = NSPasteboard.PasteboardType("org.webmproject.webp")
+    XCTAssertEqual(pasteboard.pasteboardItems?.count, 1)
+    XCTAssertTrue(item.types.contains(.fileURL))
+    XCTAssertTrue(item.types.contains(webpType))
+    XCTAssertTrue(item.types.contains(.tiff))
+    XCTAssertEqual((pasteboard.readObjects(forClasses: [NSURL.self], options: nil) as? [URL])?.count, 1)
+    XCTAssertEqual((pasteboard.readObjects(forClasses: [NSImage.self], options: nil) as? [NSImage])?.count, 1)
+  }
+
   func testCopyImageFromURL_undecodableWebP_keepsSingleFileAndOriginalDataItem() throws {
     let tempDir = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
     try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
@@ -122,5 +145,29 @@ final class ClipboardHelperTests: XCTestCase {
     XCTAssertTrue(item.types.contains(webPType))
     XCTAssertFalse(item.types.contains(.tiff))
     XCTAssertEqual((pasteboard.readObjects(forClasses: [NSURL.self], options: nil) as? [URL])?.count, 1)
+  }
+
+  func testCopyFileURLs_multipleURLs_copiesAllToClipboard() throws {
+    let tempDir = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+    try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
+    defer { try? FileManager.default.removeItem(at: tempDir) }
+
+    let url1 = tempDir.appendingPathComponent("file1.png")
+    let url2 = tempDir.appendingPathComponent("file2.txt")
+    try Data([1, 2, 3]).write(to: url1)
+    try Data([4, 5, 6]).write(to: url2)
+
+    ClipboardHelper.copyFileURLs([url1, url2])
+
+    let pasteboard = NSPasteboard.general
+    let items = try XCTUnwrap(pasteboard.pasteboardItems)
+    XCTAssertEqual(items.count, 2)
+    XCTAssertTrue(items[0].types.contains(.fileURL))
+    XCTAssertTrue(items[1].types.contains(.fileURL))
+
+    let readURLs = pasteboard.readObjects(forClasses: [NSURL.self], options: nil) as? [URL]
+    XCTAssertEqual(readURLs?.count, 2)
+    XCTAssertEqual(readURLs?[0].standardizedFileURL, url1.standardizedFileURL)
+    XCTAssertEqual(readURLs?[1].standardizedFileURL, url2.standardizedFileURL)
   }
 }
