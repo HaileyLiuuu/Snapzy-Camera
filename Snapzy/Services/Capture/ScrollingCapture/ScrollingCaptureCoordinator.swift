@@ -1257,7 +1257,7 @@ final class ScrollingCaptureCoordinator {
 
   private func scaleFactor(for rect: CGRect) -> CGFloat {
     let screen = NSScreen.screens.first(where: { $0.frame.intersects(rect) }) ?? NSScreen.main
-    return screen?.backingScaleFactor ?? 2
+    return max(screen?.backingScaleFactor ?? 2, 2)
   }
 
   private func previewRuntimeState() -> ScrollingCaptureRuntimeState {

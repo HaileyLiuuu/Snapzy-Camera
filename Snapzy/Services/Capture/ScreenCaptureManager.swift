@@ -140,9 +140,13 @@ final class ScreenCaptureManager: ObservableObject {
   private var standardShareableContentCache: ShareableContentCacheEntry?
   private var desktopInclusiveShareableContentCache: ShareableContentCacheEntry?
   private var screenParametersObserver: NSObjectProtocol?
+  private nonisolated static let minimumScreenshotOutputScaleFactor: CGFloat = 2.0
 
   private var preferredScreenshotOutputScaleFactor: CGFloat {
-    max(NSScreen.screens.map(\.backingScaleFactor).max() ?? 2.0, 2.0)
+    max(
+      NSScreen.screens.map(\.backingScaleFactor).max() ?? Self.minimumScreenshotOutputScaleFactor,
+      Self.minimumScreenshotOutputScaleFactor
+    )
   }
 
   private init() {
@@ -408,11 +412,12 @@ final class ScreenCaptureManager: ObservableObject {
         Int($0.deviceDescription[NSDeviceDescriptionKey("NSScreenNumber")] as? CGDirectDisplayID ?? 0)
           == display.displayID
       })
-      let scaleFactor = displaySnapshotScaleFactor(
+      let nativeScaleFactor = displaySnapshotScaleFactor(
         for: matchedScreen,
         display: display,
         contentFilter: filter
       )
+      let scaleFactor = max(nativeScaleFactor, preferredScreenshotOutputScaleFactor)
 
       let config = SCStreamConfiguration()
       if #available(macOS 14.0, *) { config.ignoreShadowsSingleWindow = false }
@@ -432,16 +437,23 @@ final class ScreenCaptureManager: ObservableObject {
         configuration: config
       )
       let imageScaleFactor = matchedScreen.map {
-        Self.imageScaleFactor(for: image, screenFrame: $0.frame, fallback: scaleFactor)
+        Self.imageScaleFactor(for: image, screenFrame: $0.frame, fallback: nativeScaleFactor)
       } ?? scaleFactor
+      let promotedImage = Self.promoteScreenshotImageIfNeeded(
+        image,
+        logicalSize: captureFrame.size,
+        sourceScaleFactor: imageScaleFactor,
+        minimumOutputScaleFactor: scaleFactor,
+        colorSpaceName: config.colorSpaceName
+      )
 
       // Save the image
       return await saveImage(
-        image,
+        promotedImage.image,
         to: saveDirectory,
         fileName: fileName,
         format: format,
-        scaleFactor: imageScaleFactor
+        scaleFactor: promotedImage.scaleFactor
       )
 
     } catch {
@@ -671,11 +683,12 @@ final class ScreenCaptureManager: ObservableObject {
         excludeDesktopWidgets: excludeDesktopWidgets,
         excludeOwnApplication: excludeOwnApplication
       )
-      let scaleFactor = displaySnapshotScaleFactor(
+      let nativeScaleFactor = displaySnapshotScaleFactor(
         for: target.screen,
         display: display,
         contentFilter: filter
       )
+      let scaleFactor = max(nativeScaleFactor, preferredScreenshotOutputScaleFactor)
       let configuration = makeDisplaySnapshotConfiguration(
         for: target.screen,
         scaleFactor: scaleFactor,
@@ -697,12 +710,19 @@ final class ScreenCaptureManager: ObservableObject {
               screenFrame: request.screenFrame,
               fallback: request.scaleFactor
             )
+            let promotedImage = Self.promoteScreenshotImageIfNeeded(
+              image,
+              logicalSize: request.screenFrame.size,
+              sourceScaleFactor: imageScaleFactor,
+              minimumOutputScaleFactor: request.scaleFactor,
+              colorSpaceName: request.configuration.colorSpaceName
+            )
             return .success(
               DisplayCapturePayload(
                 displayID: request.displayID,
                 order: request.order,
-                image: image,
-                scaleFactor: imageScaleFactor
+                image: promotedImage.image,
+                scaleFactor: promotedImage.scaleFactor
               )
             )
           } catch {
@@ -738,16 +758,25 @@ final class ScreenCaptureManager: ObservableObject {
             return .failure(request.displayID, .captureFailed(L10n.ScreenCapture.unableToCaptureSelectedArea))
           }
 
+          let imageScaleFactor = Self.imageScaleFactor(
+            for: image,
+            screenFrame: request.screenFrame,
+            fallback: request.scaleFactor
+          )
+          let promotedImage = Self.promoteScreenshotImageIfNeeded(
+            image,
+            logicalSize: request.screenFrame.size,
+            sourceScaleFactor: imageScaleFactor,
+            minimumOutputScaleFactor: Self.minimumScreenshotOutputScaleFactor,
+            colorSpaceName: nil
+          )
+
           return .success(
             DisplayCapturePayload(
               displayID: request.displayID,
               order: request.order,
-              image: image,
-              scaleFactor: Self.imageScaleFactor(
-                for: image,
-                screenFrame: request.screenFrame,
-                fallback: request.scaleFactor
-              )
+              image: promotedImage.image,
+              scaleFactor: promotedImage.scaleFactor
             )
           )
         }
@@ -1253,7 +1282,7 @@ final class ScreenCaptureManager: ObservableObject {
     excludeDesktopWidgets: Bool,
     excludeOwnApplication: Bool,
     prefetchedContentTask: ShareableContentPrefetchTask?,
-    minimumOutputScaleFactor: CGFloat = 1
+    minimumOutputScaleFactor: CGFloat = ScreenCaptureManager.minimumScreenshotOutputScaleFactor
   ) async throws -> PreparedAreaCaptureContext {
     let includeDesktopWindows = excludeDesktopIcons || excludeDesktopWidgets
     let content = try await loadShareableContent(
@@ -1700,6 +1729,22 @@ final class ScreenCaptureManager: ObservableObject {
       pixelHeight: image.height,
       frame: screenFrame
     ) ?? max(fallback, 1)
+  }
+
+  private nonisolated static func promoteScreenshotImageIfNeeded(
+    _ image: CGImage,
+    logicalSize: CGSize,
+    sourceScaleFactor: CGFloat,
+    minimumOutputScaleFactor: CGFloat,
+    colorSpaceName: CFString?
+  ) -> (image: CGImage, scaleFactor: CGFloat) {
+    FrozenAreaCaptureSession.imageByPromotingScaleIfNeeded(
+      image,
+      logicalSize: logicalSize,
+      sourceScaleFactor: sourceScaleFactor,
+      minimumOutputScaleFactor: max(minimumOutputScaleFactor, Self.minimumScreenshotOutputScaleFactor),
+      colorSpaceName: colorSpaceName
+    )
   }
 
   private nonisolated static func dimensionScale(

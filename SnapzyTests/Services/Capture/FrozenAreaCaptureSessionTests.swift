@@ -129,6 +129,37 @@ final class FrozenAreaCaptureSessionTests: XCTestCase {
     )
   }
 
+  private func makeVerticalEdgeSnapshot(
+    displayID: CGDirectDisplayID,
+    width: Int = 100,
+    height: Int = 40,
+    scaleFactor: CGFloat = 1.0,
+    screenOriginX: CGFloat = 0,
+    screenOriginY: CGFloat = 0,
+    edgeX: Int? = nil
+  ) -> FrozenDisplaySnapshot? {
+    guard let image = TestImageFactory.verticalEdge(
+      width: Int(CGFloat(width) * scaleFactor),
+      height: Int(CGFloat(height) * scaleFactor),
+      edgeX: edgeX
+    ) else {
+      return nil
+    }
+
+    return FrozenDisplaySnapshot(
+      displayID: displayID,
+      screenFrame: CGRect(
+        x: screenOriginX,
+        y: screenOriginY,
+        width: CGFloat(width),
+        height: CGFloat(height)
+      ),
+      scaleFactor: scaleFactor,
+      colorSpaceName: nil,
+      image: image
+    )
+  }
+
   private func redValue(in image: CGImage, x: Int, y: Int) throws -> UInt8 {
     let bytes = try rgbaBytes(from: image)
     return bytes[rgbaIndex(x: x, y: y, width: image.width)]
@@ -342,6 +373,23 @@ final class FrozenAreaCaptureSessionTests: XCTestCase {
     XCTAssertEqual(result.scaleFactor, 2.0)
     XCTAssertEqual(result.image.width, 80)
     XCTAssertEqual(result.image.height, 40)
+  }
+
+  func testImageByPromotingScaleIfNeeded_promotesWholeImageForLowDensityDisplay() throws {
+    let logicalSize = CGSize(width: 100, height: 50)
+    let image = try XCTUnwrap(TestImageFactory.solidColor(width: 100, height: 50))
+
+    let result = FrozenAreaCaptureSession.imageByPromotingScaleIfNeeded(
+      image,
+      logicalSize: logicalSize,
+      sourceScaleFactor: 1.0,
+      minimumOutputScaleFactor: 2.0,
+      colorSpaceName: nil
+    )
+
+    XCTAssertEqual(result.scaleFactor, 2.0)
+    XCTAssertEqual(result.image.width, 200)
+    XCTAssertEqual(result.image.height, 100)
   }
 
   // MARK: - Very Small Selection
@@ -592,6 +640,64 @@ final class FrozenAreaCaptureSessionTests: XCTestCase {
     XCTAssertEqual(result.screenRect.height, 20, accuracy: 0.0001)
     XCTAssertEqual(result.image.width, 80)
     XCTAssertEqual(result.image.height, 40)
+  }
+
+  func testCropCompositeImage_promotesLowDensitySliceWhenMixedWithRetinaDisplay() throws {
+    guard let retinaSnapshot = makeSnapshot(
+      displayID: 1,
+      width: 100,
+      height: 40,
+      scaleFactor: 2.0,
+      screenOriginX: 0
+    ),
+    let lowDensitySnapshot = makeVerticalEdgeSnapshot(
+      displayID: 2,
+      width: 100,
+      height: 40,
+      scaleFactor: 1.0,
+      screenOriginX: 100,
+      edgeX: 50
+    ) else {
+      XCTFail("Failed to create display snapshots")
+      return
+    }
+
+    let session = FrozenAreaCaptureSession.fromSnapshots([retinaSnapshot, lowDensitySnapshot])
+    let selection = AreaSelectionResult(
+      target: .rect(CGRect(x: 90, y: 0, width: 70, height: 20)),
+      displayID: 1,
+      mode: .screenshot,
+      displayIDs: [1, 2]
+    )
+
+    let result = try session.cropCompositeImage(
+      for: selection,
+      minimumOutputScaleFactor: 2.0
+    )
+    let lowDensitySourceCrop = try XCTUnwrap(lowDensitySnapshot.image.cropping(to: CGRect(
+      x: 0,
+      y: 20,
+      width: 60,
+      height: 20
+    )))
+    let expectedLowDensitySlice = FrozenAreaCaptureSession.imageByPromotingScaleIfNeeded(
+      lowDensitySourceCrop,
+      logicalSize: CGSize(width: 60, height: 20),
+      sourceScaleFactor: 1.0,
+      minimumOutputScaleFactor: 2.0,
+      colorSpaceName: nil
+    ).image
+    let actualLowDensitySlice = try XCTUnwrap(result.image.cropping(to: CGRect(
+      x: 20,
+      y: 0,
+      width: 120,
+      height: 40
+    )))
+
+    XCTAssertEqual(result.scaleFactor, 2.0)
+    XCTAssertEqual(result.image.width, 140)
+    XCTAssertEqual(result.image.height, 40)
+    XCTAssertEqual(try rgbaBytes(from: actualLowDensitySlice), try rgbaBytes(from: expectedLowDensitySlice))
   }
 
   func testCropCompositeImage_preservesVerticalScreenOrientation() throws {

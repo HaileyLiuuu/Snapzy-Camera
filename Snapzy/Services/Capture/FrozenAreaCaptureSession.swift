@@ -245,10 +245,7 @@ nonisolated final class FrozenAreaCaptureSession {
     }
 
     context.clear(CGRect(x: 0, y: 0, width: outputWidth, height: outputHeight))
-    let needsScalePromotion = matchingSnapshots.contains {
-      outputScaleFactor > $0.pixelScaleFactor + 0.0001
-    }
-    context.interpolationQuality = needsScalePromotion ? .high : .none
+    context.interpolationQuality = .none
 
     for snapshot in matchingSnapshots {
       let snapshotScaleFactor = snapshot.pixelScaleFactor
@@ -297,27 +294,47 @@ nonisolated final class FrozenAreaCaptureSession {
         width: alignedRect.width,
         height: alignedRect.height
       )
-      let destinationRect = CGRect(
+      let requestedDestinationRect = CGRect(
         x: (alignedScreenRect.minX - selectionRect.minX) * outputScaleFactor,
         y: (alignedScreenRect.minY - selectionRect.minY) * outputScaleFactor,
         width: alignedScreenRect.width * outputScaleFactor,
         height: alignedScreenRect.height * outputScaleFactor
       ).integral
-      context.draw(croppedImage, in: destinationRect)
+      let needsSnapshotPromotion = outputScaleFactor > snapshotScaleFactor + 0.0001
+      let imageToDraw: CGImage
+      let didPromoteSnapshot: Bool
+      if needsSnapshotPromotion {
+        let promotedImage = Self.imageByPromotingScaleIfNeeded(
+          croppedImage,
+          logicalSize: alignedScreenRect.size,
+          sourceScaleFactor: snapshotScaleFactor,
+          minimumOutputScaleFactor: outputScaleFactor,
+          colorSpaceName: snapshot.colorSpaceName
+        )
+        imageToDraw = promotedImage.image
+        didPromoteSnapshot = promotedImage.scaleFactor > snapshotScaleFactor + 0.0001
+      } else {
+        imageToDraw = croppedImage
+        didPromoteSnapshot = false
+      }
+      context.interpolationQuality = needsSnapshotPromotion && !didPromoteSnapshot ? .high : .none
+      let destinationRect = didPromoteSnapshot
+        ? CGRect(
+          x: requestedDestinationRect.origin.x,
+          y: requestedDestinationRect.origin.y,
+          width: CGFloat(imageToDraw.width),
+          height: CGFloat(imageToDraw.height)
+        )
+        : requestedDestinationRect
+      context.draw(imageToDraw, in: destinationRect)
     }
 
     guard let renderedImage = context.makeImage() else {
       throw CaptureError.captureFailed(L10n.ScreenCapture.failedToCropCapturedImage)
     }
-    let allSnapshotsPromoted = matchingSnapshots.allSatisfy {
-      outputScaleFactor > $0.pixelScaleFactor + 0.0001
-    }
-    let image = needsScalePromotion && allSnapshotsPromoted
-      ? Self.sharpenPromotedImageIfUseful(renderedImage, colorSpaceName: nil)
-      : renderedImage
 
     return FrozenAreaCropResult(
-      image: image,
+      image: renderedImage,
       scaleFactor: outputScaleFactor,
       screenRect: selectionRect
     )
@@ -347,7 +364,7 @@ nonisolated final class FrozenAreaCaptureSession {
     ).intersection(bounds)
   }
 
-  private static func imageByPromotingScaleIfNeeded(
+  static func imageByPromotingScaleIfNeeded(
     _ image: CGImage,
     logicalSize: CGSize,
     sourceScaleFactor: CGFloat,

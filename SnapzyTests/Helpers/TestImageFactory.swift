@@ -62,6 +62,32 @@ enum TestImageFactory {
     return makeCGImage(width: width, height: height, bytesPerRow: bytesPerRow, pixels: pixels)
   }
 
+  /// Create a hard vertical luminance edge for resampling assertions.
+  static func verticalEdge(
+    width: Int,
+    height: Int,
+    edgeX: Int? = nil,
+    leftGray: UInt8 = 0,
+    rightGray: UInt8 = 255
+  ) -> CGImage? {
+    let splitX = min(max(edgeX ?? width / 2, 0), width)
+    let bytesPerRow = width * 4
+    var pixels = [UInt8](repeating: 0, count: height * bytesPerRow)
+
+    for y in 0..<height {
+      for x in 0..<width {
+        let gray = x < splitX ? leftGray : rightGray
+        let offset = y * bytesPerRow + x * 4
+        pixels[offset] = gray
+        pixels[offset + 1] = gray
+        pixels[offset + 2] = gray
+        pixels[offset + 3] = 255
+      }
+    }
+
+    return makeCGImage(width: width, height: height, bytesPerRow: bytesPerRow, pixels: pixels)
+  }
+
   /// Create an image that is a vertically shifted copy of a gradient.
   /// Simulates scroll by shifting `shiftPixels` rows down and filling
   /// the top with new content (incrementing gray values).
