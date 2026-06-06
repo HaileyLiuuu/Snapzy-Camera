@@ -67,6 +67,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 
 
+
+## [1.20.7] - 2026-06-06
+
+### Bug Fixes
+-  Enhance clipboard image copying to ensure sandbox extensions and support inline pasting (#234) (8aeda5a)
+
+### Chore
+- chore: update appcast, cask, and readme for v1.20.6 (fc0a303)
+
+### Contributors
+- @duongductrong
+- @github-actions[bot]
+
 ## [1.20.6] - 2026-06-05
 
 ### Bug Fixes
