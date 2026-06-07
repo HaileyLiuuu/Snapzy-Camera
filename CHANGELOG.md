@@ -68,6 +68,29 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 
 
+
+## [1.20.8] - 2026-06-07
+
+### Features
+-  Add new aspect ratio options (3:4 and 2:3) to export settings and update related tests (2f45526)
+-  Implement drag intent requirement for specific annotation tools and enhance drawing interaction logic (d445f35)
+-  Add arrow bend direction functionality to annotation tools (876f0e2)
+-  Enhance Quick Properties Bar and Inline Area Properties Bar with Editing State Management (fe48b6c)
+
+### Bug Fixes
+-  Update window activation logic for annotation and video editor windows (05ec70d)
+-  Reorder clipboard copy and Quick Access actions in PostCaptureActionHandler for improved performance (#234) (c8a3bad)
+
+### Chore
+- refactor: Enhance localization for video editor sidebar hints and common messages (266196c)
+- refactor: Refactor toolbar button and divider styles for improved UI consistency (21d0bb9)
+- refactor: Improve image scaling and promotion logic for screen captures and enhance test coverage for cropping functionality (97b0436)
+- chore: update appcast, cask, and readme for v1.20.7 (902c1ad)
+
+### Contributors
+- @duongductrong
+- @github-actions[bot]
+
 ## [1.20.7] - 2026-06-06
 
 ### Bug Fixes
