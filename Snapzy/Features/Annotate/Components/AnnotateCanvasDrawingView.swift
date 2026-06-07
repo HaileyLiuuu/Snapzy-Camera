@@ -46,6 +46,8 @@ enum ResizeHandle: Equatable {
 
 /// NSView subclass handling mouse events and drawing
 final class DrawingCanvasNSView: NSView {
+  private static let drawingCommitDragThreshold: CGFloat = 2
+
   var state: AnnotateState {
     didSet {
       guard oldValue !== state else { return }
@@ -59,6 +61,8 @@ final class DrawingCanvasNSView: NSView {
   private var currentPath: [CGPoint] = []
   private var isDrawing = false
   private var dragStart: CGPoint?
+  private var drawingStartDisplayPoint: CGPoint?
+  private var drawingDragDistance: CGFloat = 0
 
   // Selection and manipulation state
   private var isDraggingAnnotation = false
@@ -467,6 +471,8 @@ final class DrawingCanvasNSView: NSView {
 
     // Start drawing for other tools (in image coordinates)
     isDrawing = true
+    drawingStartDisplayPoint = displayPoint
+    drawingDragDistance = 0
     switch state.selectedTool {
     case .pencil, .highlighter:
       currentPath = [imagePoint]
@@ -477,7 +483,7 @@ final class DrawingCanvasNSView: NSView {
         state.saveState()
         createTextAnnotation(at: imagePoint)
       }
-      isDrawing = false
+      resetDrawingInteraction()
     default:
       break
     }
@@ -625,6 +631,14 @@ final class DrawingCanvasNSView: NSView {
     // Handle drawing (in image coordinates)
     guard isDrawing else { return }
 
+    if let startDisplayPoint = drawingStartDisplayPoint {
+      let distance = hypot(
+        displayPoint.x - startDisplayPoint.x,
+        displayPoint.y - startDisplayPoint.y
+      )
+      drawingDragDistance = max(drawingDragDistance, distance)
+    }
+
     switch state.selectedTool {
     case .pencil, .highlighter:
       currentPath.append(imagePoint)
@@ -704,16 +718,16 @@ final class DrawingCanvasNSView: NSView {
     guard isDrawing, let start = dragStart else { return }
 
     // Capture path before clearing to avoid race condition
+    let tool = state.selectedTool
     let pathToSave = currentPath
 
-    Task { @MainActor in
-      state.saveState()
-      createAnnotation(from: start, to: imagePoint, path: pathToSave)
+    if shouldCommitDrawing(tool: tool, start: start, end: imagePoint, path: pathToSave) {
+      Task { @MainActor in
+        createAnnotation(tool: tool, from: start, to: imagePoint, path: pathToSave)
+      }
     }
 
-    isDrawing = false
-    dragStart = nil
-    currentPath = []
+    resetDrawingInteraction()
     needsDisplay = true
   }
 
@@ -757,15 +771,45 @@ final class DrawingCanvasNSView: NSView {
 
   // MARK: - Annotation Creation
 
-  private func createAnnotation(from start: CGPoint, to end: CGPoint, path: [CGPoint]) {
+  private func shouldCommitDrawing(
+    tool: AnnotationToolType,
+    start: CGPoint,
+    end: CGPoint,
+    path: [CGPoint]
+  ) -> Bool {
+    guard tool.requiresDragToCreateAnnotation else { return true }
+    return maxDrawingDistance(from: start, to: end, path: path) >= Self.drawingCommitDragThreshold
+  }
+
+  private func maxDrawingDistance(from start: CGPoint, to end: CGPoint, path: [CGPoint]) -> CGFloat {
+    let points = path + [end]
+    let scale = max(displayScale, 0.0001)
+    let imageDistance = points.reduce(CGFloat.zero) { maxDistance, point in
+      let distance = hypot(point.x - start.x, point.y - start.y) * scale
+      return max(maxDistance, distance)
+    }
+    return max(drawingDragDistance, imageDistance)
+  }
+
+  private func resetDrawingInteraction() {
+    isDrawing = false
+    dragStart = nil
+    drawingStartDisplayPoint = nil
+    drawingDragDistance = 0
+    currentPath = []
+  }
+
+  @MainActor
+  private func createAnnotation(tool: AnnotationToolType, from start: CGPoint, to end: CGPoint, path: [CGPoint]) {
     let item = AnnotationFactory.createAnnotation(
-      tool: state.selectedTool,
+      tool: tool,
       from: start,
       to: end,
       path: path,
       state: state
     )
     if let item = item {
+      state.saveState()
       state.annotations.append(item)
       if case .highlight = item.type {
         state.deselectAnnotation()

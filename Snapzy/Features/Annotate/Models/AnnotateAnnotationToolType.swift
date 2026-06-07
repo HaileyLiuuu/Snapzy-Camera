@@ -114,6 +114,18 @@ enum AnnotationToolType: String, CaseIterable, Identifiable {
     }
   }
 
+  /// Drawable tools that should only commit a new blank-canvas item after a
+  /// drag intent. Counter stays click-to-place, text keeps its click-to-edit
+  /// flow, and freehand tools keep their existing path-count behavior.
+  var requiresDragToCreateAnnotation: Bool {
+    switch self {
+    case .rectangle, .filledRectangle, .oval, .arrow, .line, .blur, .watermark:
+      return true
+    case .selection, .crop, .text, .highlighter, .counter, .pencil, .mockup:
+      return false
+    }
+  }
+
   var supportsQuickStrokeColor: Bool {
     switch self {
     case .rectangle, .filledRectangle, .oval, .arrow, .line, .text, .highlighter, .counter, .watermark, .pencil:

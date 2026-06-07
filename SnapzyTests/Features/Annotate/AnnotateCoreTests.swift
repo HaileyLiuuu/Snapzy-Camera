@@ -568,6 +568,16 @@ final class AnnotateCoreTests: XCTestCase {
     XCTAssertNil(AnnotationFactory.createAnnotation(tool: .highlighter, from: start, to: start, path: [start], context: context))
   }
 
+  func testAnnotationToolCreationPolicy_requiresDragExceptClickPlacementTools() {
+    for tool in [AnnotationToolType.rectangle, .filledRectangle, .oval, .arrow, .line, .blur, .watermark] {
+      XCTAssertTrue(tool.requiresDragToCreateAnnotation, "\(tool) should not create a new item from an empty click.")
+    }
+
+    for tool in [AnnotationToolType.selection, .crop, .text, .highlighter, .counter, .pencil, .mockup] {
+      XCTAssertFalse(tool.requiresDragToCreateAnnotation, "\(tool) keeps its existing non-drag behavior.")
+    }
+  }
+
   func testAnnotationFactory_normalizesNearlyHorizontalHighlighterStroke() throws {
     let path = [
       CGPoint(x: 10, y: 100),
