@@ -98,8 +98,17 @@ final class RecordingRegionOverlayWindow: NSPanel {
   }
 
   func updateHighlightRect(_ rect: CGRect) {
+    let oldLocalRect = overlayView.localHighlightRect()
     overlayView.highlightRect = rect
-    overlayView.needsDisplay = true
+    let newLocalRect = overlayView.localHighlightRect()
+
+    // Dirty-rect invalidation: only redraw the union of old + new positions
+    // with padding for resize handles and border width, instead of the entire
+    // full-screen view (which can be 15M+ pixels on 4K/5K).
+    let handlePadding: CGFloat = 25 // cornerHandleLength + margin
+    let dirtyRect = oldLocalRect.insetBy(dx: -handlePadding, dy: -handlePadding)
+      .union(newLocalRect.insetBy(dx: -handlePadding, dy: -handlePadding))
+    overlayView.setNeedsDisplay(dirtyRect)
   }
 
   func updateGuidance(_ guidance: RecordingRegionOverlayGuidance?) {
@@ -126,6 +135,13 @@ final class RecordingRegionOverlayWindow: NSPanel {
       overlayView.overlayWindow = self
     }
     overlayView.refreshCursor()
+  }
+
+  /// Only update interaction state when it actually changes, to avoid
+  /// redundant invalidateCursorRects calls on every drag event.
+  func setInteractionEnabledIfNeeded(_ enabled: Bool) {
+    guard overlayView.isInteractionEnabled != enabled else { return }
+    setInteractionEnabled(enabled)
   }
 
   // Non-activating: prevent stealing focus from other apps
@@ -247,7 +263,7 @@ final class RecordingRegionOverlayView: NSView {
 
   // MARK: - Coordinate Conversion
 
-  private func localHighlightRect() -> CGRect {
+  func localHighlightRect() -> CGRect {
     guard let window = window else { return .zero }
     let windowFrame = window.frame
     return CGRect(
@@ -565,9 +581,9 @@ final class RecordingRegionOverlayView: NSView {
   override func draw(_ dirtyRect: NSRect) {
     super.draw(dirtyRect)
 
-    // Draw dim overlay
+    // Draw dim overlay — only the dirty region
     dimColor.setFill()
-    bounds.fill()
+    dirtyRect.fill()
 
     // If actively making new selection, draw that instead
     if isNewSelecting {
@@ -591,19 +607,27 @@ final class RecordingRegionOverlayView: NSView {
     // Clamp to bounds
     let clampedRect = localRect.intersection(bounds)
 
-    // Clear the highlight area
-    NSColor.clear.setFill()
-    clampedRect.fill(using: .copy)
+    // Clear the highlight area (only the portion within dirtyRect)
+    let clearRect = clampedRect.intersection(dirtyRect)
+    if !clearRect.isNull {
+      NSColor.clear.setFill()
+      clearRect.fill(using: .copy)
+    }
 
     // Draw border around highlight (only in pre-record phase)
     if showBorder {
-      let borderPath = NSBezierPath(rect: clampedRect)
-      borderPath.lineWidth = borderWidth
-      borderColor.setStroke()
-      borderPath.stroke()
+      // Only draw border and handles if they intersect the dirty rect
+      let handlePadding: CGFloat = 25
+      let borderArea = clampedRect.insetBy(dx: -handlePadding, dy: -handlePadding)
+      if borderArea.intersects(dirtyRect) {
+        let borderPath = NSBezierPath(rect: clampedRect)
+        borderPath.lineWidth = borderWidth
+        borderColor.setStroke()
+        borderPath.stroke()
 
-      // Draw resize handles
-      drawRecordingResizeHandles(for: clampedRect)
+        // Draw resize handles
+        drawRecordingResizeHandles(for: clampedRect)
+      }
     }
 
     if let guidance, bounds.contains(CGPoint(x: localRect.midX, y: localRect.midY)) {

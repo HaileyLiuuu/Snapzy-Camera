@@ -337,15 +337,38 @@ final class RecordingCoordinator: ObservableObject {
     selectedWindowTarget = windowTarget
     saveLastAreaRect(rect)
 
+    let interactionEnabled = captureMode != .application
     for overlay in regionOverlayWindows {
       overlay.updateHighlightRect(rect)
-      overlay.setInteractionEnabled(captureMode != .application)
+      overlay.setInteractionEnabledIfNeeded(interactionEnabled)
     }
 
     if syncToolbarMode {
-      toolbarWindow?.captureMode = captureMode
+      if toolbarWindow?.captureMode != captureMode {
+        toolbarWindow?.captureMode = captureMode
+      }
       toolbarWindow?.updateAnchorRect(rect)
     }
+  }
+
+  /// Lightweight path for drag/resize events — updates overlay visuals and
+  /// toolbar position without the expensive work (UserDefaults persistence,
+  /// @Published setters, cursor rect invalidation).
+  /// Toolbar repositioning is cheap here because fixes 5+6 removed
+  /// orderFrontRegardless() and cached fittingSize.
+  private func updateOverlayHighlightsOnly(_ rect: CGRect) {
+    selectedRect = rect
+    for overlay in regionOverlayWindows {
+      overlay.updateHighlightRect(rect)
+    }
+    toolbarWindow?.updateAnchorRect(rect)
+  }
+
+  /// Finalize a drag/resize: persist the rect and reposition the toolbar.
+  private func finalizeDragOrResize() {
+    guard let rect = selectedRect else { return }
+    saveLastAreaRect(rect)
+    toolbarWindow?.updateAnchorRect(rect)
   }
 
   private func handleSelectionResult(
@@ -1191,7 +1214,8 @@ final class RecordingCoordinator: ObservableObject {
     keystrokeOverlayWindow = nil
   }
 
-  /// Update the selected rect and sync all overlays + toolbar
+  /// Full update: selected rect + overlays + toolbar + persistence.
+  /// Used for non-drag events (reselection, mode changes).
   private func updateSelectedRect(_ rect: CGRect) {
     let captureMode = toolbarWindow?.captureMode == .application ? RecordingCaptureMode.area : (toolbarWindow?.captureMode ?? .area)
     updateSelectedTarget(rect: rect, captureMode: captureMode, windowTarget: nil)
@@ -1206,23 +1230,27 @@ extension RecordingCoordinator: RecordingRegionOverlayDelegate {
   }
 
   func overlay(_ overlay: RecordingRegionOverlayWindow, didMoveRegionTo rect: CGRect) {
-    updateSelectedRect(rect)
+    // Lightweight path: update overlay visuals only, skip persistence + toolbar reposition
+    updateOverlayHighlightsOnly(rect)
   }
 
   func overlayDidFinishMoving(_ overlay: RecordingRegionOverlayWindow) {
-    // No additional action needed - rect is already updated
+    // Persist rect and reposition toolbar now that drag is complete
+    finalizeDragOrResize()
   }
 
   func overlay(_ overlay: RecordingRegionOverlayWindow, didReselectWithRect rect: CGRect) {
-    // Update the selected rect in-place without closing windows
+    // Full update for reselection — not a continuous drag, so full sync is fine
     updateSelectedRect(rect)
   }
 
   func overlay(_ overlay: RecordingRegionOverlayWindow, didResizeRegionTo rect: CGRect) {
-    updateSelectedRect(rect)
+    // Lightweight path: update overlay visuals only, skip persistence + toolbar reposition
+    updateOverlayHighlightsOnly(rect)
   }
 
   func overlayDidFinishResizing(_ overlay: RecordingRegionOverlayWindow) {
-    // No additional action needed - rect is already updated
+    // Persist rect and reposition toolbar now that resize is complete
+    finalizeDragOrResize()
   }
 }

@@ -1214,8 +1214,10 @@ final class ScreenCaptureViewModel: ObservableObject, KeyboardShortcutDelegate {
     // Hide only normal-level app windows (not overlay panels)
     let hiddenWindowSession = hideVisibleNormalWindowsIfNeeded(shouldHideOwnWindowsForRecordingToolbarFlow)
 
-    // Small delay to ensure window is hidden
-    DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) { [weak self] in
+    // Use the same conditional settle delay as screenshot flows:
+    // only wait when windows were actually hidden, and use 1-frame settle (~16ms)
+    // instead of the previous hardcoded 200ms which caused perceptible launch lag.
+    DispatchQueue.main.asyncAfter(deadline: .now() + (hiddenWindowSession.didHideWindows ? windowHideSettleDelay : 0)) { [weak self] in
       guard let self = self else {
         DiagnosticLogger.shared.log(.warning, .recording, "startRecordingFlow: self deallocated")
         hiddenWindowSession.restore()

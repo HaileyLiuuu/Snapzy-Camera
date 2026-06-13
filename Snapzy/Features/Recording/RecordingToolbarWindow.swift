@@ -156,6 +156,7 @@ final class RecordingToolbarWindow: NSWindow {
   private var mode: RecordingToolbarMode = .preRecord
   private var hostingView: NSHostingView<AnyView>?
   private var effectView: NSVisualEffectView?
+  private var cachedContentSize: CGSize?
 
   // Callbacks
   var onRecord: (() -> Void)?
@@ -250,7 +251,7 @@ final class RecordingToolbarWindow: NSWindow {
     )
 
     setContent(AnyView(view))
-    positionBelowRect(anchorRect)
+    showBelowRect(anchorRect)
   }
 
   func showRecordingStatusBar(recorder: ScreenRecordingManager) {
@@ -272,7 +273,7 @@ final class RecordingToolbarWindow: NSWindow {
     )
 
     setContent(AnyView(view))
-    positionBelowRect(anchorRect)
+    showBelowRect(anchorRect)
 
     // Enable dragging in recording mode
     isMovableByWindowBackground = true
@@ -314,11 +315,12 @@ final class RecordingToolbarWindow: NSWindow {
     effectView = effect
 
     setContentSize(fittingSize)
+    cachedContentSize = fittingSize
     invalidateShadow()
   }
 
   private func positionBelowRect(_ rect: CGRect) {
-    guard let size = contentView?.fittingSize else { return }
+    guard let size = cachedContentSize ?? contentView?.fittingSize else { return }
 
     // Find the screen containing the anchor rect (not NSScreen.main which is always primary)
     let screen = NSScreen.screens.first(where: { $0.frame.intersects(rect) })
@@ -332,6 +334,11 @@ final class RecordingToolbarWindow: NSWindow {
     )
 
     setFrameOrigin(origin)
+  }
+
+  /// Position and order the window to the front (initial show only).
+  private func showBelowRect(_ rect: CGRect) {
+    positionBelowRect(rect)
     orderFrontRegardless()
   }
 
