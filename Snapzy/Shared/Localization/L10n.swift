@@ -2141,6 +2141,26 @@ enum L10n {
       defaultValue: "Adjust how fast the card follows your trackpad swipe",
       comment: "Quick access preferences setting description"
     )
+    static let trackpadSwipeModeTitle = string(
+      "preferences-quick-access.trackpad-swipe-mode-title",
+      defaultValue: "Trackpad Swipe Direction",
+      comment: "Quick access trackpad swipe mode setting title"
+    )
+    static let trackpadSwipeModeDescription = string(
+      "preferences-quick-access.trackpad-swipe-mode-description",
+      defaultValue: "Choose whether the card follows your finger or moves in the opposite direction",
+      comment: "Quick access trackpad swipe mode setting description"
+    )
+    static let trackpadSwipeModeNatural = string(
+      "preferences-quick-access.trackpad-swipe-mode-natural",
+      defaultValue: "Natural (follow finger)",
+      comment: "Quick access trackpad swipe mode option"
+    )
+    static let trackpadSwipeModeInverted = string(
+      "preferences-quick-access.trackpad-swipe-mode-inverted",
+      defaultValue: "Inverted (follow scroll)",
+      comment: "Quick access trackpad swipe mode option"
+    )
     static func closesAfter(_ seconds: Int) -> String {
       format(
         "preferences-quick-access.closes-after",

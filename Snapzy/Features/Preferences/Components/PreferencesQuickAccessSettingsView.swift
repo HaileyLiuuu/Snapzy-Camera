@@ -9,6 +9,7 @@ import SwiftUI
 
 struct QuickAccessSettingsView: View {
   @ObservedObject private var manager = QuickAccessManager.shared
+  @ObservedObject private var trackpadSwipeModeStore = QuickAccessTrackpadSwipeModeStore.shared
 
   @State private var positionIsLeft: Bool = false
 
@@ -106,6 +107,29 @@ struct QuickAccessSettingsView: View {
                 .monospacedDigit()
                 .foregroundColor(.secondary)
             }
+          }
+        }
+      }
+
+      if manager.twoFingerSwipeToDismissEnabled {
+        Section(L10n.PreferencesQuickAccess.trackpadSwipeModeTitle) {
+          SettingRow(
+            icon: "arrow.left.arrow.right",
+            title: L10n.PreferencesQuickAccess.trackpadSwipeModeTitle,
+            description: L10n.PreferencesQuickAccess.trackpadSwipeModeDescription
+          ) {
+            Picker("", selection: Binding(
+              get: { trackpadSwipeModeStore.mode },
+              set: { trackpadSwipeModeStore.setMode($0) }
+            )) {
+              ForEach(QuickAccessTrackpadSwipeMode.allCases) { mode in
+                Text(mode.displayName).tag(mode)
+              }
+            }
+            .labelsHidden()
+            .pickerStyle(.menu)
+            .fixedSize()
+            .frame(width: 200, alignment: .trailing)
           }
         }
       }

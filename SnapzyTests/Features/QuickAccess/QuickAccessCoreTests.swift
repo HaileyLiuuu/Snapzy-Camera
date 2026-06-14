@@ -76,100 +76,121 @@ final class QuickAccessCoreTests: XCTestCase {
     XCTAssertFalse(policy.shouldDismiss(horizontalTranslation: -10, horizontalVelocity: -301))
   }
 
-  func testQuickAccessTrackpadSwipePolicy_requiresPreciseDominantHorizontalScroll() {
-    let policy = QuickAccessTrackpadSwipePolicy(dismissDirection: 1)
-
+  func testQuickAccessTrackpadSwipeHelpers_requiresPreciseDominantHorizontalScroll() {
     XCTAssertEqual(
-      policy.horizontalDelta(
+      QuickAccessTrackpadSwipeHelpers.horizontalDelta(
         scrollingDeltaX: 12,
         scrollingDeltaY: 2,
-        hasPreciseScrollingDeltas: true
+        hasPreciseScrollingDeltas: true,
+        sensitivityMultiplier: 1.0
       ),
-      12  // 12 * 1.0 (default sensitivity)
+      12
     )
     XCTAssertNil(
-      policy.horizontalDelta(
+      QuickAccessTrackpadSwipeHelpers.horizontalDelta(
         scrollingDeltaX: 12,
         scrollingDeltaY: 10,
-        hasPreciseScrollingDeltas: true
+        hasPreciseScrollingDeltas: true,
+        sensitivityMultiplier: 1.0
       )
     )
     XCTAssertNil(
-      policy.horizontalDelta(
+      QuickAccessTrackpadSwipeHelpers.horizontalDelta(
         scrollingDeltaX: 0.25,
         scrollingDeltaY: 0,
-        hasPreciseScrollingDeltas: true
+        hasPreciseScrollingDeltas: true,
+        sensitivityMultiplier: 1.0
       )
     )
     XCTAssertNil(
-      policy.horizontalDelta(
+      QuickAccessTrackpadSwipeHelpers.horizontalDelta(
         scrollingDeltaX: 12,
         scrollingDeltaY: 0,
-        hasPreciseScrollingDeltas: false
+        hasPreciseScrollingDeltas: false,
+        sensitivityMultiplier: 1.0
       )
     )
     XCTAssertNil(
-      policy.horizontalDelta(
+      QuickAccessTrackpadSwipeHelpers.horizontalDelta(
         scrollingDeltaX: .nan,
         scrollingDeltaY: 0,
-        hasPreciseScrollingDeltas: true
+        hasPreciseScrollingDeltas: true,
+        sensitivityMultiplier: 1.0
       )
     )
   }
 
-  func testQuickAccessTrackpadSwipePolicy_sensitivityMultiplierAmplifiesDelta() {
-    let precise = QuickAccessTrackpadSwipePolicy(dismissDirection: 1, sensitivityMultiplier: 0.5)
-    let fast = QuickAccessTrackpadSwipePolicy(dismissDirection: 1, sensitivityMultiplier: 3.0)
-    let unity = QuickAccessTrackpadSwipePolicy(dismissDirection: 1, sensitivityMultiplier: 1.0)
-
-    // 0.5× sensitivity: delta is halved
+  func testQuickAccessTrackpadSwipeHelpers_sensitivityMultiplierAmplifiesDelta() {
     XCTAssertEqual(
-      precise.horizontalDelta(
+      QuickAccessTrackpadSwipeHelpers.horizontalDelta(
         scrollingDeltaX: 10,
         scrollingDeltaY: 1,
-        hasPreciseScrollingDeltas: true
+        hasPreciseScrollingDeltas: true,
+        sensitivityMultiplier: 0.5
       ),
       5
     )
-
-    // 3.0× sensitivity: delta is tripled
     XCTAssertEqual(
-      fast.horizontalDelta(
+      QuickAccessTrackpadSwipeHelpers.horizontalDelta(
         scrollingDeltaX: 10,
         scrollingDeltaY: 1,
-        hasPreciseScrollingDeltas: true
+        hasPreciseScrollingDeltas: true,
+        sensitivityMultiplier: 3.0
       ),
       30
     )
-
-    // 1.0× sensitivity: delta is unchanged
-    XCTAssertEqual(
-      unity.horizontalDelta(
-        scrollingDeltaX: 10,
-        scrollingDeltaY: 1,
-        hasPreciseScrollingDeltas: true
-      ),
-      10
-    )
-
-    // Sensitivity does not affect non-trackpad events
     XCTAssertNil(
-      fast.horizontalDelta(
+      QuickAccessTrackpadSwipeHelpers.horizontalDelta(
         scrollingDeltaX: 10,
         scrollingDeltaY: 1,
-        hasPreciseScrollingDeltas: false
+        hasPreciseScrollingDeltas: false,
+        sensitivityMultiplier: 3.0
       )
     )
   }
 
-  func testQuickAccessTrackpadSwipePolicy_mapsDismissDirectionToPanelSide() {
-    let rightPanelPolicy = QuickAccessTrackpadSwipePolicy(dismissDirection: 1)
-    let leftPanelPolicy = QuickAccessTrackpadSwipePolicy(dismissDirection: -1)
+  func testQuickAccessTrackpadSwipeHelpers_dismissesByDistanceOrVelocity() {
+    XCTAssertFalse(
+      QuickAccessTrackpadSwipeHelpers.shouldDismiss(
+        horizontalTranslation: 80,
+        horizontalVelocity: 300
+      )
+    )
+    XCTAssertTrue(
+      QuickAccessTrackpadSwipeHelpers.shouldDismiss(
+        horizontalTranslation: 81,
+        horizontalVelocity: 0
+      )
+    )
+    XCTAssertTrue(
+      QuickAccessTrackpadSwipeHelpers.shouldDismiss(
+        horizontalTranslation: 10,
+        horizontalVelocity: 301
+      )
+    )
+  }
 
-    XCTAssertEqual(rightPanelPolicy.dismissTranslation(accumulatedHorizontalDelta: 40), 40)
-    XCTAssertNil(rightPanelPolicy.dismissTranslation(accumulatedHorizontalDelta: -40))
-    XCTAssertEqual(leftPanelPolicy.dismissTranslation(accumulatedHorizontalDelta: -40), -40)
-    XCTAssertNil(leftPanelPolicy.dismissTranslation(accumulatedHorizontalDelta: 40))
+  func testQuickAccessTrackpadSwipeModeStore_persistsMode() {
+    let defaults = makeIsolatedDefaults()
+
+    let store = QuickAccessTrackpadSwipeModeStore(defaults: defaults)
+    XCTAssertEqual(store.mode, .natural)
+
+    store.setMode(.inverted)
+    XCTAssertEqual(store.mode, .inverted)
+
+    let reloadedStore = QuickAccessTrackpadSwipeModeStore(defaults: defaults)
+    XCTAssertEqual(reloadedStore.mode, .inverted)
+  }
+
+  func testQuickAccessTrackpadSwipeModeStore_resetToDefault() {
+    let defaults = makeIsolatedDefaults()
+
+    let store = QuickAccessTrackpadSwipeModeStore(defaults: defaults)
+    store.setMode(.inverted)
+    store.resetToDefault()
+
+    XCTAssertEqual(store.mode, .natural)
   }
 
   func testQuickAccessDragMonitorView_scopesScrollEventsToCardBounds() {
@@ -195,6 +216,7 @@ final class QuickAccessCoreTests: XCTestCase {
       dismissDirection: 1,
       dragDropEnabled: true,
       twoFingerSwipeToDismissEnabled: true,
+      swipeMode: .natural,
       swipeSensitivity: 1.0,
       onDragStarted: {},
       onDragEnded: { _ in },

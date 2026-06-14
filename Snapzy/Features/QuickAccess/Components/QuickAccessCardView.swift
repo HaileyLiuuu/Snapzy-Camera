@@ -17,9 +17,11 @@ struct QuickAccessCardView: View {
 
   @ObservedObject private var preferencesManager = PreferencesManager.shared
   @ObservedObject private var actionConfiguration = QuickAccessActionConfigurationStore.shared
+  @ObservedObject private var trackpadSwipeModeStore = QuickAccessTrackpadSwipeModeStore.shared
   @ObservedObject private var cloudManager = CloudManager.shared
   @State private var isHovering = false
   @State private var isDragging = false
+  @State private var isSwiping = false
   @State private var isDismissing = false
   @State private var swipeOffset: CGFloat = 0
   @State private var isCloudUploading = false
@@ -65,14 +67,15 @@ struct QuickAccessCardView: View {
           .transition(.opacity)
       }
 
-      // Hover overlay with staggered buttons
-      if isHovering && canPerformCardActions && hasVisibleOverlayActions {
+      // Hover overlay with staggered buttons (hidden while swiping so it does not
+      // visually fight the swipe gesture).
+      if isHovering && !isSwiping && canPerformCardActions && hasVisibleOverlayActions {
         hoverOverlay
           .transition(reduceMotion ? .opacity : .opacity.combined(with: .scale(scale: 0.95)))
       }
 
-      // Corner buttons (only visible on hover, hidden during cloud upload)
-      if isHovering && canPerformCardActions && !cornerOverlayActions.isEmpty {
+      // Corner buttons (only visible on hover, hidden during cloud upload and swipe).
+      if isHovering && !isSwiping && canPerformCardActions && !cornerOverlayActions.isEmpty {
         cornerButtons
       }
     }
@@ -207,6 +210,7 @@ struct QuickAccessCardView: View {
       dismissDirection: dismissDirection,
       dragDropEnabled: manager.dragDropEnabled,
       twoFingerSwipeToDismissEnabled: manager.twoFingerSwipeToDismissEnabled,
+      swipeMode: trackpadSwipeModeStore.mode,
       onDragStarted: {
         isDragging = true
       },
@@ -221,8 +225,10 @@ struct QuickAccessCardView: View {
       onSwipeChanged: { translation in
         guard !reduceMotion else { return }
         swipeOffset = translation
+        isSwiping = true
       },
       onSwipeEnded: { translation, velocity in
+        isSwiping = false
         handleSwipeEnded(translation: translation, velocity: velocity)
       },
       swipeSensitivity: CGFloat(manager.swipeSensitivity)
@@ -230,9 +236,10 @@ struct QuickAccessCardView: View {
   }
 
   private func handleSwipeEnded(translation: CGFloat, velocity: CGFloat) {
-    let policy = QuickAccessCardDragPolicy(dismissDirection: dismissDirection)
+    let distanceThreshold = QuickAccessCardDragPolicy.dismissDistanceThreshold
+    let velocityThreshold = QuickAccessCardDragPolicy.dismissVelocityThreshold
 
-    if policy.shouldDismiss(horizontalTranslation: translation, horizontalVelocity: velocity) {
+    if abs(translation) > distanceThreshold || abs(velocity) > velocityThreshold {
       swipeOffset = 0
       isDismissing = true
       QuickAccessSound.dismiss.play(reduceMotion: reduceMotion)

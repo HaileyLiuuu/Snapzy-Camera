@@ -41,22 +41,17 @@ struct QuickAccessCardDragPolicy {
   }
 }
 
-struct QuickAccessTrackpadSwipePolicy {
+nonisolated enum QuickAccessTrackpadSwipeHelpers {
   static let minimumHorizontalDelta: CGFloat = 0.5
   static let horizontalDominanceRatio: CGFloat = 1.35
+  static let dismissDistanceThreshold: CGFloat = 80
+  static let dismissVelocityThreshold: CGFloat = 300
 
-  let dismissDirection: CGFloat
-  let sensitivityMultiplier: CGFloat
-
-  init(dismissDirection: CGFloat, sensitivityMultiplier: CGFloat = 1.0) {
-    self.dismissDirection = dismissDirection
-    self.sensitivityMultiplier = sensitivityMultiplier
-  }
-
-  func horizontalDelta(
+  static func horizontalDelta(
     scrollingDeltaX deltaX: CGFloat,
     scrollingDeltaY deltaY: CGFloat,
-    hasPreciseScrollingDeltas: Bool
+    hasPreciseScrollingDeltas: Bool,
+    sensitivityMultiplier: CGFloat
   ) -> CGFloat? {
     guard hasPreciseScrollingDeltas,
           deltaX.isFinite,
@@ -74,13 +69,11 @@ struct QuickAccessTrackpadSwipePolicy {
     return deltaX * sensitivityMultiplier
   }
 
-  func dismissTranslation(accumulatedHorizontalDelta deltaX: CGFloat) -> CGFloat? {
-    guard deltaX.isFinite,
-          deltaX * dismissDirection > 0 else {
-      return nil
-    }
-
-    return deltaX
+  static func shouldDismiss(
+    horizontalTranslation translation: CGFloat,
+    horizontalVelocity velocity: CGFloat
+  ) -> Bool {
+    abs(translation) > Self.dismissDistanceThreshold || abs(velocity) > Self.dismissVelocityThreshold
   }
 }
 
@@ -92,6 +85,7 @@ struct QuickAccessDraggableView: NSViewRepresentable {
   let dismissDirection: CGFloat
   let dragDropEnabled: Bool
   let twoFingerSwipeToDismissEnabled: Bool
+  let swipeMode: QuickAccessTrackpadSwipeMode
   let onDragStarted: () -> Void
   let onDragEnded: (Bool) -> Void
   let onSwipeChanged: (CGFloat) -> Void
@@ -105,6 +99,7 @@ struct QuickAccessDraggableView: NSViewRepresentable {
       dismissDirection: dismissDirection,
       dragDropEnabled: dragDropEnabled,
       twoFingerSwipeToDismissEnabled: twoFingerSwipeToDismissEnabled,
+      swipeMode: swipeMode,
       swipeSensitivity: swipeSensitivity,
       onDragStarted: onDragStarted,
       onDragEnded: onDragEnded,
@@ -119,6 +114,7 @@ struct QuickAccessDraggableView: NSViewRepresentable {
     nsView.dismissDirection = dismissDirection
     nsView.dragDropEnabled = dragDropEnabled
     nsView.twoFingerSwipeToDismissEnabled = twoFingerSwipeToDismissEnabled
+    nsView.swipeMode = swipeMode
     nsView.swipeSensitivity = swipeSensitivity
     nsView.onDragStarted = onDragStarted
     nsView.onDragEnded = onDragEnded
@@ -133,6 +129,7 @@ final class QuickAccessDragMonitorView: NSView, NSDraggingSource {
   var dismissDirection: CGFloat
   var dragDropEnabled: Bool
   var twoFingerSwipeToDismissEnabled: Bool
+  var swipeMode: QuickAccessTrackpadSwipeMode
   var swipeSensitivity: CGFloat
   var onDragStarted: () -> Void
   var onDragEnded: (Bool) -> Void
@@ -157,6 +154,7 @@ final class QuickAccessDragMonitorView: NSView, NSDraggingSource {
     dismissDirection: CGFloat,
     dragDropEnabled: Bool,
     twoFingerSwipeToDismissEnabled: Bool,
+    swipeMode: QuickAccessTrackpadSwipeMode,
     swipeSensitivity: CGFloat,
     onDragStarted: @escaping () -> Void,
     onDragEnded: @escaping (Bool) -> Void,
@@ -168,6 +166,7 @@ final class QuickAccessDragMonitorView: NSView, NSDraggingSource {
     self.dismissDirection = dismissDirection
     self.dragDropEnabled = dragDropEnabled
     self.twoFingerSwipeToDismissEnabled = twoFingerSwipeToDismissEnabled
+    self.swipeMode = swipeMode
     self.swipeSensitivity = swipeSensitivity
     self.onDragStarted = onDragStarted
     self.onDragEnded = onDragEnded
@@ -322,20 +321,19 @@ final class QuickAccessDragMonitorView: NSView, NSDraggingSource {
       resetTrackpadSwipe()
     }
 
-    let policy = QuickAccessTrackpadSwipePolicy(
-      dismissDirection: dismissDirection,
-      sensitivityMultiplier: swipeSensitivity
-    )
-    guard let deltaX = policy.horizontalDelta(
+    guard let rawDeltaX = QuickAccessTrackpadSwipeHelpers.horizontalDelta(
       scrollingDeltaX: event.scrollingDeltaX,
       scrollingDeltaY: event.scrollingDeltaY,
-      hasPreciseScrollingDeltas: event.hasPreciseScrollingDeltas
+      hasPreciseScrollingDeltas: event.hasPreciseScrollingDeltas,
+      sensitivityMultiplier: swipeSensitivity
     ) else {
       if event.phase.contains(.ended) || event.phase.contains(.cancelled) {
         finishTrackpadSwipe(cancelled: event.phase.contains(.cancelled))
       }
       return
     }
+
+    let deltaX = rawDeltaX * swipeMode.translationMultiplier
 
     if !isTrackpadSwipeTracking {
       isTrackpadSwipeTracking = true
@@ -350,11 +348,9 @@ final class QuickAccessDragMonitorView: NSView, NSDraggingSource {
       timestamp: event.timestamp
     )
 
-    if let translation = policy.dismissTranslation(
-      accumulatedHorizontalDelta: accumulatedTrackpadSwipeX
-    ) {
-      onSwipeChanged(translation)
-    }
+    // Report the live translation so the card follows the user's finger
+    // direction regardless of whether the swipe is toward the dismiss edge.
+    onSwipeChanged(accumulatedTrackpadSwipeX)
 
     if event.phase.contains(.ended) || event.phase.contains(.cancelled) {
       finishTrackpadSwipe(cancelled: event.phase.contains(.cancelled))
@@ -370,19 +366,16 @@ final class QuickAccessDragMonitorView: NSView, NSDraggingSource {
     defer { resetTrackpadSwipe() }
     guard isTrackpadSwipeTracking else { return }
 
-    let policy = QuickAccessTrackpadSwipePolicy(
-      dismissDirection: dismissDirection,
-      sensitivityMultiplier: swipeSensitivity
-    )
     guard !cancelled,
-          let translation = policy.dismissTranslation(
-            accumulatedHorizontalDelta: accumulatedTrackpadSwipeX
+          QuickAccessTrackpadSwipeHelpers.shouldDismiss(
+            horizontalTranslation: accumulatedTrackpadSwipeX,
+            horizontalVelocity: latestTrackpadSwipeVelocity
           ) else {
       onSwipeEnded(0, 0)
       return
     }
 
-    onSwipeEnded(translation, latestTrackpadSwipeVelocity)
+    onSwipeEnded(accumulatedTrackpadSwipeX, latestTrackpadSwipeVelocity)
   }
 
   private func resetTrackpadSwipe() {
