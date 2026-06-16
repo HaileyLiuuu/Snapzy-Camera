@@ -6,6 +6,22 @@
     <description>Snapzy application updates</description>
     <language>en</language>
     <item>
+      <title>Version 1.22.3</title>
+      <sparkle:version>121</sparkle:version>
+      <sparkle:shortVersionString>1.22.3</sparkle:shortVersionString>
+      <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+      <pubDate>Tue, 16 Jun 2026 17:48:22 +0000</pubDate>
+      <description><![CDATA[
+        <style>:root { color-scheme: light dark; } body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; font-size: 13px; line-height: 1.5; padding: 8px 16px; } h3 { font-size: 14px; margin: 12px 0 6px; } ul { padding-left: 20px; margin: 4px 0; } li { margin: 3px 0; }</style>
+        <h3>✨ Features</h3><ul><li>Implement swipe actions for Quick Access cards with customizable settings</li></ul><h3>🐛 Bug Fixes</h3><ul><li>resolve localization catalog drift in QuickAccess.xcstrings</li><li>Support both trackpad swipe directions for Quick Access dismiss with natural scrolling and improve OCR</li><li>Restore cursor to arrow on window close to prevent persistence of incorrect cursor states</li></ul>
+      ]]></description>
+      <enclosure
+        url="https://github.com/duongductrong/Snapzy/releases/download/v1.22.3/Snapzy-v1.22.3.dmg"
+        sparkle:edSignature="rxvc3aucF8U9SWFasIbFhYlh604kGWnyDLfdQJxCqdSWTV1z9nfRWJhAIBAGvA3OkUk+56XsA8Az71wN47GbBg=="
+        length="45786176"
+        type="application/octet-stream"/>
+    </item>
+    <item>
       <title>Version 1.22.2</title>
       <sparkle:version>120</sparkle:version>
       <sparkle:shortVersionString>1.22.2</sparkle:shortVersionString>
