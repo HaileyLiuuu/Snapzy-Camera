@@ -74,6 +74,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 
 
+
+## [1.22.4] - 2026-06-17
+
+### Bug Fixes
+-  Improve copyMediaFile utility for clipboard handling of media files (c4673fc)
+
+### Chore
+- chore: update appcast, cask, and readme for v1.22.3 (a5d2394)
+
+### Contributors
+- @duongductrong
+- @github-actions[bot]
+
 ## [1.22.3] - 2026-06-16
 
 ### Features
