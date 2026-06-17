@@ -47,6 +47,43 @@ enum ClipboardHelper {
     )
   }
 
+  /// Copy a video/GIF/media file to clipboard as a file attachment.
+  ///
+  /// `writeObjects([NSURL])` stays the primary write because AppKit attaches
+  /// the security-scoped handoff receivers need for sandboxed file reads.
+  /// The extra URL/string representations live on the same pasteboard item and
+  /// help Electron/WebView targets that inspect item-level fallback flavors.
+  static func copyMediaFile(from url: URL) {
+    DiagnosticLogger.shared.log(.info, .clipboard, "Copy media file", context: ["file": url.lastPathComponent])
+    let fileAccess = SandboxFileAccessManager.shared.beginAccessingURL(url)
+    defer { fileAccess.stop() }
+
+    guard FileManager.default.fileExists(atPath: url.path) else {
+      logger.error("ClipboardHelper: media file not found \(url.lastPathComponent)")
+      DiagnosticLogger.shared.log(.error, .clipboard, "Media file not found", context: ["file": url.lastPathComponent])
+      return
+    }
+
+    let pasteboard = NSPasteboard.general
+    pasteboard.clearContents()
+    let didWrite = pasteboard.writeObjects([url as NSURL])
+    addFileURLFallbackRepresentations(to: pasteboard, fileURL: url)
+
+    let readbackCount = (pasteboard.readObjects(forClasses: [NSURL.self], options: nil) as? [URL])?.count ?? 0
+    DiagnosticLogger.shared.log(
+      didWrite && readbackCount > 0 ? .info : .warning,
+      .clipboard,
+      "Media file URL written to clipboard",
+      context: [
+        "file": url.lastPathComponent,
+        "writeObjects": didWrite ? "true" : "false",
+        "readbackCount": "\(readbackCount)",
+        "types": pasteboard.types?.map(\.rawValue).joined(separator: ",") ?? "none",
+        "itemTypes": pasteboard.pasteboardItems?.first?.types.map(\.rawValue).joined(separator: ",") ?? "none",
+      ]
+    )
+  }
+
   /// Copy an image file to clipboard with both file reference and image data.
   ///
   /// Writes a single pasteboard item with file URL plus encoded image data
@@ -179,6 +216,15 @@ enum ClipboardHelper {
         pasteboard.setData(tiffData, forType: .tiff)
       }
     }
+  }
+
+  private static func addFileURLFallbackRepresentations(
+    to pasteboard: NSPasteboard,
+    fileURL: URL
+  ) {
+    pasteboard.addTypes([.URL, .string], owner: nil)
+    pasteboard.setString(fileURL.absoluteString, forType: .URL)
+    pasteboard.setString(fileURL.path, forType: .string)
   }
 
   private static func pasteboardImageType(for fileExtension: String) -> NSPasteboard.PasteboardType? {

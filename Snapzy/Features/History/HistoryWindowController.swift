@@ -85,7 +85,7 @@ final class HistoryWindowController {
       case .screenshot, .gif:
         ClipboardHelper.copyImage(from: record.fileURL)
       case .video:
-        ClipboardHelper.copyFileURLs([record.fileURL])
+        ClipboardHelper.copyMediaFile(from: record.fileURL)
       }
     } else {
       ClipboardHelper.copyFileURLs(existingRecords.map(\.fileURL))

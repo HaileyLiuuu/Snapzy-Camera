@@ -219,6 +219,35 @@ final class PostCaptureActionHandlerTests: XCTestCase {
     XCTAssertEqual(fakeQuickAccess.addedScreenshots, [tempFileURL])
   }
 
+  func testHandleVideoCapture_copiesMediaFileToClipboardBeforeQuickAccess() async throws {
+    let videoURL = tempDirectory.appendingPathComponent("test_recording.mp4")
+    try Data([0, 1, 2, 3]).write(to: videoURL)
+
+    let pasteboard = NSPasteboard.general
+    pasteboard.clearContents()
+    pasteboard.setString("stale clipboard value", forType: .string)
+
+    let fakeQuickAccess = FakeQuickAccessManager()
+    fakeQuickAccess.onAddVideo = { url in
+      XCTAssertEqual(url, videoURL)
+      let item = NSPasteboard.general.pasteboardItems?.first
+      XCTAssertTrue(item?.types.contains(.fileURL) ?? false)
+      XCTAssertTrue(item?.types.contains(.URL) ?? false)
+      XCTAssertTrue(item?.types.contains(.string) ?? false)
+      XCTAssertEqual(item?.string(forType: .URL), videoURL.absoluteString)
+      XCTAssertEqual(item?.string(forType: .string), videoURL.path)
+      XCTAssertEqual(
+        (NSPasteboard.general.readObjects(forClasses: [NSURL.self], options: nil) as? [URL])?.first?.standardizedFileURL,
+        videoURL.standardizedFileURL
+      )
+    }
+    let handler = makeHandler(quickAccess: fakeQuickAccess)
+
+    await handler.handleVideoCapture(url: videoURL)
+
+    XCTAssertEqual(fakeQuickAccess.addedVideos, [videoURL])
+  }
+
   func testScreenshotPresetAutoApplier_noDefaultPreset_preservesOriginalFile() throws {
     let beforeData = try Data(contentsOf: tempFileURL)
 

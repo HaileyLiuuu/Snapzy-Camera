@@ -843,11 +843,7 @@ final class QuickAccessManager: ObservableObject {
     // removeItem/removeScreenshot deletes temp files, which would cause
     // reads to fail if done after removal.
     if isVideo {
-      let fileAccess = fileAccessManager.beginAccessingURL(url)
-      let pasteboard = NSPasteboard.general
-      pasteboard.clearContents()
-      pasteboard.writeObjects([url as NSURL])
-      fileAccess.stop()
+      ClipboardHelper.copyMediaFile(from: url)
       DiagnosticLogger.shared.log(
         .info,
         .clipboard,

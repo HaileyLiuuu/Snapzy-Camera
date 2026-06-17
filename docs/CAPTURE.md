@@ -317,6 +317,7 @@ flowchart TD
 ### Notes
 
 - `AfterCaptureAction.save` is not a post-write callback. For screenshots it changes the destination before write; for recordings it chooses the final destination after the internal writer processing file is complete.
+- Recording clipboard copy uses `ClipboardHelper.copyMediaFile(from:)`, which keeps the AppKit file-URL write for sandbox handoff and adds same-item URL/string fallbacks for Teams/Electron/WebView paste targets.
 - Current cloud behavior is manual from Quick Access for screenshots, videos, and GIFs, plus Annotate for screenshots. The preference toggle enables those affordances; it does not auto-upload in `PostCaptureActionHandler`.
 - Quick Access countdowns pause while a card is converting to GIF or uploading to cloud, then resume after the active work finishes.
 - Temp captures are intentionally stored in Application Support, not `/tmp`, so drag-and-drop remains stable.

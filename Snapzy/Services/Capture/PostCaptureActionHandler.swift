@@ -406,11 +406,7 @@ final class PostCaptureActionHandler {
   /// Copy file to clipboard (format-aware image data for screenshots, file URL for videos)
   private func copyToClipboard(url: URL, isVideo: Bool) {
     if isVideo {
-      let scopedAccess = fileAccess.beginAccessingURL(url)
-      defer { scopedAccess.stop() }
-      let pasteboard = NSPasteboard.general
-      pasteboard.clearContents()
-      pasteboard.writeObjects([url as NSURL])
+      ClipboardHelper.copyMediaFile(from: url)
       DiagnosticLogger.shared.log(
         .debug,
         .clipboard,

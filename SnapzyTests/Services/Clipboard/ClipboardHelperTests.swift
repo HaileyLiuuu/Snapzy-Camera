@@ -147,6 +147,31 @@ final class ClipboardHelperTests: XCTestCase {
     XCTAssertEqual((pasteboard.readObjects(forClasses: [NSURL.self], options: nil) as? [URL])?.count, 1)
   }
 
+  func testCopyMediaFile_validVideoFile_addsFileURLAndFallbackRepresentations() throws {
+    let tempDir = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+    try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
+    defer { try? FileManager.default.removeItem(at: tempDir) }
+
+    let fileURL = tempDir.appendingPathComponent("recording.mp4")
+    try Data([0, 1, 2, 3]).write(to: fileURL)
+
+    ClipboardHelper.copyMediaFile(from: fileURL)
+
+    let pasteboard = NSPasteboard.general
+    let item = try XCTUnwrap(pasteboard.pasteboardItems?.first)
+    XCTAssertEqual(pasteboard.pasteboardItems?.count, 1)
+    XCTAssertTrue(item.types.contains(.fileURL))
+    XCTAssertTrue(item.types.contains(.URL))
+    XCTAssertTrue(item.types.contains(.string))
+    XCTAssertEqual(item.string(forType: .fileURL), fileURL.absoluteString)
+    XCTAssertEqual(item.string(forType: .URL), fileURL.absoluteString)
+    XCTAssertEqual(item.string(forType: .string), fileURL.path)
+    XCTAssertEqual(
+      (pasteboard.readObjects(forClasses: [NSURL.self], options: nil) as? [URL])?.first?.standardizedFileURL,
+      fileURL.standardizedFileURL
+    )
+  }
+
   func testCopyFileURLs_multipleURLs_copiesAllToClipboard() throws {
     let tempDir = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
     try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
