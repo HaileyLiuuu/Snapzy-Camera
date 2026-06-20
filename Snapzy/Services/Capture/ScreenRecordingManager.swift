@@ -747,12 +747,19 @@ final class ScreenRecordingManager: NSObject, ObservableObject {
     let requestedRect = windowTarget?.frame ?? rect
 
     // Find the display containing the rect using NSScreen (same coordinate system as input rect)
-    // Then get the matching SCDisplay by displayID
+    // Then get the matching SCDisplay by displayID.
+    // When the rect spans multiple displays (e.g. at display boundaries), pick the screen with
+    // the largest intersection area so the most-overlapping display wins.
     var targetScreen: NSScreen?
+    var bestOverlap: CGFloat = 0
     for screen in NSScreen.screens {
-      if screen.frame.intersects(requestedRect) {
-        targetScreen = screen
-        break
+      let intersection = screen.frame.intersection(requestedRect)
+      if !intersection.isNull {
+        let overlap = intersection.width * intersection.height
+        if overlap > bestOverlap {
+          bestOverlap = overlap
+          targetScreen = screen
+        }
       }
     }
 
@@ -764,6 +771,14 @@ final class ScreenRecordingManager: NSObject, ObservableObject {
     } else {
       targetDisplayID = CGMainDisplayID()
     }
+
+    DiagnosticLogger.shared.log(.debug, .recording, "Recording display resolved", context: [
+      "targetDisplayID": "\(targetDisplayID)",
+      "bestOverlap": String(format: "%.0f", bestOverlap),
+      "screenCount": "\(NSScreen.screens.count)",
+      "requestedRect": "\(Int(requestedRect.origin.x)),\(Int(requestedRect.origin.y)) \(Int(requestedRect.width))x\(Int(requestedRect.height))",
+      "usedFallback": "\(targetScreen == nil)",
+    ])
 
     // Find matching SCDisplay
     guard let display = content.displays.first(where: { $0.displayID == Int(targetDisplayID) })

@@ -166,8 +166,27 @@ final class AreaSelectionController: NSObject {
 
   /// Activate all pooled windows (show instantly)
   private func activatePooledWindows() {
-    for screen in NSScreen.screens {
-      guard let displayID = screen.displayID else { continue }
+    let screens = NSScreen.screens
+    DiagnosticLogger.shared.log(
+      .debug,
+      .capture,
+      "Area selection activating pooled windows",
+      context: [
+        "screenCount": "\(screens.count)",
+        "poolSize": "\(windowPool.count)",
+        "mode": "\(selectionMode)",
+      ]
+    )
+    for screen in screens {
+      guard let displayID = screen.displayID else {
+        DiagnosticLogger.shared.log(
+          .warning,
+          .capture,
+          "Area selection skipped screen with nil displayID",
+          context: ["frame": "\(screen.frame)"]
+        )
+        continue
+      }
       let allowsSelection = selectionEnabled(for: displayID)
       let receivesKeyboardInput = displayID == keyboardOwnerDisplayID
 
@@ -221,6 +240,17 @@ final class AreaSelectionController: NSObject {
         window.activateKeyboardInputIfNeeded()
         window.overlayView.refreshCursor()
       }
+      DiagnosticLogger.shared.log(
+        .debug,
+        .capture,
+        "Area selection window activated",
+        context: [
+          "displayID": "\(displayID)",
+          "frame": "\(screen.frame)",
+          "selectionEnabled": "\(allowsSelection)",
+          "isPooled": "\(windowPool[displayID] != nil)",
+        ]
+      )
     }
   }
 
@@ -1004,7 +1034,7 @@ final class AreaSelectionWindow: NSPanel {
     self.isReleasedWhenClosed = false
     self.hasShadow = false
     self.hidesOnDeactivate = false
-    self.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
+    self.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary, .stationary]
     self.animationBehavior = .none  // Disable window animations for instant appearance
     self.becomesKeyOnlyIfNeeded = true
 
@@ -1939,6 +1969,19 @@ final class AreaSelectionOverlayView: NSView {
   override func mouseDown(with event: NSEvent) {
     let point = convert(event.locationInWindow, from: nil)
     currentMousePosition = point
+    if let areaWindow = self.window as? AreaSelectionWindow {
+      DiagnosticLogger.shared.log(
+        .debug,
+        .capture,
+        "Area selection mouseDown received",
+        context: [
+          "displayID": "\(areaWindow.displayID.map(String.init(describing:)) ?? "nil")",
+          "selectionEnabled": "\(selectionEnabled)",
+          "point": "\(point)",
+          "interactionMode": "\(interactionMode)",
+        ]
+      )
+    }
     delegate?.overlayViewDidRequestDisplayActivation(self)
     guard selectionEnabled else {
       if interactionMode == .manualRegion {
