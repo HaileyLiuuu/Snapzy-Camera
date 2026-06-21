@@ -102,6 +102,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     AppIdentityManager.shared.refresh()
 
+    guard ensureSandboxOffDataMigrationReadyForLaunch() else {
+      return
+    }
+
     guard ensureDatabaseReadyForLaunch() else {
       return
     }
@@ -129,6 +133,67 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     case repair
     case reset
     case quit
+  }
+
+  private enum SandboxOffMigrationRecoveryAction {
+    case retry
+    case quit
+  }
+
+  private func ensureSandboxOffDataMigrationReadyForLaunch() -> Bool {
+    while true {
+      do {
+        let result = try SandboxOffDataMigrationService.shared.runIfNeeded()
+        if result.didRun {
+          DiagnosticLogger.shared.log(
+            .info,
+            .lifecycle,
+            "Sandbox-off data migration completed",
+            context: [
+              "appSupportCopied": "\(result.copiedApplicationSupportItems)",
+              "appSupportSkipped": "\(result.skippedApplicationSupportItems)",
+              "preferencesImported": "\(result.importedPreferenceKeys)",
+              "preferencesSkipped": "\(result.skippedPreferenceKeys)",
+              "logsCopied": "\(result.copiedLogItems)",
+            ]
+          )
+        }
+        return true
+      } catch {
+        switch presentSandboxOffMigrationRecoveryAlert(error: error) {
+        case .retry:
+          continue
+        case .quit:
+          NSApp.terminate(nil)
+          return false
+        }
+      }
+    }
+  }
+
+  private func presentSandboxOffMigrationRecoveryAlert(error: Error) -> SandboxOffMigrationRecoveryAction {
+    NSApp.activate(ignoringOtherApps: true)
+
+    let alert = NSAlert()
+    alert.alertStyle = .critical
+    alert.messageText = "Snapzy could not migrate your existing data."
+    alert.informativeText = """
+      Snapzy needs to move data from the old sandboxed storage before opening the unsandboxed version.
+
+      No new database was opened yet, so your existing data has not been replaced.
+
+      Error:
+      \(error.localizedDescription)
+      """
+    alert.addButton(withTitle: "Try Again")
+    alert.addButton(withTitle: "Quit Snapzy")
+
+    switch alert.runModal() {
+    case .alertFirstButtonReturn:
+      return .retry
+    default:
+      return .quit
+    }
   }
 
   private func ensureDatabaseReadyForLaunch() -> Bool {
