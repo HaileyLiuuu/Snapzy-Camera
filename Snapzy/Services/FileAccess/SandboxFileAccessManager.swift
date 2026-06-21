@@ -70,6 +70,10 @@ final class SandboxFileAccessManager {
 
   var hasPersistedExportPermission: Bool {
     ensureExportLocationInitialized()
+    guard isRunningSandboxed else {
+      return true
+    }
+
     guard let bookmarkURL = resolveExportBookmarkURL(removeInvalidBookmark: true) else {
       return false
     }
@@ -95,6 +99,35 @@ final class SandboxFileAccessManager {
   @discardableResult
   func setExportDirectory(_ url: URL) -> Bool {
     let normalizedURL = url.standardizedFileURL
+
+    guard isRunningSandboxed else {
+      defaults.set(normalizedURL.path, forKey: PreferencesKeys.exportLocation)
+      do {
+        let bookmarkData = try normalizedURL.bookmarkData(
+          options: .withSecurityScope,
+          includingResourceValuesForKeys: nil,
+          relativeTo: nil
+        )
+        defaults.set(bookmarkData, forKey: PreferencesKeys.exportLocationBookmark)
+      } catch {
+        defaults.removeObject(forKey: PreferencesKeys.exportLocationBookmark)
+        DiagnosticLogger.shared.log(
+          .debug,
+          .fileAccess,
+          "Export directory bookmark skipped outside sandbox",
+          context: ["directory": normalizedURL.lastPathComponent]
+        )
+      }
+
+      didPromptForMissingExportPermissionThisSession = false
+      DiagnosticLogger.shared.log(
+        .info,
+        .fileAccess,
+        "Export directory saved",
+        context: ["directory": normalizedURL.lastPathComponent]
+      )
+      return true
+    }
 
     do {
       let bookmarkData = try normalizedURL.bookmarkData(
@@ -160,6 +193,10 @@ final class SandboxFileAccessManager {
 
   func ensureExportDirectoryForOperation(promptMessage: String) -> URL? {
     ensureExportLocationInitialized()
+
+    guard isRunningSandboxed else {
+      return resolvedExportDirectoryURL()
+    }
 
     if hasPersistedExportPermission {
       DiagnosticLogger.shared.log(.debug, .fileAccess, "Export directory permission already available")
