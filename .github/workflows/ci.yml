@@ -37,6 +37,10 @@ jobs:
             SnapzyTests/QuickAccessCoreTests/testQuickAccessTrackpadSwipeModeStore_persistsMode
             SnapzyTests/QuickAccessCoreTests/testQuickAccessTrackpadSwipeModeStore_resetToDefault
             SnapzyTests/OCRRecognitionTests
+            SnapzyTests/SmartElementCaptureControllerTests
+            SnapzyTests/SmartElementWindowOwnerResolverTests
+            SnapzyTests/SmartElementQueryServiceTests
+            SnapzyTests/SandboxOffDataMigrationServiceTests
         run: |
           set -euo pipefail
           mkdir -p build
