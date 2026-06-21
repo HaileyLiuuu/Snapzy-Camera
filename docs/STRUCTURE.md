@@ -21,6 +21,8 @@ flowchart LR
         I["ScreenCaptureManager"]
         J["AreaSelectionController"]
         K["WindowSelectionQueryService"]
+        SE["SmartElementCaptureController"]
+        AX["SmartElementQueryService + AXElementInspector"]
         L["ScrollingCaptureCoordinator"]
         M["RecordingCoordinator"]
         N["ScreenRecordingManager"]
@@ -68,6 +70,9 @@ flowchart LR
     H --> I
     G --> J
     J --> K
+    D --> SE
+    SE --> AX
+    SE --> G
     G --> L
     G --> M
     G --> IA
@@ -137,6 +142,16 @@ Snapzy/
     Capture/
       AreaSelectionBackdrop.swift
       AreaSelectionWindow.swift
+      AXElementInspector.swift
+      AXElementSnapshot.swift
+      SmartElementQueryService.swift
+      SmartElement/
+        SmartElementCaptureController.swift
+        SmartElementCapturePerformer.swift
+        SmartElementCaptureProtocols.swift
+        SmartElementOverlayView.swift
+        SmartElementOverlayWindow.swift
+        SmartElementWindowOwnerResolver.swift
       WindowSelectionQueryService.swift
       ScrollingCapture/
     Clipboard/
@@ -213,7 +228,8 @@ SnapzyUITests/
 
 | Path | Owns |
 | --- | --- |
-| `Services/Capture/` | ScreenCaptureKit capture engine, area selection overlay/controller, OCR scanning overlay, window-target resolution, recording engine, temp storage, post-capture routing |
+| `Services/Capture/` | ScreenCaptureKit capture engine, area selection overlay/controller, OCR scanning overlay, window-target resolution, Smart Element query helpers, recording engine, temp storage, post-capture routing |
+| `Services/Capture/SmartElement/` | Standalone Smart Element overlay controller, per-screen live panels, window-owner resolution, capture performer, and protocol seams |
 | `Services/Capture/ScrollingCapture/` | Long screenshot session model, live preview, stitcher, HUD, metrics |
 | `Services/Cloud/` | S3/R2 providers, upload orchestration, GRDB history, Keychain credentials, encrypted transfer |
 | `Services/Configuration/` | TOML export/import facade, focused TOML parser/writer, schema validation, preference mutation helpers, debounced config.toml sync coordinator |
@@ -271,7 +287,9 @@ SnapzyUITests/
 - Area screenshot now freezes the active display first through `FrozenAreaCaptureSession`, then keeps one overlay session that can toggle between manual region selection and application window selection with the configurable `Application Capture` overlay key. The default key is `A`.
 - Area + inline annotate uses `InlineAreaAnnotateCoordinator` with `InlineAreaAnnotateSession` and `InlineAreaAnnotateWindow`. It starts after a frozen all-display snapshot set, creates coordinated per-display panels that share one desktop coordinate space, reuses Annotate state/canvas/export services, and routes the saved image through `PostCaptureActionHandler`.
 - `AreaSelectionController` and `AreaSelectionWindow` own the cross-display overlay session, target-display keyboard ownership for screenshot sessions, and highlight rendering for both manual and application screenshot interaction modes.
-- `WindowSelectionQueryService` resolves the hovered topmost app window from CoreGraphics window lists plus `SCShareableContent`, so app-mode hover stays accurate without doing expensive live queries on every draw pass.
+- `WindowSelectionQueryService` resolves the hovered topmost app window from CoreGraphics window lists plus `SCShareableContent`, so app-mode hover stays accurate without doing expensive live queries on every draw pass. It also propagates the owner PID into `WindowCaptureTarget.ownerPID` for exact window capture metadata.
+- `Services/Capture/SmartElement/` owns the standalone Smart Element session. `SmartElementCaptureController` creates live per-screen overlay panels, resolves the topmost non-Snapzy owner with `SmartElementWindowOwnerResolver`, forwards that PID into `SmartElementQueryService`, and commits highlighted rects through `SmartElementCapturePerformer`.
+- `SmartElementQueryService` and `AXElementInspector` power Smart Element hover detection. The service debounces cursor updates on the main thread, gates on `AXIsProcessTrusted()`, queries the target app via `AXUIElementCreateApplication(pid)`, walks up to the nearest meaningful AX role, and flips the AX top-left rect into AppKit bottom-left global coordinates before publishing. The protocol seam (`AXSnapshotProviding` + `AXElementSnapshot`) keeps the pipeline unit-testable.
 - `PostCaptureActionHandler` executes clipboard copy before slower Quick Access and screenshot auto-open actions after files already exist, so auto-copy is not blocked by thumbnail generation or overlay work.
 - `PostCaptureActionHandler` also persists editable annotation sidecars when screenshot default presets are auto-applied before the file reaches clipboard, Quick Access, history, or Annotate auto-open. `ScreenshotPresetAutoApplier` keeps this route lightweight by rendering preset canvas effects directly, without spinning up a full Annotate state object.
 - Manual Open Annotate (`⇧⌘A`, menu bar, and `snapzy://open/annotate`) opens an empty editor through `AnnotateManager.openEmptyAnnotation()` and then applies the configured clipboard-image behavior: ask by default, load automatically, or do nothing.
@@ -345,7 +363,7 @@ Directory structure mirrors the app: `SnapzyTests/Services/Cloud/AWSV4SignerTest
 | Task | Start here |
 | --- | --- |
 | Localization, String Catalog, alert copy, translated display labels | `Resources/Localization/manifest.json`, `tools/localization/CatalogTool.swift`, `Shared/Localization/L10n.swift`, `docs/LOCALIZATION.md` |
-| New screenshot mode or capture behavior | `Features/Capture/CaptureViewModel.swift`, `Services/Capture/AreaSelectionWindow.swift`, `Services/Capture/ScreenCaptureManager.swift`, `Services/Capture/WindowSelectionQueryService.swift`, `docs/CAPTURE.md` |
+| New screenshot mode or capture behavior | `Features/Capture/CaptureViewModel.swift`, `Services/Capture/AreaSelectionWindow.swift`, `Services/Capture/SmartElement/`, `Services/Capture/ScreenCaptureManager.swift`, `Services/Capture/WindowSelectionQueryService.swift`, `docs/CAPTURE.md` |
 | Scrolling capture UX or stitching | `Services/Capture/ScrollingCapture/` |
 | Recording toolbar, overlays, GIF flow | `Features/Recording/`, `Services/Capture/ScreenRecordingManager.swift` |
 | Post-capture actions or temp-file logic | `Features/Preferences/PreferencesManager.swift`, `Services/Capture/PostCaptureActionHandler.swift`, `Services/Capture/TempCaptureManager.swift`, `Features/QuickAccess/` |

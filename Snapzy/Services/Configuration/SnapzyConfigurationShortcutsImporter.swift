@@ -304,6 +304,8 @@ private extension KeyboardShortcutManager {
       setShortcutListShortcut(config)
     case .ocr:
       setOCRShortcut(config)
+    case .smartElement:
+      setSmartElementShortcut(config)
     case .objectCutout:
       setObjectCutoutShortcut(config)
     case .history:

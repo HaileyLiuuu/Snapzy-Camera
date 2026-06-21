@@ -149,6 +149,7 @@ Snapzy registers the `snapzy://` URL scheme so launchers and automation tools ca
 | Area annotate         | `snapzy://capture/area-annotate`  |
 | Scrolling screenshot  | `snapzy://capture/scrolling`      |
 | OCR text capture      | `snapzy://capture/ocr`            |
+| Smart element capture | `snapzy://capture/smart-element`  |
 | Object cutout capture | `snapzy://capture/object-cutout`  |
 | Screen recording      | `snapzy://record/screen`          |
 | Application recording | `snapzy://record/application`     |

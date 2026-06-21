@@ -597,6 +597,11 @@ enum L10n {
       defaultValue: "Capture Text (OCR)",
       comment: "Action title for OCR capture"
     )
+    static let captureSmartElement = string(
+      "action.capture-smart-element",
+      defaultValue: "Smart Element Capture",
+      comment: "Action title for smart element capture"
+    )
     static let captureSubject = string(
       "action.capture-subject",
       defaultValue: "Capture Subject",
@@ -2927,6 +2932,11 @@ enum L10n {
       "preferences-shortcuts.capture-text-description",
       defaultValue: "Extract text from screen region",
       comment: "Description for OCR capture shortcut"
+    )
+    static let smartElementCaptureDescription = string(
+      "preferences-shortcuts.smart-element-capture-description",
+      defaultValue: "Live-highlight an accessible UI element, then click to capture it",
+      comment: "Description for smart element capture shortcut"
     )
     static let recordingSection = string(
       "preferences-shortcuts.recording-section",

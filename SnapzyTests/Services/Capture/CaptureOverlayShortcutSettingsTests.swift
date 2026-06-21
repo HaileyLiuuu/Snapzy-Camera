@@ -301,4 +301,5 @@ final class CaptureOverlayShortcutSettingsTests: XCTestCase {
     XCTAssertEqual(loaded.keyCode, UInt32(kVK_Space))
     XCTAssertEqual(loaded.modifiers, 0)
   }
+
 }

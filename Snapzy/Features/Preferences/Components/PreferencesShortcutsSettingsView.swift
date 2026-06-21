@@ -19,6 +19,7 @@ struct ShortcutsSettingsView: View {
   @State private var scrollingCaptureShortcut: ShortcutConfig?
   @State private var objectCutoutShortcut: ShortcutConfig?
   @State private var ocrShortcut: ShortcutConfig?
+  @State private var smartElementShortcut: ShortcutConfig?
   @State private var recordingShortcut: ShortcutConfig?
   @State private var annotateShortcut: ShortcutConfig?
   @State private var videoEditorShortcut: ShortcutConfig?
@@ -60,6 +61,7 @@ struct ShortcutsSettingsView: View {
     _scrollingCaptureShortcut = State(initialValue: KeyboardShortcutManager.shared.shortcut(for: .scrollingCapture))
     _objectCutoutShortcut = State(initialValue: KeyboardShortcutManager.shared.shortcut(for: .objectCutout))
     _ocrShortcut = State(initialValue: KeyboardShortcutManager.shared.shortcut(for: .ocr))
+    _smartElementShortcut = State(initialValue: KeyboardShortcutManager.shared.shortcut(for: .smartElement))
     _recordingShortcut = State(initialValue: KeyboardShortcutManager.shared.shortcut(for: .recording))
     _annotateShortcut = State(initialValue: KeyboardShortcutManager.shared.shortcut(for: .annotate))
     _videoEditorShortcut = State(initialValue: KeyboardShortcutManager.shared.shortcut(for: .videoEditor))
@@ -359,6 +361,17 @@ struct ShortcutsSettingsView: View {
             validationIssue: globalValidationIssues[.ocr],
             onShortcutChanged: { handleGlobalShortcutChange($0, for: .ocr) }
           )
+
+          ShortcutRecorderView(
+            label: L10n.Actions.captureSmartElement,
+            icon: "dot.viewfinder",
+            description: L10n.PreferencesShortcuts.smartElementCaptureDescription,
+            shortcut: $smartElementShortcut,
+            defaultShortcut: nil,
+            isEnabled: globalEnabledBinding(for: .smartElement),
+            validationIssue: globalValidationIssues[.smartElement],
+            onShortcutChanged: { handleGlobalShortcutChange($0, for: .smartElement) }
+          )
         } header: {
           HStack {
             Text(L10n.PreferencesShortcuts.captureSection)
@@ -626,8 +639,11 @@ struct ShortcutsSettingsView: View {
     scrollingCaptureShortcut = .defaultScrollingCapture
     objectCutoutShortcut = .defaultObjectCutout
     ocrShortcut = .defaultOCR
+    smartElementShortcut = nil
 
-    let captureKinds: [GlobalShortcutKind] = [.fullscreen, .area, .areaAnnotate, .activeWindow, .scrollingCapture, .objectCutout, .ocr]
+    let captureKinds: [GlobalShortcutKind] = [
+      .fullscreen, .area, .areaAnnotate, .activeWindow, .scrollingCapture, .objectCutout, .ocr, .smartElement
+    ]
     for kind in captureKinds {
       globalShortcutEnabled[kind] = true
       manager.setShortcutEnabled(true, for: kind)
@@ -642,6 +658,7 @@ struct ShortcutsSettingsView: View {
     manager.setScrollingCaptureShortcut(.defaultScrollingCapture)
     manager.setObjectCutoutShortcut(.defaultObjectCutout)
     manager.setOCRShortcut(.defaultOCR)
+    manager.setSmartElementShortcut(nil)
     CaptureOverlayShortcutSettings.resetApplicationCaptureShortcut()
 
     if refresh {
@@ -868,6 +885,9 @@ struct ShortcutsSettingsView: View {
       case .ocr:
         ocrShortcut = config
         manager.setOCRShortcut(config)
+      case .smartElement:
+        smartElementShortcut = config
+        manager.setSmartElementShortcut(config)
       case .objectCutout:
         objectCutoutShortcut = config
         manager.setObjectCutoutShortcut(config)

@@ -230,7 +230,7 @@ enum SnapzyConfigurationDefaultDocument {
     writer.stringArray("modifiers", SnapzyConfigurationShortcutCodec.exportModifiers(shortcut))
   }
 
-  private static func globalShortcut(for kind: GlobalShortcutKind) -> ShortcutConfig {
+  private static func globalShortcut(for kind: GlobalShortcutKind) -> ShortcutConfig? {
     switch kind {
     case .fullscreen: return .defaultFullscreen
     case .area: return .defaultArea
@@ -243,6 +243,7 @@ enum SnapzyConfigurationDefaultDocument {
     case .cloudUploads: return .defaultCloudUploads
     case .shortcutList: return .defaultShortcutList
     case .ocr: return .defaultOCR
+    case .smartElement: return nil
     case .objectCutout: return .defaultObjectCutout
     case .history: return .defaultHistory
     }

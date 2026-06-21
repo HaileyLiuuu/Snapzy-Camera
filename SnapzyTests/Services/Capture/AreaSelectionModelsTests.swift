@@ -24,7 +24,8 @@ final class AreaSelectionModelsTests: XCTestCase {
       frame: CGRect(x: 0, y: 0, width: 800, height: 600),
       displayID: 1,
       title: "Test",
-      bundleIdentifier: "com.test"
+      bundleIdentifier: "com.test",
+      ownerPID: nil
     )
     let target = AreaSelectionTarget.window(windowTarget)
     XCTAssertEqual(target.rect, windowTarget.frame)
@@ -63,9 +64,9 @@ final class AreaSelectionModelsTests: XCTestCase {
   }
 
   func testWindowCaptureTarget_equatable() {
-    let a = WindowCaptureTarget(windowID: 1, frame: .zero, displayID: 1, title: nil, bundleIdentifier: nil)
-    let b = WindowCaptureTarget(windowID: 1, frame: .zero, displayID: 1, title: nil, bundleIdentifier: nil)
-    let c = WindowCaptureTarget(windowID: 2, frame: .zero, displayID: 1, title: nil, bundleIdentifier: nil)
+    let a = WindowCaptureTarget(windowID: 1, frame: .zero, displayID: 1, title: nil, bundleIdentifier: nil, ownerPID: nil)
+    let b = WindowCaptureTarget(windowID: 1, frame: .zero, displayID: 1, title: nil, bundleIdentifier: nil, ownerPID: nil)
+    let c = WindowCaptureTarget(windowID: 2, frame: .zero, displayID: 1, title: nil, bundleIdentifier: nil, ownerPID: nil)
     XCTAssertEqual(a, b)
     XCTAssertNotEqual(a, c)
   }

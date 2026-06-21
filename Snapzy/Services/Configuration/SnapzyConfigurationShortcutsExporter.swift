@@ -124,6 +124,7 @@ extension GlobalShortcutKind {
     case .cloudUploads: return "cloud_uploads"
     case .shortcutList: return "shortcut_list"
     case .ocr: return "ocr"
+    case .smartElement: return "smart_element"
     case .objectCutout: return "object_cutout"
     case .history: return "history"
     }

@@ -77,7 +77,8 @@ enum WindowSelectionQueryService {
               frame: frame,
               displayID: displayID,
               title: windowTitle(from: windowInfo, shareableWindow: shareableWindow),
-              bundleIdentifier: bundleIdentifier
+              bundleIdentifier: bundleIdentifier,
+              ownerPID: (windowInfo[kCGWindowOwnerPID as String] as? NSNumber)?.int32Value
             ),
             ownerName: ownerName(from: windowInfo, shareableWindow: shareableWindow),
             windowLayer: windowLayer

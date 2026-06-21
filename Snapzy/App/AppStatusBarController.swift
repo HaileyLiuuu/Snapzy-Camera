@@ -28,6 +28,10 @@ final class AppStatusBarController: ObservableObject {
   private var viewModel: ScreenCaptureViewModel?
   private var updater: SPUUpdater?
 
+  var screenCaptureViewModel: ScreenCaptureViewModel? {
+    viewModel
+  }
+
   // Track if we elevated activation policy for Settings window
   private var didElevateForSettings = false
   private weak var trackedPreferencesWindow: NSWindow?
@@ -367,6 +371,17 @@ final class AppStatusBarController: ObservableObject {
     captureOCRItem.isEnabled = viewModel.hasPermission
     menu?.addItem(captureOCRItem)
 
+    let captureSmartElementItem = NSMenuItem(
+      title: L10n.Actions.captureSmartElement,
+      action: #selector(captureSmartElementAction),
+      keyEquivalent: ""
+    )
+    applyConfiguredShortcut(captureSmartElementItem, for: .smartElement, using: shortcutManager)
+    captureSmartElementItem.target = self
+    captureSmartElementItem.image = NSImage(systemSymbolName: "dot.viewfinder", accessibilityDescription: nil)
+    captureSmartElementItem.isEnabled = viewModel.hasPermission
+    menu?.addItem(captureSmartElementItem)
+
     let captureObjectCutoutItem = NSMenuItem(
       title: GlobalShortcutKind.objectCutout.displayName,
       action: #selector(captureObjectCutoutAction),
@@ -574,6 +589,11 @@ final class AppStatusBarController: ObservableObject {
   @objc private func captureOCRAction() {
     logMenuAction("captureOCR")
     viewModel?.captureOCR()
+  }
+
+  @objc private func captureSmartElementAction() {
+    logMenuAction("captureSmartElement")
+    SmartElementCaptureController.shared.startCapture()
   }
 
   @objc private func captureObjectCutoutAction() {

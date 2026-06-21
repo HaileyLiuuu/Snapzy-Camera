@@ -1026,7 +1026,7 @@ final class AreaSelectionWindow: NSPanel {
     // Configure as non-activating panel to prevent background windows from blurring
     self.isFloatingPanel = true
     self.isOpaque = false
-    self.backgroundColor = .clear
+    self.backgroundColor = NSColor(white: 0, alpha: 0.005)
     self.sharingType = .none
     self.level = .screenSaver
     self.ignoresMouseEvents = false
@@ -1045,6 +1045,12 @@ final class AreaSelectionWindow: NSPanel {
       guard let self else { return false }
       return self.selectionDelegate?.areaSelectionWindow(self, didReceiveKeyEvent: event) ?? false
     }
+
+    // Hide the panel from Accessibility so VoiceOver / assistive tech ignore
+    // the overlay chrome (kept as hygiene for any future AX-aware capture work).
+    self.setAccessibilityElement(false)
+    self.setAccessibilityHidden(true)
+    self.setAccessibilityRole(.unknown)
 
     if pooled {
       // Pooled windows start hidden
@@ -1317,6 +1323,7 @@ final class AreaSelectionOverlayView: NSView {
     wantsLayer = true
     setupLayers()
     setupTrackingArea()
+    configureAccessibilityInvisibility()
   }
 
   required init?(coder: NSCoder) {
@@ -1324,6 +1331,13 @@ final class AreaSelectionOverlayView: NSView {
     wantsLayer = true
     setupLayers()
     setupTrackingArea()
+    configureAccessibilityInvisibility()
+  }
+
+  private func configureAccessibilityInvisibility() {
+    setAccessibilityElement(false)
+    setAccessibilityHidden(true)
+    setAccessibilityRole(.unknown)
   }
 
   // MARK: - Layer Setup
@@ -1918,12 +1932,16 @@ final class AreaSelectionOverlayView: NSView {
     currentMousePosition = point
     guard window != nil else {
       hoveredWindowCandidate = nil
-      updateApplicationSelectionLayers()
+      if interactionMode == .applicationWindow {
+        updateApplicationSelectionLayers()
+      }
       return
     }
     let screenPoint = NSEvent.mouseLocation
     hoveredWindowCandidate = windowSelectionSnapshot?.hitTest(at: screenPoint)
-    updateApplicationSelectionLayers()
+    if interactionMode == .applicationWindow {
+      updateApplicationSelectionLayers()
+    }
   }
 
   private func updateApplicationSelectionLayers() {
@@ -2067,9 +2085,12 @@ final class AreaSelectionOverlayView: NSView {
 
   private var activeCursor: NSCursor {
     guard selectionEnabled else { return .arrow }
-    return interactionMode == .manualRegion
-      ? Self.hiddenManualRegionCursor
-      : Self.applicationWindowCursor
+    switch interactionMode {
+    case .manualRegion:
+      return Self.hiddenManualRegionCursor
+    case .applicationWindow:
+      return Self.applicationWindowCursor
+    }
   }
 
   var isManualSelectionInProgress: Bool {

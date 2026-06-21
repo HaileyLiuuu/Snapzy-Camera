@@ -27,6 +27,7 @@ nonisolated struct WindowCaptureTarget: Equatable {
   let displayID: CGDirectDisplayID
   let title: String?
   let bundleIdentifier: String?
+  let ownerPID: Int32?
 }
 
 nonisolated enum AreaSelectionTarget: Equatable {

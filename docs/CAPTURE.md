@@ -13,19 +13,22 @@ flowchart TD
     B --> C["Fullscreen / Area screenshot"]
     B --> D["Scrolling capture"]
     B --> E["Capture Text (OCR / QR)"]
-    B --> F["Object cutout"]
-    B --> G["Record screen"]
+    B --> F["Smart Element Capture"]
+    B --> G["Object cutout"]
+    B --> R0["Record screen"]
 
     C --> H["ScreenCaptureManager"]
     D --> I["ScrollingCaptureCoordinator"]
     E --> J["captureAreaAsImage -> QRCodeService + OCRService"]
-    F --> K["captureAreaAsImage -> ForegroundCutoutService"]
-    G --> L["RecordingCoordinator -> ScreenRecordingManager"]
+    F --> K["SmartElementCaptureController -> captureAreaAsImage"]
+    G --> L["captureAreaAsImage -> ForegroundCutoutService"]
+    R0 --> R1["RecordingCoordinator -> ScreenRecordingManager"]
 
     H --> M["TempCaptureManager + PostCaptureActionHandler"]
     I --> M
     K --> M
     L --> M
+    R1 --> M
 
     J --> N["Clipboard plain-text result"]
 
@@ -50,6 +53,7 @@ flowchart TD
     D -->|Area| F["FrozenAreaCaptureSession.prepare()"]
     D -->|Area + inline annotate| F1["FrozenAreaCaptureSession.prepare(all displays) -> InlineAreaAnnotateCoordinator"]
     D -->|OCR / QR| G["AreaSelectionController.startSelection()"]
+    D -->|Smart Element| G0["SmartElementCaptureController.startCapture()"]
     D -->|Cutout| H["AreaSelectionController.startSelection()"]
 
     E --> I["ScreenCaptureManager.captureAllDisplays(targetDisplayIDs: active)"]
@@ -72,6 +76,10 @@ flowchart TD
     Q0 --> Q["QRCodeService.detect() + OCRService.recognizeText()"]
     Q --> R["Copy recognized text / QR payloads to NSPasteboard as plain text"]
 
+    G0 --> G1["Live per-screen overlay + AX hover rect"]
+    G1 --> G2["Click highlighted rect"]
+    G2 --> N
+
     H --> S["ForegroundCutoutService.extractForegroundResult()"]
     S --> T{"Auto-crop suggested and enabled?"}
     T -->|Yes| U["Crop transparent canvas to suggested rect"]
@@ -89,8 +97,13 @@ flowchart TD
 - Area screenshot freezes the active display first via `FrozenAreaCaptureSession`, then either crops from that cached snapshot or switches into exact window capture for application mode.
 - Area screenshot freezes the active display first, then lazily prepares idle/hovered displays when possible. Area-selection overlay windows are excluded from screen capture, so lazy snapshots do not bake in the dim overlay or create a double-darkened backdrop. During an active cross-display drag, a newly crossed display stays live and is captured after mouse-up once the overlay has been hidden, avoiding a mid-drag freeze jump while preserving fast initial activation. Manual selection is tracked in global screen coordinates and rendered per display, so one selection rectangle can span multiple monitors.
 - For screenshot sessions, the target display overlay now owns direct keyboard handling for `Escape` and the application-mode toggle key, so cancel still works when Snapzy starts from a background custom shortcut without depending on Accessibility-backed global key monitoring.
-- `Cmd+Shift+4` area capture now has two interaction modes inside the same overlay session: manual region by default, and application window mode toggled with the configurable `Application Capture` key from Preferences → Shortcuts. The default key is `A`.
+- `Cmd+Shift+4` area capture has two interaction modes inside the same overlay session: manual region by default, and application window mode toggled with the configurable `Application Capture` key (default `A`).
 - Application-window capture can also start directly from the menu, independent shortcut, or `snapzy://capture/application`; it uses the same area capture flow with `.applicationWindow` as the initial interaction mode.
+- Smart Element Capture is standalone. It starts from the menu, an optional user-bound global shortcut (default `None`), or `snapzy://capture/smart-element`; it does not run inside the `Cmd+Shift+4` area overlay and does not freeze the desktop before hover.
+- Smart Element Capture requires Accessibility permission. Startup gates through `AXIsProcessTrustedWithOptions`; without permission, Snapzy does not show the standalone overlay.
+- During a Smart Element session, `SmartElementCaptureController` owns one live overlay panel per screen. `SmartElementWindowOwnerResolver` finds the topmost non-Snapzy window under the cursor, `SmartElementQueryService` uses the window PID with `AXUIElementCopyElementAtPosition`, and `AXElementInspector` normalizes AX bounds into AppKit bottom-left coordinates for highlight rendering.
+- Clicking inside the highlighted rect commits through `ScreenCaptureViewModel.captureSmartElement(rect:)`, which reuses the screenshot save and post-capture pipeline. Clicking outside the highlight or pressing `Escape` cancels without writing a capture.
+- Known limitation: Chromium-based apps (Chrome, Slack, Claude desktop, Electron) may expose only `AXWebArea` for web content unless launched with `--force-renderer-accessibility` (Chromium) or `app.setAccessibilitySupportEnabled(true)` (Electron). Inside such apps the highlight may snap to the whole web view rather than individual DOM elements.
 - Area + inline annotate is a separate screenshot flow with the default shortcut `Cmd+Shift+7`. Users can enable/disable or configure it from Preferences → Shortcuts. It freezes all available displays, lets the user select, move, and resize one region across the desktop coordinate space, supports both the move handle and Space-drag for moving the selected region, reuses Annotate tool models/rendering on that region, and saves the rendered image through the normal screenshot post-capture pipeline after Command-S, Enter, or Done.
 - In application window mode, `AreaSelectionController` builds a front-to-back candidate list from `CGWindowListCopyWindowInfo` plus `SCShareableContent`, highlights the hovered window above the dimming overlay, and captures the selected app window on click without requiring a drag rectangle.
 - Exact window capture is handled by `ScreenCaptureManager.captureWindow()`. macOS 14+ uses ScreenCaptureKit window metrics directly, then trims fully transparent capture fringe so shadow framing does not leave uneven empty canvas; macOS 13+ stays supported with the same ScreenCaptureKit path plus a safe area-capture fallback if exact capture fails.

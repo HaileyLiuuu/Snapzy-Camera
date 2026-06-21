@@ -316,6 +316,8 @@ final class ScreenCaptureViewModel: ObservableObject, KeyboardShortcutDelegate {
       captureScrolling()
     case .captureOCR:
       captureOCR()
+    case .captureSmartElement:
+      SmartElementCaptureController.shared.startCapture()
     case .captureObjectCutout:
       captureObjectCutout()
     case .recordVideo:
@@ -1343,6 +1345,117 @@ final class ScreenCaptureViewModel: ObservableObject, KeyboardShortcutDelegate {
         }
       }
     }
+  }
+
+
+
+  // MARK: - Smart Element Capture
+
+  func captureSmartElement(rect: CGRect) async {
+    guard rect.width > 0, rect.height > 0 else {
+      DiagnosticLogger.shared.log(.warning, .capture, "Smart element capture skipped: empty rect")
+      return
+    }
+
+    guard !isAreaSelectionActive, !isCapturing else {
+      DiagnosticLogger.shared.log(.debug, .capture, "captureSmartElement blocked: capture already active")
+      return
+    }
+
+    guard
+      let resolvedSaveDirectory = fileAccessManager.ensureExportDirectoryForOperation(
+        promptMessage: L10n.Recording.chooseSaveLocationMessage
+      )
+    else {
+      lastCaptureResult = .failure(.saveFailed(L10n.ScreenCapture.saveLocationPermissionRequired))
+      return
+    }
+
+    saveDirectory = resolvedSaveDirectory
+    isCapturing = true
+    AppStatusBarController.shared.setProcessing(true)
+    DiagnosticLogger.shared.log(.info, .capture, "Smart element capture committed")
+
+    let excludeDesktopIcons = DesktopIconManager.shared.isIconHidingEnabled
+    let excludeDesktopWidgets = DesktopIconManager.shared.isWidgetHidingEnabled
+    let prefetchedContentTask = captureManager.prefetchShareableContent(
+      includeDesktopWindows: excludeDesktopIcons || excludeDesktopWidgets
+    )
+    let hiddenWindowSession = hideVisibleNormalWindowsIfNeeded(!includesOwnAppInScreenshots)
+
+    if hiddenWindowSession.didHideWindows {
+      let settleNanoseconds = UInt64(windowHideSettleDelay * 1_000_000_000)
+      try? await Task.sleep(nanoseconds: settleNanoseconds)
+    }
+
+    defer {
+      isCapturing = false
+      hiddenWindowSession.restore()
+      AppStatusBarController.shared.setProcessing(false)
+    }
+
+    do {
+      guard let image = try await captureManager.captureAreaAsImage(
+        rect: rect,
+        excludeDesktopIcons: excludeDesktopIcons,
+        excludeDesktopWidgets: excludeDesktopWidgets,
+        excludeOwnApplication: !includesOwnAppInScreenshots,
+        prefetchedContentTask: prefetchedContentTask
+      ) else {
+        lastCaptureResult = .failure(.captureFailed(L10n.ScreenCapture.unableToCaptureSelectedArea))
+        AppToastManager.shared.show(
+          message: L10n.ScreenCapture.unableToCaptureSelectedArea,
+          style: .error,
+          position: .bottomCenter
+        )
+        QuickAccessSound.failed.play()
+        return
+      }
+
+      let actualSaveDirectory = tempCaptureManager.resolveSaveDirectory(
+        for: .screenshot,
+        exportDirectory: resolvedSaveDirectory
+      )
+      let scaleFactor = Self.captureScaleFactor(for: image, rect: rect)
+      let result = await captureManager.saveProcessedImage(
+        image,
+        to: actualSaveDirectory,
+        format: resolvedFormat,
+        scaleFactor: scaleFactor
+      )
+      lastCaptureResult = result
+
+      switch result {
+      case .success:
+        SoundManager.playScreenshotCapture()
+      case .failure(let error):
+        AppToastManager.shared.show(
+          message: error.localizedDescription,
+          style: .error,
+          position: .bottomCenter
+        )
+        QuickAccessSound.failed.play()
+      }
+    } catch {
+      lastCaptureResult = .failure(.captureFailed(error.localizedDescription))
+      DiagnosticLogger.shared.logError(.capture, error, "Smart element capture failed")
+      AppToastManager.shared.show(
+        message: error.localizedDescription,
+        style: .error,
+        position: .bottomCenter
+      )
+      QuickAccessSound.failed.play()
+    }
+  }
+
+  private static func captureScaleFactor(for image: CGImage, rect: CGRect) -> CGFloat {
+    if rect.width > 0 {
+      return CGFloat(image.width) / rect.width
+    }
+    if rect.height > 0 {
+      return CGFloat(image.height) / rect.height
+    }
+    return NSScreen.main?.backingScaleFactor ?? 2.0
   }
 
 
