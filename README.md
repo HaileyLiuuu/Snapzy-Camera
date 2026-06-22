@@ -132,6 +132,7 @@ This will remove the app from `/Applications`, delete preferences and caches, an
 | Screen recording                                        | `⇧⌘5`    |
 | OCR text capture                                        | `⇧⌘2`    |
 | Object cutout capture                                   | `⇧⌘1`    |
+| Smart element capture                                   | `⌥⇧4`    |
 | Open Annotate                                           | `⇧⌘A`    |
 | Open Video Editor                                       | `⇧⌘E`    |
 | Open Cloud Uploads                                      | `⇧⌘L`    |
