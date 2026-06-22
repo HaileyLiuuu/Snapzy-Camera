@@ -19,7 +19,7 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Acci\u00f3n requerida"
+            "value": "Acción requerida"
           }
         },
         "fr": {
@@ -31,37 +31,37 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u30a2\u30af\u30b7\u30e7\u30f3\u304c\u5fc5\u8981\u3067\u3059"
+            "value": "アクションが必要です"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "\ud544\uc694\ud55c \uc870\uce58"
+            "value": "필요한 조치"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u0422\u0440\u0435\u0431\u0443\u0435\u0442\u0441\u044f \u0434\u0435\u0439\u0441\u0442\u0432\u0438\u0435"
+            "value": "Требуется действие"
           }
         },
         "vi": {
           "stringUnit": {
             "state": "translated",
-            "value": "C\u1ea7n thao t\u00e1c"
+            "value": "Cần thao tác"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u9700\u8981\u91c7\u53d6\u884c\u52a8"
+            "value": "需要采取行动"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u9700\u8981\u63a1\u53d6\u884c\u52d5"
+            "value": "需要採取行動"
           }
         }
       }
@@ -72,7 +72,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Verkn\u00fcpfungen f\u00fcr allgemeine Aktionen im Anmerkungseditor."
+            "value": "Verknüpfungen für allgemeine Aktionen im Anmerkungseditor."
           }
         },
         "en": {
@@ -90,43 +90,43 @@
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Raccourcis pour les actions courantes dans l'\u00e9diteur d'annotations."
+            "value": "Raccourcis pour les actions courantes dans l'éditeur d'annotations."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u6ce8\u91c8\u30a8\u30c7\u30a3\u30bf\u5185\u306e\u4e00\u822c\u7684\u306a\u30a2\u30af\u30b7\u30e7\u30f3\u306e\u30b7\u30e7\u30fc\u30c8\u30ab\u30c3\u30c8\u3002"
+            "value": "注釈エディタ内の一般的なアクションのショートカット。"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "\uc8fc\uc11d \ud3b8\uc9d1\uae30 \ub0b4\uc758 \uc77c\ubc18\uc801\uc778 \uc791\uc5c5\uc5d0 \ub300\ud55c \ub2e8\ucd95\ud0a4\uc785\ub2c8\ub2e4."
+            "value": "주석 편집기 내의 일반적인 작업에 대한 단축키입니다."
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u042f\u0440\u043b\u044b\u043a\u0438 \u0434\u043b\u044f \u043e\u0431\u0449\u0438\u0445 \u0434\u0435\u0439\u0441\u0442\u0432\u0438\u0439 \u0432 \u0440\u0435\u0434\u0430\u043a\u0442\u043e\u0440\u0435 \u0430\u043d\u043d\u043e\u0442\u0430\u0446\u0438\u0439."
+            "value": "Ярлыки для общих действий в редакторе аннотаций."
           }
         },
         "vi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ph\u00edm t\u1eaft cho c\u00e1c thao t\u00e1c ph\u1ed5 bi\u1ebfn b\u00ean trong tr\u00ecnh ch\u1ec9nh s\u1eeda Annotate."
+            "value": "Phím tắt cho các thao tác phổ biến bên trong trình chỉnh sửa Annotate."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u6807\u6ce8\u7f16\u8f91\u5668\u5185\u5e38\u7528\u64cd\u4f5c\u7684\u5feb\u6377\u952e\u3002"
+            "value": "标注编辑器内常用操作的快捷键。"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u6a19\u8a3b\u7de8\u8f2f\u5668\u4e2d\u5e38\u7528\u64cd\u4f5c\u7684\u5feb\u901f\u9375\u3002"
+            "value": "標註編輯器中常用操作的快速鍵。"
           }
         }
       }
@@ -155,43 +155,43 @@
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Raccourcis \u00e0 une seule touche pour changer d'outil dans l'\u00e9diteur d'annotations."
+            "value": "Raccourcis à une seule touche pour changer d'outil dans l'éditeur d'annotations."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u6ce8\u91c8\u30a8\u30c7\u30a3\u30bf\u30fc\u3067\u30c4\u30fc\u30eb\u3092\u5207\u308a\u66ff\u3048\u308b\u305f\u3081\u306e\u5358\u4e00\u30ad\u30fc\u306e\u30b7\u30e7\u30fc\u30c8\u30ab\u30c3\u30c8\u3002"
+            "value": "注釈エディターでツールを切り替えるための単一キーのショートカット。"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "\uc8fc\uc11d \ud3b8\uc9d1\uae30\uc5d0\uc11c \ub3c4\uad6c \uc804\ud658\uc744 \uc704\ud55c \ub2e8\uc77c \ud0a4 \ub2e8\ucd95\ud0a4\uc785\ub2c8\ub2e4."
+            "value": "주석 편집기에서 도구 전환을 위한 단일 키 단축키입니다."
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u041e\u0434\u043d\u043e\u043a\u043b\u0430\u0432\u0438\u0448\u043d\u044b\u0435 \u0441\u043e\u0447\u0435\u0442\u0430\u043d\u0438\u044f \u043a\u043b\u0430\u0432\u0438\u0448 \u0434\u043b\u044f \u043f\u0435\u0440\u0435\u043a\u043b\u044e\u0447\u0435\u043d\u0438\u044f \u0438\u043d\u0441\u0442\u0440\u0443\u043c\u0435\u043d\u0442\u043e\u0432 \u0432 \u0440\u0435\u0434\u0430\u043a\u0442\u043e\u0440\u0435 \u0430\u043d\u043d\u043e\u0442\u0430\u0446\u0438\u0439."
+            "value": "Одноклавишные сочетания клавиш для переключения инструментов в редакторе аннотаций."
           }
         },
         "vi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ph\u00edm t\u1eaft m\u1ed9t ph\u00edm \u0111\u1ec3 chuy\u1ec3n c\u00f4ng c\u1ee5 trong tr\u00ecnh ch\u1ec9nh s\u1eeda Annotate."
+            "value": "Phím tắt một phím để chuyển công cụ trong trình chỉnh sửa Annotate."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u7528\u4e8e\u5728\u6ce8\u91ca\u7f16\u8f91\u5668\u4e2d\u5207\u6362\u5de5\u5177\u7684\u5355\u952e\u5feb\u6377\u952e\u3002"
+            "value": "用于在注释编辑器中切换工具的单键快捷键。"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u7528\u65bc\u5728\u6ce8\u91cb\u7de8\u8f2f\u5668\u4e2d\u5207\u63db\u5de5\u5177\u7684\u55ae\u9375\u5feb\u6377\u9375\u3002"
+            "value": "用於在注釋編輯器中切換工具的單鍵快捷鍵。"
           }
         }
       }
@@ -208,13 +208,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Single key (A) pairs with Capture Area; modifier combo (\u21e7\u2318A)\nworks independently."
+            "value": "Single key (A) pairs with Capture Area; modifier combo (⇧⌘A)\nworks independently."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Dentro de la superposici\u00f3n de Captura de \u00c1rea."
+            "value": "Dentro de la superposición de Captura de Área."
           }
         },
         "fr": {
@@ -226,37 +226,37 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u7bc4\u56f2\u30ad\u30e3\u30d7\u30c1\u30e3\u306e\u30aa\u30fc\u30d0\u30fc\u30ec\u30a4\u5185"
+            "value": "範囲キャプチャのオーバーレイ内"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "\uc601\uc5ed \ucea1\ucc98 \uc624\ubc84\ub808\uc774 \uc548\uc5d0\uc11c"
+            "value": "영역 캡처 오버레이 안에서"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u0412\u043d\u0443\u0442\u0440\u0438 \u043e\u0432\u0435\u0440\u043b\u0435\u044f \u0437\u0430\u0445\u0432\u0430\u0442\u0430 \u043e\u0431\u043b\u0430\u0441\u0442\u0438."
+            "value": "Внутри оверлея захвата области."
           }
         },
         "vi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ph\u00edm \u0111\u01a1n (A) \u0111i c\u00f9ng Ch\u1ee5p v\u00f9ng; combo modifier (\u21e7\u2318A)\nch\u1ea1y \u0111\u1ed9c l\u1eadp."
+            "value": "Phím đơn (A) đi cùng Chụp vùng; combo modifier (⇧⌘A)\nchạy độc lập."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u5728\u533a\u57df\u622a\u5c4f\u53e0\u52a0\u5c42\u4e2d\u4f7f\u7528"
+            "value": "在区域截屏叠加层中使用"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u65bc\u5340\u57df\u622a\u5716\u758a\u52a0\u5c64\u4e2d\u4f7f\u7528"
+            "value": "於區域截圖疊加層中使用"
           }
         }
       }
@@ -279,49 +279,49 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Captura de aplicaci\u00f3n"
+            "value": "Captura de aplicación"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Capture d\u2019application"
+            "value": "Capture d’application"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u30a2\u30d7\u30ea\u30ad\u30e3\u30d7\u30c1\u30e3"
+            "value": "アプリキャプチャ"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "\uc571 \ucea1\ucc98"
+            "value": "앱 캡처"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u0417\u0430\u0445\u0432\u0430\u0442 \u043f\u0440\u0438\u043b\u043e\u0436\u0435\u043d\u0438\u044f"
+            "value": "Захват приложения"
           }
         },
         "vi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ch\u1ee5p \u1ee9ng d\u1ee5ng"
+            "value": "Chụp ứng dụng"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u5e94\u7528\u7a97\u53e3\u622a\u5c4f"
+            "value": "应用窗口截屏"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u61c9\u7528\u7a0b\u5f0f\u8996\u7a97\u622a\u5716"
+            "value": "應用程式視窗截圖"
           }
         }
       }
@@ -332,61 +332,61 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Einzeltaste (A) koppelt mit \u201eBildschirm aufzeichnen\u201c; Modifikator-Kombination (\u21e7\u2318A)\nfunktioniert unabh\u00e4ngig."
+            "value": "Einzeltaste (A) koppelt mit „Bildschirm aufzeichnen“; Modifikator-Kombination (⇧⌘A)\nfunktioniert unabhängig."
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Single key (A) pairs with Record Screen; modifier combo (\u21e7\u2318A)\nworks independently."
+            "value": "Single key (A) pairs with Record Screen; modifier combo (⇧⌘A)\nworks independently."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "La tecla \u00fanica (A) se empareja con Grabar pantalla; la combinaci\u00f3n de modificadores (\u21e7\u2318A)\nfunciona de forma independiente."
+            "value": "La tecla única (A) se empareja con Grabar pantalla; la combinación de modificadores (⇧⌘A)\nfunciona de forma independiente."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "La touche unique (A) est associ\u00e9e \u00e0 Enregistrer l\u2019\u00e9cran ; la combinaison de modificateurs (\u21e7\u2318A)\nfonctionne ind\u00e9pendamment."
+            "value": "La touche unique (A) est associée à Enregistrer l’écran ; la combinaison de modificateurs (⇧⌘A)\nfonctionne indépendamment."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u5358\u4e00\u30ad\u30fc\uff08A\uff09\u306f\u753b\u9762\u9332\u753b\u3068\u9023\u52d5\u3057\u307e\u3059\u3002\u4fee\u98fe\u30ad\u30fc\u306e\u7d44\u307f\u5408\u308f\u305b\uff08\u21e7\u2318A\uff09\u306f\n\u72ec\u7acb\u3057\u3066\u52d5\u4f5c\u3057\u307e\u3059\u3002"
+            "value": "単一キー（A）は画面録画と連動します。修飾キーの組み合わせ（⇧⌘A）は\n独立して動作します。"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "\ub2e8\uc77c \ud0a4(A)\ub294 \ud654\uba74 \ub179\ud654\uc640 \uc9dd\uc744 \uc774\ub8f9\ub2c8\ub2e4. \uc870\ud569 \ud0a4(\u21e7\u2318A)\ub294\n\ub3c5\ub9bd\uc801\uc73c\ub85c \ub3d9\uc791\ud569\ub2c8\ub2e4."
+            "value": "단일 키(A)는 화면 녹화와 짝을 이룹니다. 조합 키(⇧⌘A)는\n독립적으로 동작합니다."
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u041e\u0434\u0438\u043d\u043e\u0447\u043d\u0430\u044f \u043a\u043b\u0430\u0432\u0438\u0448\u0430 (A) \u0441\u043e\u0447\u0435\u0442\u0430\u0435\u0442\u0441\u044f \u0441 \u0437\u0430\u043f\u0438\u0441\u044c\u044e \u044d\u043a\u0440\u0430\u043d\u0430; \u043a\u043e\u043c\u0431\u0438\u043d\u0430\u0446\u0438\u044f \u043c\u043e\u0434\u0438\u0444\u0438\u043a\u0430\u0442\u043e\u0440\u043e\u0432 (\u21e7\u2318A)\n\u0440\u0430\u0431\u043e\u0442\u0430\u0435\u0442 \u043d\u0435\u0437\u0430\u0432\u0438\u0441\u0438\u043c\u043e."
+            "value": "Одиночная клавиша (A) сочетается с записью экрана; комбинация модификаторов (⇧⌘A)\nработает независимо."
           }
         },
         "vi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ph\u00edm \u0111\u01a1n (A) \u0111i c\u00f9ng Ghi m\u00e0n h\u00ecnh; combo modifier (\u21e7\u2318A)\nch\u1ea1y \u0111\u1ed9c l\u1eadp."
+            "value": "Phím đơn (A) đi cùng Ghi màn hình; combo modifier (⇧⌘A)\nchạy độc lập."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u5355\u952e (A) \u4e0e\u300c\u5f55\u5236\u5c4f\u5e55\u300d\u8054\u52a8\uff1b\u4fee\u9970\u952e\u7ec4\u5408 (\u21e7\u2318A)\n\u53ef\u72ec\u7acb\u4f7f\u7528\u3002"
+            "value": "单键 (A) 与「录制屏幕」联动；修饰键组合 (⇧⌘A)\n可独立使用。"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u55ae\u9375 (A) \u8207\u300c\u9304\u88fd\u87a2\u5e55\u300d\u9023\u52d5\uff1b\u4fee\u98fe\u9375\u7d44\u5408 (\u21e7\u2318A)\n\u53ef\u7368\u7acb\u4f7f\u7528\u3002"
+            "value": "單鍵 (A) 與「錄製螢幕」連動；修飾鍵組合 (⇧⌘A)\n可獨立使用。"
           }
         }
       }
@@ -409,49 +409,49 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Grabaci\u00f3n de aplicaci\u00f3n"
+            "value": "Grabación de aplicación"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Enregistrement d\u2019application"
+            "value": "Enregistrement d’application"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u30a2\u30d7\u30ea\u306e\u753b\u9762\u9332\u753b"
+            "value": "アプリの画面録画"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "\uc571 \ud654\uba74 \ub179\ud654"
+            "value": "앱 화면 녹화"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u0417\u0430\u043f\u0438\u0441\u044c \u043f\u0440\u0438\u043b\u043e\u0436\u0435\u043d\u0438\u044f"
+            "value": "Запись приложения"
           }
         },
         "vi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghi \u1ee9ng d\u1ee5ng"
+            "value": "Ghi ứng dụng"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u5e94\u7528\u7a97\u53e3\u5f55\u5c4f"
+            "value": "应用窗口录屏"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u61c9\u7528\u7a0b\u5f0f\u8996\u7a97\u9304\u88fd"
+            "value": "應用程式視窗錄製"
           }
         }
       }
@@ -462,7 +462,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Sensiblen Text lokal finden und bearbeitbare Weichzeichnungsanmerkungen hinzuf\u00fcgen"
+            "value": "Sensiblen Text lokal finden und bearbeitbare Weichzeichnungsanmerkungen hinzufügen"
           }
         },
         "en": {
@@ -486,37 +486,37 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u30ed\u30fc\u30ab\u30eb\u3067\u6a5f\u5bc6\u30c6\u30ad\u30b9\u30c8\u3092\u691c\u7d22\u3057\u3001\u7de8\u96c6\u53ef\u80fd\u306a\u307c\u304b\u3057\u6ce8\u91c8\u3092\u8ffd\u52a0\u3057\u307e\u3059"
+            "value": "ローカルで機密テキストを検索し、編集可能なぼかし注釈を追加します"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "\ub85c\uceec\uc5d0\uc11c \ubbfc\uac10\ud55c \ud14d\uc2a4\ud2b8\ub97c \ucc3e\uc544 \ud3b8\uc9d1 \uac00\ub2a5\ud55c \ube14\ub7ec \uc8fc\uc11d\uc744 \ucd94\uac00\ud569\ub2c8\ub2e4"
+            "value": "로컬에서 민감한 텍스트를 찾아 편집 가능한 블러 주석을 추가합니다"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u041b\u043e\u043a\u0430\u043b\u044c\u043d\u044b\u0439 \u043f\u043e\u0438\u0441\u043a \u043a\u043e\u043d\u0444\u0438\u0434\u0435\u043d\u0446\u0438\u0430\u043b\u044c\u043d\u043e\u0433\u043e \u0442\u0435\u043a\u0441\u0442\u0430 \u0438 \u0434\u043e\u0431\u0430\u0432\u043b\u0435\u043d\u0438\u0435 \u0440\u0435\u0434\u0430\u043a\u0442\u0438\u0440\u0443\u0435\u043c\u044b\u0445 \u0440\u0430\u0437\u043c\u044b\u0442\u0438\u0439"
+            "value": "Локальный поиск конфиденциального текста и добавление редактируемых размытий"
           }
         },
         "vi": {
           "stringUnit": {
             "state": "translated",
-            "value": "T\u00ecm v\u0103n b\u1ea3n nh\u1ea1y c\u1ea3m c\u1ee5c b\u1ed9 v\u00e0 th\u00eam c\u00e1c ch\u00fa th\u00edch l\u00e0m m\u1edd c\u00f3 th\u1ec3 ch\u1ec9nh s\u1eeda"
+            "value": "Tìm văn bản nhạy cảm cục bộ và thêm các chú thích làm mờ có thể chỉnh sửa"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u5728\u672c\u5730\u67e5\u627e\u654f\u611f\u6587\u672c\u5e76\u6dfb\u52a0\u53ef\u7f16\u8f91\u7684\u6a21\u7cca\u6807\u6ce8"
+            "value": "在本地查找敏感文本并添加可编辑的模糊标注"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u5728\u672c\u5730\u5c0b\u627e\u654f\u611f\u6587\u5b57\u4e26\u65b0\u589e\u53ef\u7de8\u8f2f\u7684\u6a21\u7cca\u6a19\u8a3b"
+            "value": "在本地尋找敏感文字並新增可編輯的模糊標註"
           }
         }
       }
@@ -539,49 +539,49 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Captura al instante la ventana activa, sin paso de selecci\u00f3n"
+            "value": "Captura al instante la ventana activa, sin paso de selección"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Capture instantan\u00e9ment la fen\u00eatre active, sans \u00e9tape de s\u00e9lection"
+            "value": "Capture instantanément la fenêtre active, sans étape de sélection"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u9078\u629e\u64cd\u4f5c\u306a\u3057\u3067\u30d5\u30a9\u30fc\u30ab\u30b9\u3055\u308c\u305f\u30a6\u30a3\u30f3\u30c9\u30a6\u3092\u5373\u5ea7\u306b\u30ad\u30e3\u30d7\u30c1\u30e3\u3057\u307e\u3059"
+            "value": "選択操作なしでフォーカスされたウィンドウを即座にキャプチャします"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "\uc120\ud0dd \ub2e8\uacc4 \uc5c6\uc774 \ud3ec\ucee4\uc2a4\ub41c \ucc3d\uc744 \uc989\uc2dc \ucea1\ucc98\ud569\ub2c8\ub2e4"
+            "value": "선택 단계 없이 포커스된 창을 즉시 캡처합니다"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u041c\u0433\u043d\u043e\u0432\u0435\u043d\u043d\u043e \u0437\u0430\u0445\u0432\u0430\u0442\u044b\u0432\u0430\u0435\u0442 \u0430\u043a\u0442\u0438\u0432\u043d\u043e\u0435 \u043e\u043a\u043d\u043e \u0431\u0435\u0437 \u0448\u0430\u0433\u0430 \u0432\u044b\u0431\u043e\u0440\u0430"
+            "value": "Мгновенно захватывает активное окно без шага выбора"
           }
         },
         "vi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ch\u1ee5p ngay c\u1eeda s\u1ed5 \u0111ang \u0111\u01b0\u1ee3c focus, kh\u00f4ng c\u1ea7n b\u01b0\u1edbc ch\u1ecdn"
+            "value": "Chụp ngay cửa sổ đang được focus, không cần bước chọn"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u7acb\u5373\u6355\u83b7\u5f53\u524d\u805a\u7126\u7684\u7a97\u53e3\uff0c\u65e0\u9700\u9009\u62e9\u6b65\u9aa4"
+            "value": "立即捕获当前聚焦的窗口，无需选择步骤"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u7acb\u5373\u64f7\u53d6\u76ee\u524d\u805a\u7126\u7684\u8996\u7a97\uff0c\u7121\u9700\u9078\u53d6\u6b65\u9a5f"
+            "value": "立即擷取目前聚焦的視窗，無需選取步驟"
           }
         }
       }
@@ -592,61 +592,61 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Region ausw\u00e4hlen, direkt markieren und mit \u2318S oder Eingabetaste abschlie\u00dfen"
+            "value": "Region auswählen, direkt markieren und mit ⌘S oder Eingabetaste abschließen"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Select a region, mark it up in place, then finish with \u2318S or Enter"
+            "value": "Select a region, mark it up in place, then finish with ⌘S or Enter"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Seleccione una regi\u00f3n, m\u00e1rquela en el lugar y termine con \u2318S o Intro"
+            "value": "Seleccione una región, márquela en el lugar y termine con ⌘S o Intro"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "S\u00e9lectionnez une zone, marquez-la sur place, puis terminez avec \u2318S ou Entr\u00e9e"
+            "value": "Sélectionnez une zone, marquez-la sur place, puis terminez avec ⌘S ou Entrée"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u7bc4\u56f2\u3092\u9078\u629e\u3057\u3001\u305d\u306e\u5834\u3067\u30de\u30fc\u30af\u30a2\u30c3\u30d7\u3057\u3066\u3001\u2318S \u307e\u305f\u306f Enter \u3067\u5b8c\u4e86"
+            "value": "範囲を選択し、その場でマークアップして、⌘S または Enter で完了"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "\uc601\uc5ed\uc744 \uc120\ud0dd\ud558\uace0 \uadf8 \uc790\ub9ac\uc5d0\uc11c \ub9c8\ud06c\uc5c5\ud55c \ub4a4 \u2318S \ub610\ub294 Enter\ub85c \uc644\ub8cc"
+            "value": "영역을 선택하고 그 자리에서 마크업한 뒤 ⌘S 또는 Enter로 완료"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u0412\u044b\u0431\u0435\u0440\u0438\u0442\u0435 \u043e\u0431\u043b\u0430\u0441\u0442\u044c, \u0440\u0430\u0437\u043c\u0435\u0442\u044c\u0442\u0435 \u0435\u0435 \u043d\u0430 \u043c\u0435\u0441\u0442\u0435 \u0438 \u0437\u0430\u0432\u0435\u0440\u0448\u0438\u0442\u0435 \u0441 \u043f\u043e\u043c\u043e\u0449\u044c\u044e \u2318S \u0438\u043b\u0438 Enter"
+            "value": "Выберите область, разметьте ее на месте и завершите с помощью ⌘S или Enter"
           }
         },
         "vi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ch\u1ecdn v\u00f9ng, ch\u00fa th\u00edch tr\u1ef1c ti\u1ebfp, r\u1ed3i ho\u00e0n t\u1ea5t b\u1eb1ng \u2318S ho\u1eb7c Enter"
+            "value": "Chọn vùng, chú thích trực tiếp, rồi hoàn tất bằng ⌘S hoặc Enter"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u9009\u62e9\u533a\u57df\uff0c\u76f4\u63a5\u6807\u8bb0\uff0c\u7136\u540e\u6309 \u2318S \u6216 Enter \u5b8c\u6210"
+            "value": "选择区域，直接标记，然后按 ⌘S 或 Enter 完成"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u9078\u64c7\u5340\u57df\uff0c\u76f4\u63a5\u6a19\u8a18\uff0c\u7136\u5f8c\u6309 \u2318S \u6216 Enter \u5b8c\u6210"
+            "value": "選擇區域，直接標記，然後按 ⌘S 或 Enter 完成"
           }
         }
       }
@@ -657,7 +657,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "W\u00e4hlen Sie eine Region zur Erfassung"
+            "value": "Wählen Sie eine Region zur Erfassung"
           }
         },
         "en": {
@@ -669,49 +669,49 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Seleccione una regi\u00f3n para capturar"
+            "value": "Seleccione una región para capturar"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "S\u00e9lectionnez une r\u00e9gion \u00e0 capturer"
+            "value": "Sélectionnez une région à capturer"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u30ad\u30e3\u30d7\u30c1\u30e3\u3059\u308b\u9818\u57df\u3092\u9078\u629e\u3057\u3066\u304f\u3060\u3055\u3044"
+            "value": "キャプチャする領域を選択してください"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "\ucea1\ucc98\ud560 \uc9c0\uc5ed\uc744 \uc120\ud0dd\ud558\uc138\uc694"
+            "value": "캡처할 지역을 선택하세요"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u0412\u044b\u0431\u0435\u0440\u0438\u0442\u0435 \u0440\u0435\u0433\u0438\u043e\u043d \u0434\u043b\u044f \u0437\u0430\u0445\u0432\u0430\u0442\u0430"
+            "value": "Выберите регион для захвата"
           }
         },
         "vi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ch\u1ecdn m\u1ed9t v\u00f9ng \u0111\u1ec3 ch\u1ee5p"
+            "value": "Chọn một vùng để chụp"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u9009\u62e9\u8981\u622a\u53d6\u7684\u5c4f\u5e55\u533a\u57df"
+            "value": "选择要截取的屏幕区域"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u9078\u64c7\u8981\u64f7\u53d6\u7684\u87a2\u5e55\u5340\u57df"
+            "value": "選擇要擷取的螢幕區域"
           }
         }
       }
@@ -740,43 +740,43 @@
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Capturez instantan\u00e9ment tout l\u2019\u00e9cran"
+            "value": "Capturez instantanément tout l’écran"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u753b\u9762\u5168\u4f53\u3092\u77ac\u6642\u306b\u30ad\u30e3\u30d7\u30c1\u30e3"
+            "value": "画面全体を瞬時にキャプチャ"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "\uc804\uccb4 \ud654\uba74\uc744 \uc989\uc2dc \ucea1\ucc98"
+            "value": "전체 화면을 즉시 캡처"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u041c\u0433\u043d\u043e\u0432\u0435\u043d\u043d\u044b\u0439 \u0437\u0430\u0445\u0432\u0430\u0442 \u0432\u0441\u0435\u0433\u043e \u044d\u043a\u0440\u0430\u043d\u0430"
+            "value": "Мгновенный захват всего экрана"
           }
         },
         "vi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ch\u1ee5p to\u00e0n m\u00e0n h\u00ecnh ngay l\u1eadp t\u1ee9c"
+            "value": "Chụp toàn màn hình ngay lập tức"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u7acb\u5373\u622a\u53d6\u6574\u4e2a\u5c4f\u5e55"
+            "value": "立即截取整个屏幕"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u7acb\u5373\u64f7\u53d6\u6574\u500b\u87a2\u5e55"
+            "value": "立即擷取整個螢幕"
           }
         }
       }
@@ -811,37 +811,37 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u30ad\u30e3\u30d7\u30c1\u30e3 \u30b7\u30e7\u30fc\u30c8\u30ab\u30c3\u30c8"
+            "value": "キャプチャ ショートカット"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "\ucea1\ucc98 \ub2e8\ucd95\ud0a4"
+            "value": "캡처 단축키"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u042f\u0440\u043b\u044b\u043a\u0438 \u0437\u0430\u0445\u0432\u0430\u0442\u0430"
+            "value": "Ярлыки захвата"
           }
         },
         "vi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ph\u00edm t\u1eaft ch\u1ee5p"
+            "value": "Phím tắt chụp"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u622a\u5c4f\u5feb\u6377\u952e"
+            "value": "截屏快捷键"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u622a\u5716\u5feb\u901f\u9375"
+            "value": "截圖快速鍵"
           }
         }
       }
@@ -864,49 +864,49 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Extraer texto de la regi\u00f3n de la pantalla"
+            "value": "Extraer texto de la región de la pantalla"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Extraire le texte de la r\u00e9gion de l'\u00e9cran"
+            "value": "Extraire le texte de la région de l'écran"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u753b\u9762\u9818\u57df\u304b\u3089\u30c6\u30ad\u30b9\u30c8\u3092\u62bd\u51fa\u3059\u308b"
+            "value": "画面領域からテキストを抽出する"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "\ud654\uba74 \uc601\uc5ed\uc5d0\uc11c \ud14d\uc2a4\ud2b8 \ucd94\ucd9c"
+            "value": "화면 영역에서 텍스트 추출"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u0418\u0437\u0432\u043b\u0435\u0447\u044c \u0442\u0435\u043a\u0441\u0442 \u0438\u0437 \u043e\u0431\u043b\u0430\u0441\u0442\u0438 \u044d\u043a\u0440\u0430\u043d\u0430"
+            "value": "Извлечь текст из области экрана"
           }
         },
         "vi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Tr\u00edch xu\u1ea5t v\u0103n b\u1ea3n t\u1eeb v\u00f9ng m\u00e0n h\u00ecnh"
+            "value": "Trích xuất văn bản từ vùng màn hình"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u4ece\u5c4f\u5e55\u533a\u57df\u63d0\u53d6\u6587\u672c"
+            "value": "从屏幕区域提取文本"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u5f9e\u87a2\u5e55\u5340\u57df\u63d0\u53d6\u6587\u672c"
+            "value": "從螢幕區域提取文本"
           }
         }
       }
@@ -935,43 +935,43 @@
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "T\u00e9l\u00e9charger une image annot\u00e9e sur le cloud"
+            "value": "Télécharger une image annotée sur le cloud"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u6ce8\u91c8\u4ed8\u304d\u753b\u50cf\u3092\u30af\u30e9\u30a6\u30c9\u306b\u30a2\u30c3\u30d7\u30ed\u30fc\u30c9"
+            "value": "注釈付き画像をクラウドにアップロード"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "\uc8fc\uc11d\uc774 \ub2ec\ub9b0 \uc774\ubbf8\uc9c0\ub97c \ud074\ub77c\uc6b0\ub4dc\uc5d0 \uc5c5\ub85c\ub4dc"
+            "value": "주석이 달린 이미지를 클라우드에 업로드"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u0417\u0430\u0433\u0440\u0443\u0437\u0438\u0442\u044c \u0430\u043d\u043d\u043e\u0442\u0438\u0440\u043e\u0432\u0430\u043d\u043d\u043e\u0435 \u0438\u0437\u043e\u0431\u0440\u0430\u0436\u0435\u043d\u0438\u0435 \u0432 \u043e\u0431\u043b\u0430\u043a\u043e"
+            "value": "Загрузить аннотированное изображение в облако"
           }
         },
         "vi": {
           "stringUnit": {
             "state": "translated",
-            "value": "T\u1ea3i \u1ea3nh \u0111\u00e3 ch\u00fa th\u00edch l\u00ean cloud"
+            "value": "Tải ảnh đã chú thích lên cloud"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u5c06\u5e26\u6ce8\u91ca\u7684\u56fe\u50cf\u4e0a\u4f20\u5230\u4e91\u7aef"
+            "value": "将带注释的图像上传到云端"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u5c07\u5e36\u6ce8\u91cb\u7684\u5716\u50cf\u4e0a\u50b3\u5230\u96f2\u7aef"
+            "value": "將帶注釋的圖像上傳到雲端"
           }
         }
       }
@@ -1000,43 +1000,43 @@
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Afficher ou masquer l'historique des t\u00e9l\u00e9versements cloud"
+            "value": "Afficher ou masquer l'historique des téléversements cloud"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u30af\u30e9\u30a6\u30c9\u30a2\u30c3\u30d7\u30ed\u30fc\u30c9\u5c65\u6b74\u306e\u8868\u793a\u3092\u5207\u308a\u66ff\u3048"
+            "value": "クラウドアップロード履歴の表示を切り替え"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "\ud074\ub77c\uc6b0\ub4dc \uc5c5\ub85c\ub4dc \uae30\ub85d \ud45c\uc2dc \uc804\ud658"
+            "value": "클라우드 업로드 기록 표시 전환"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u041f\u043e\u043a\u0430\u0437\u0430\u0442\u044c \u0438\u043b\u0438 \u0441\u043a\u0440\u044b\u0442\u044c \u0438\u0441\u0442\u043e\u0440\u0438\u044e \u0437\u0430\u0433\u0440\u0443\u0437\u043e\u043a \u0432 \u043e\u0431\u043b\u0430\u043a\u043e"
+            "value": "Показать или скрыть историю загрузок в облако"
           }
         },
         "vi": {
           "stringUnit": {
             "state": "translated",
-            "value": "B\u1eadt/t\u1eaft l\u1ecbch s\u1eed t\u1ea3i l\u00ean cloud"
+            "value": "Bật/tắt lịch sử tải lên cloud"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u663e\u793a\u6216\u9690\u85cf\u4e91\u7aef\u4e0a\u4f20\u5386\u53f2"
+            "value": "显示或隐藏云端上传历史"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u986f\u793a\u6216\u96b1\u85cf\u96f2\u7aef\u4e0a\u50b3\u6b77\u53f2"
+            "value": "顯示或隱藏雲端上傳歷史"
           }
         }
       }
@@ -1059,49 +1059,49 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Copie la imagen anotada al portapapeles y ci\u00e9rrela"
+            "value": "Copie la imagen anotada al portapapeles y ciérrela"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Copiez l'image annot\u00e9e dans le presse-papiers et fermez"
+            "value": "Copiez l'image annotée dans le presse-papiers et fermez"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u6ce8\u91c8\u4ed8\u304d\u306e\u753b\u50cf\u3092\u30af\u30ea\u30c3\u30d7\u30dc\u30fc\u30c9\u306b\u30b3\u30d4\u30fc\u3057\u3066\u9589\u3058\u307e\u3059"
+            "value": "注釈付きの画像をクリップボードにコピーして閉じます"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "\uc8fc\uc11d\uc774 \ub2ec\ub9b0 \uc774\ubbf8\uc9c0\ub97c \ud074\ub9bd\ubcf4\ub4dc\uc5d0 \ubcf5\uc0ac\ud558\uace0 \ub2eb\uc2b5\ub2c8\ub2e4"
+            "value": "주석이 달린 이미지를 클립보드에 복사하고 닫습니다"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u0421\u043a\u043e\u043f\u0438\u0440\u0443\u0439\u0442\u0435 \u0438\u0437\u043e\u0431\u0440\u0430\u0436\u0435\u043d\u0438\u0435 \u0441 \u0430\u043d\u043d\u043e\u0442\u0430\u0446\u0438\u0435\u0439 \u0432 \u0431\u0443\u0444\u0435\u0440 \u043e\u0431\u043c\u0435\u043d\u0430 \u0438 \u0437\u0430\u043a\u0440\u043e\u0439\u0442\u0435"
+            "value": "Скопируйте изображение с аннотацией в буфер обмена и закройте"
           }
         },
         "vi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Sao ch\u00e9p \u1ea3nh \u0111\u00e3 ch\u00fa th\u00edch v\u00e0o clipboard v\u00e0 \u0111\u00f3ng"
+            "value": "Sao chép ảnh đã chú thích vào clipboard và đóng"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u5c06\u5e26\u6ce8\u91ca\u7684\u56fe\u50cf\u590d\u5236\u5230\u526a\u8d34\u677f\u5e76\u5173\u95ed"
+            "value": "将带注释的图像复制到剪贴板并关闭"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u5c07\u5e36\u6ce8\u91cb\u7684\u5716\u50cf\u8907\u88fd\u5230\u526a\u8cbc\u677f\u4e26\u95dc\u9589"
+            "value": "將帶注釋的圖像複製到剪貼板並關閉"
           }
         }
       }
@@ -1112,7 +1112,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Sie k\u00f6nnen Screenshots oder Aufnahmen nicht per Tastaturk\u00fcrzel aus einer App heraus erfassen. Sie m\u00fcssen Snapzy manuell \u00f6ffnen, um die Aufnahmefunktionen zu verwenden."
+            "value": "Sie können Screenshots oder Aufnahmen nicht per Tastaturkürzel aus einer App heraus erfassen. Sie müssen Snapzy manuell öffnen, um die Aufnahmefunktionen zu verwenden."
           }
         },
         "en": {
@@ -1124,49 +1124,49 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "No podr\u00e1s realizar capturas de pantalla ni grabaciones utilizando atajos de teclado desde ninguna aplicaci\u00f3n. Deber\u00e1 abrir Snapzy manualmente para utilizar las funciones de captura."
+            "value": "No podrás realizar capturas de pantalla ni grabaciones utilizando atajos de teclado desde ninguna aplicación. Deberá abrir Snapzy manualmente para utilizar las funciones de captura."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Vous ne pourrez pas capturer de captures d'\u00e9cran ou d'enregistrements \u00e0 l'aide des raccourcis clavier d'une application. Vous devrez ouvrir Snapzy manuellement pour utiliser les fonctionnalit\u00e9s de capture."
+            "value": "Vous ne pourrez pas capturer de captures d'écran ou d'enregistrements à l'aide des raccourcis clavier d'une application. Vous devrez ouvrir Snapzy manuellement pour utiliser les fonctionnalités de capture."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u3069\u306e\u30a2\u30d7\u30ea\u304b\u3089\u3067\u3082\u3001\u30ad\u30fc\u30dc\u30fc\u30c9 \u30b7\u30e7\u30fc\u30c8\u30ab\u30c3\u30c8\u3092\u4f7f\u7528\u3057\u3066\u30b9\u30af\u30ea\u30fc\u30f3\u30b7\u30e7\u30c3\u30c8\u3084\u9332\u97f3\u3092\u30ad\u30e3\u30d7\u30c1\u30e3\u3059\u308b\u3053\u3068\u306f\u3067\u304d\u307e\u305b\u3093\u3002\u30ad\u30e3\u30d7\u30c1\u30e3\u6a5f\u80fd\u3092\u4f7f\u7528\u3059\u308b\u306b\u306f\u3001Snapzy \u3092\u624b\u52d5\u3067\u958b\u304f\u5fc5\u8981\u304c\u3042\u308a\u307e\u3059\u3002"
+            "value": "どのアプリからでも、キーボード ショートカットを使用してスクリーンショットや録音をキャプチャすることはできません。キャプチャ機能を使用するには、Snapzy を手動で開く必要があります。"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "\uc5b4\ub5a4 \uc571\uc5d0\uc11c\ub3c4 \ud0a4\ubcf4\ub4dc \ub2e8\ucd95\ud0a4\ub97c \uc0ac\uc6a9\ud558\uc5ec \uc2a4\ud06c\ub9b0\uc0f7\uc774\ub098 \ub179\uc74c\uc744 \ucea1\ucc98\ud560 \uc218 \uc5c6\uc2b5\ub2c8\ub2e4. \ucea1\ucc98 \uae30\ub2a5\uc744 \uc0ac\uc6a9\ud558\ub824\uba74 Snapzy\ub97c \uc218\ub3d9\uc73c\ub85c \uc5f4\uc5b4\uc57c \ud569\ub2c8\ub2e4."
+            "value": "어떤 앱에서도 키보드 단축키를 사용하여 스크린샷이나 녹음을 캡처할 수 없습니다. 캡처 기능을 사용하려면 Snapzy를 수동으로 열어야 합니다."
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u0412\u044b \u043d\u0435 \u0441\u043c\u043e\u0436\u0435\u0442\u0435 \u0434\u0435\u043b\u0430\u0442\u044c \u0441\u043d\u0438\u043c\u043a\u0438 \u044d\u043a\u0440\u0430\u043d\u0430 \u0438\u043b\u0438 \u0437\u0430\u043f\u0438\u0441\u0438 \u0441 \u043f\u043e\u043c\u043e\u0449\u044c\u044e \u0441\u043e\u0447\u0435\u0442\u0430\u043d\u0438\u0439 \u043a\u043b\u0430\u0432\u0438\u0448 \u043d\u0438 \u0432 \u043e\u0434\u043d\u043e\u043c \u043f\u0440\u0438\u043b\u043e\u0436\u0435\u043d\u0438\u0438. \u0412\u0430\u043c \u043d\u0443\u0436\u043d\u043e \u0431\u0443\u0434\u0435\u0442 \u043e\u0442\u043a\u0440\u044b\u0442\u044c Snapzy \u0432\u0440\u0443\u0447\u043d\u0443\u044e, \u0447\u0442\u043e\u0431\u044b \u0438\u0441\u043f\u043e\u043b\u044c\u0437\u043e\u0432\u0430\u0442\u044c \u0444\u0443\u043d\u043a\u0446\u0438\u0438 \u0437\u0430\u0445\u0432\u0430\u0442\u0430."
+            "value": "Вы не сможете делать снимки экрана или записи с помощью сочетаний клавиш ни в одном приложении. Вам нужно будет открыть Snapzy вручную, чтобы использовать функции захвата."
           }
         },
         "vi": {
           "stringUnit": {
             "state": "translated",
-            "value": "B\u1ea1n s\u1ebd kh\u00f4ng th\u1ec3 d\u00f9ng ph\u00edm t\u1eaft \u0111\u1ec3 ch\u1ee5p \u1ea3nh ho\u1eb7c ghi m\u00e0n h\u00ecnh t\u1eeb b\u1ea5t k\u1ef3 \u1ee9ng d\u1ee5ng n\u00e0o. B\u1ea1n s\u1ebd c\u1ea7n m\u1edf Snapzy th\u1ee7 c\u00f4ng \u0111\u1ec3 d\u00f9ng c\u00e1c t\u00ednh n\u0103ng ch\u1ee5p."
+            "value": "Bạn sẽ không thể dùng phím tắt để chụp ảnh hoặc ghi màn hình từ bất kỳ ứng dụng nào. Bạn sẽ cần mở Snapzy thủ công để dùng các tính năng chụp."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u5173\u95ed\u540e\uff0c\u4f60\u5c06\u65e0\u6cd5\u5728\u4efb\u4f55\u5e94\u7528\u4e2d\u4f7f\u7528\u952e\u76d8\u5feb\u6377\u952e\u622a\u5c4f\u6216\u8fdb\u884c\u5c4f\u5e55\u5f55\u5236\uff0c\u9700\u8981\u624b\u52a8\u6253\u5f00 Snapzy \u624d\u80fd\u4f7f\u7528\u76f8\u5173\u529f\u80fd\u3002"
+            "value": "关闭后，你将无法在任何应用中使用键盘快捷键截屏或进行屏幕录制，需要手动打开 Snapzy 才能使用相关功能。"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u95dc\u9589\u5f8c\uff0c\u4f60\u5c07\u7121\u6cd5\u5728\u4efb\u4f55\u61c9\u7528\u7a0b\u5f0f\u4e2d\u4f7f\u7528\u9375\u76e4\u5feb\u901f\u9375\u4f86\u622a\u5716\u6216\u9032\u884c\u87a2\u5e55\u9304\u88fd\uff1b\u5fc5\u9808\u624b\u52d5\u958b\u555f Snapzy \u624d\u80fd\u4f7f\u7528\u9019\u4e9b\u529f\u80fd\u3002"
+            "value": "關閉後，你將無法在任何應用程式中使用鍵盤快速鍵來截圖或進行螢幕錄製；必須手動開啟 Snapzy 才能使用這些功能。"
           }
         }
       }
@@ -1177,7 +1177,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Tastaturk\u00fcrzel deaktivieren?"
+            "value": "Tastaturkürzel deaktivieren?"
           }
         },
         "en": {
@@ -1189,49 +1189,49 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u00bfDesactivar los atajos de teclado?"
+            "value": "¿Desactivar los atajos de teclado?"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "D\u00e9sactiver les raccourcis clavier\u00a0?"
+            "value": "Désactiver les raccourcis clavier ?"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u30ad\u30fc\u30dc\u30fc\u30c9\u30b7\u30e7\u30fc\u30c8\u30ab\u30c3\u30c8\u3092\u7121\u52b9\u306b\u3057\u307e\u3059\u304b?"
+            "value": "キーボードショートカットを無効にしますか?"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "\ud0a4\ubcf4\ub4dc \ub2e8\ucd95\ud0a4\ub97c \ube44\ud65c\uc131\ud654\ud558\uc2dc\uaca0\uc2b5\ub2c8\uae4c?"
+            "value": "키보드 단축키를 비활성화하시겠습니까?"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u041e\u0442\u043a\u043b\u044e\u0447\u0438\u0442\u044c \u0441\u043e\u0447\u0435\u0442\u0430\u043d\u0438\u044f \u043a\u043b\u0430\u0432\u0438\u0448?"
+            "value": "Отключить сочетания клавиш?"
           }
         },
         "vi": {
           "stringUnit": {
             "state": "translated",
-            "value": "T\u1eaft ph\u00edm t\u1eaft b\u00e0n ph\u00edm?"
+            "value": "Tắt phím tắt bàn phím?"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u7981\u7528\u952e\u76d8\u5feb\u6377\u952e\uff1f"
+            "value": "禁用键盘快捷键？"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u7981\u7528\u9375\u76e4\u5feb\u6377\u9375\uff1f"
+            "value": "禁用鍵盤快捷鍵？"
           }
         }
       }
@@ -1254,7 +1254,7 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Captura desde cualquier aplicaci\u00f3n"
+            "value": "Captura desde cualquier aplicación"
           }
         },
         "fr": {
@@ -1266,37 +1266,37 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u4efb\u610f\u306e\u30a2\u30d7\u30ea\u304b\u3089\u30ad\u30e3\u30d7\u30c1\u30e3"
+            "value": "任意のアプリからキャプチャ"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "\uc5b4\ub5a4 \uc571\uc5d0\uc11c\ub4e0 \ucea1\ucc98"
+            "value": "어떤 앱에서든 캡처"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u0421\u043d\u0438\u043c\u0430\u0439\u0442\u0435 \u0438\u0437 \u043b\u044e\u0431\u043e\u0433\u043e \u043f\u0440\u0438\u043b\u043e\u0436\u0435\u043d\u0438\u044f"
+            "value": "Снимайте из любого приложения"
           }
         },
         "vi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ch\u1ee5p t\u1eeb b\u1ea5t k\u1ef3 \u1ee9ng d\u1ee5ng n\u00e0o"
+            "value": "Chụp từ bất kỳ ứng dụng nào"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u53ef\u5728\u4efb\u610f\u524d\u53f0\u5e94\u7528\u4e2d\u4f7f\u7528\u5feb\u6377\u952e\u622a\u5c4f"
+            "value": "可在任意前台应用中使用快捷键截屏"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u5728\u4efb\u4f55\u524d\u666f App \u90fd\u80fd\u4f7f\u7528\u9375\u76e4\u5feb\u901f\u9375\u622a\u5716"
+            "value": "在任何前景 App 都能使用鍵盤快速鍵截圖"
           }
         }
       }
@@ -1331,37 +1331,37 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u30b7\u30e7\u30fc\u30c8\u30ab\u30c3\u30c8\u3092\u6709\u52b9\u306b\u3059\u308b"
+            "value": "ショートカットを有効にする"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "\ubc14\ub85c\uac00\uae30 \ud65c\uc131\ud654"
+            "value": "바로가기 활성화"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u0412\u043a\u043b\u044e\u0447\u0438\u0442\u044c \u044f\u0440\u043b\u044b\u043a\u0438"
+            "value": "Включить ярлыки"
           }
         },
         "vi": {
           "stringUnit": {
             "state": "translated",
-            "value": "B\u1eadt ph\u00edm t\u1eaft"
+            "value": "Bật phím tắt"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u542f\u7528\u5feb\u6377\u952e"
+            "value": "启用快捷键"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u555f\u7528\u5feb\u901f\u9375"
+            "value": "啟用快速鍵"
           }
         }
       }
@@ -1396,37 +1396,37 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u30b0\u30ed\u30fc\u30d0\u30eb \u30b7\u30e7\u30fc\u30c8\u30ab\u30c3\u30c8"
+            "value": "グローバル ショートカット"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "\uc804\uc5ed \ub2e8\ucd95\ud0a4"
+            "value": "전역 단축키"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u0413\u043b\u043e\u0431\u0430\u043b\u044c\u043d\u044b\u0435 \u044f\u0440\u043b\u044b\u043a\u0438"
+            "value": "Глобальные ярлыки"
           }
         },
         "vi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ph\u00edm t\u1eaft to\u00e0n c\u1ee5c"
+            "value": "Phím tắt toàn cục"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u5168\u5c40\u5feb\u6377\u952e"
+            "value": "全局快捷键"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u5168\u5c40\u5feb\u6377\u9375"
+            "value": "全局快捷鍵"
           }
         }
       }
@@ -1437,7 +1437,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Verwenden Sie Tastaturk\u00fcrzel, um von \u00fcberall aus aufzunehmen."
+            "value": "Verwenden Sie Tastaturkürzel, um von überall aus aufzunehmen."
           }
         },
         "en": {
@@ -1455,43 +1455,43 @@
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Utilisez les raccourcis clavier pour capturer depuis n'importe o\u00f9."
+            "value": "Utilisez les raccourcis clavier pour capturer depuis n'importe où."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u30ad\u30fc\u30dc\u30fc\u30c9 \u30b7\u30e7\u30fc\u30c8\u30ab\u30c3\u30c8\u3092\u4f7f\u7528\u3057\u3066\u3001\u3069\u3053\u304b\u3089\u3067\u3082\u30ad\u30e3\u30d7\u30c1\u30e3\u3067\u304d\u307e\u3059\u3002"
+            "value": "キーボード ショートカットを使用して、どこからでもキャプチャできます。"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "\ud0a4\ubcf4\ub4dc \ub2e8\ucd95\ud0a4\ub97c \uc0ac\uc6a9\ud558\uc5ec \uc5b4\ub514\uc5d0\uc11c\ub098 \ucea1\ucc98\ud560 \uc218 \uc788\uc2b5\ub2c8\ub2e4."
+            "value": "키보드 단축키를 사용하여 어디에서나 캡처할 수 있습니다."
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u0418\u0441\u043f\u043e\u043b\u044c\u0437\u0443\u0439\u0442\u0435 \u0441\u043e\u0447\u0435\u0442\u0430\u043d\u0438\u044f \u043a\u043b\u0430\u0432\u0438\u0448 \u0434\u043b\u044f \u0437\u0430\u0445\u0432\u0430\u0442\u0430 \u0438\u0437 \u043b\u044e\u0431\u043e\u0433\u043e \u043c\u0435\u0441\u0442\u0430."
+            "value": "Используйте сочетания клавиш для захвата из любого места."
           }
         },
         "vi": {
           "stringUnit": {
             "state": "translated",
-            "value": "D\u00f9ng ph\u00edm t\u1eaft \u0111\u1ec3 ch\u1ee5p t\u1eeb b\u1ea5t k\u1ef3 \u0111\u00e2u."
+            "value": "Dùng phím tắt để chụp từ bất kỳ đâu."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u901a\u8fc7\u952e\u76d8\u5feb\u6377\u952e\u968f\u65f6\u622a\u5c4f"
+            "value": "通过键盘快捷键随时截屏"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u4f7f\u7528\u9375\u76e4\u5feb\u901f\u9375\u96a8\u6642\u622a\u5716"
+            "value": "使用鍵盤快速鍵隨時截圖"
           }
         }
       }
@@ -1514,49 +1514,49 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "C\u00d3MO DESHABILITAR"
+            "value": "CÓMO DESHABILITAR"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "COMMENT D\u00c9SACTIVER"
+            "value": "COMMENT DÉSACTIVER"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u7121\u52b9\u306b\u3059\u308b\u65b9\u6cd5"
+            "value": "無効にする方法"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "\ube44\ud65c\uc131\ud654\ud558\ub294 \ubc29\ubc95"
+            "value": "비활성화하는 방법"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u041a\u0410\u041a \u041e\u0422\u041a\u041b\u042e\u0427\u0418\u0422\u042c"
+            "value": "КАК ОТКЛЮЧИТЬ"
           }
         },
         "vi": {
           "stringUnit": {
             "state": "translated",
-            "value": "C\u00c1CH T\u1eaeT"
+            "value": "CÁCH TẮT"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u5982\u4f55\u7981\u7528"
+            "value": "如何禁用"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u5982\u4f55\u7981\u7528"
+            "value": "如何禁用"
           }
         }
       }
@@ -1567,7 +1567,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "F\u00fcr die Snapzy-Verkn\u00fcpfungen, die Sie derzeit aktiviert haben, wurden keine \u00fcberlappenden macOS-Screenshot-Verkn\u00fcpfungen gefunden."
+            "value": "Für die Snapzy-Verknüpfungen, die Sie derzeit aktiviert haben, wurden keine überlappenden macOS-Screenshot-Verknüpfungen gefunden."
           }
         },
         "en": {
@@ -1585,43 +1585,43 @@
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Aucun raccourci de capture d'\u00e9cran macOS se chevauchant n'a \u00e9t\u00e9 trouv\u00e9 pour les raccourcis Snapzy que vous avez actuellement activ\u00e9s."
+            "value": "Aucun raccourci de capture d'écran macOS se chevauchant n'a été trouvé pour les raccourcis Snapzy que vous avez actuellement activés."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u73fe\u5728\u6709\u52b9\u306a Snapzy \u306e\u30b7\u30e7\u30fc\u30c8\u30ab\u30c3\u30c8\u3068\u91cd\u8907\u3059\u308b macOS \u306e\u30b9\u30af\u30ea\u30fc\u30f3\u30b7\u30e7\u30c3\u30c8\u30b7\u30e7\u30fc\u30c8\u30ab\u30c3\u30c8\u306f\u898b\u3064\u304b\u308a\u307e\u305b\u3093\u3067\u3057\u305f\u3002"
+            "value": "現在有効な Snapzy のショートカットと重複する macOS のスクリーンショットショートカットは見つかりませんでした。"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "\ud604\uc7ac \ud65c\uc131\ud654\ud55c Snapzy \ub2e8\ucd95\ud0a4\uc5d0 \ub300\ud574 \uacb9\uce58\ub294 macOS \uc2a4\ud06c\ub9b0\uc0f7 \ub2e8\ucd95\ud0a4\uac00 \ubc1c\uacac\ub418\uc9c0 \uc54a\uc558\uc2b5\ub2c8\ub2e4."
+            "value": "현재 활성화한 Snapzy 단축키에 대해 겹치는 macOS 스크린샷 단축키가 발견되지 않았습니다."
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u0414\u043b\u044f \u0432\u043a\u043b\u044e\u0447\u0435\u043d\u043d\u044b\u0445 \u0432 \u0434\u0430\u043d\u043d\u044b\u0439 \u043c\u043e\u043c\u0435\u043d\u0442 \u044f\u0440\u043b\u044b\u043a\u043e\u0432 Snapzy \u043d\u0435 \u043e\u0431\u043d\u0430\u0440\u0443\u0436\u0435\u043d\u043e \u043f\u0435\u0440\u0435\u043a\u0440\u044b\u0432\u0430\u044e\u0449\u0438\u0445\u0441\u044f \u044f\u0440\u043b\u044b\u043a\u043e\u0432 \u0441\u043d\u0438\u043c\u043a\u043e\u0432 \u044d\u043a\u0440\u0430\u043d\u0430 macOS."
+            "value": "Для включенных в данный момент ярлыков Snapzy не обнаружено перекрывающихся ярлыков снимков экрана macOS."
           }
         },
         "vi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Kh\u00f4ng t\u00ecm th\u1ea5y ph\u00edm t\u1eaft ch\u1ee5p m\u00e0n h\u00ecnh c\u1ee7a macOS b\u1ecb tr\u00f9ng v\u1edbi c\u00e1c ph\u00edm t\u1eaft Snapzy \u0111ang b\u1eadt."
+            "value": "Không tìm thấy phím tắt chụp màn hình của macOS bị trùng với các phím tắt Snapzy đang bật."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u5bf9\u4e8e\u60a8\u5f53\u524d\u542f\u7528\u7684 Snapzy \u5feb\u6377\u65b9\u5f0f\uff0c\u6ca1\u6709\u627e\u5230\u91cd\u53e0\u7684 macOS \u5c4f\u5e55\u622a\u56fe\u5feb\u6377\u65b9\u5f0f\u3002"
+            "value": "对于您当前启用的 Snapzy 快捷方式，没有找到重叠的 macOS 屏幕截图快捷方式。"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u5c0d\u65bc\u60a8\u7576\u524d\u5553\u7528\u7684 Snapzy \u5feb\u6377\u65b9\u5f0f\uff0c\u6c92\u6709\u627e\u5230\u91cd\u758a\u7684 macOS \u87a2\u5e55\u622a\u5716\u5feb\u6377\u65b9\u5f0f\u3002"
+            "value": "對於您當前啓用的 Snapzy 快捷方式，沒有找到重疊的 macOS 螢幕截圖快捷方式。"
           }
         }
       }
@@ -1650,43 +1650,43 @@
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Aucun conflit d\u00e9tect\u00e9"
+            "value": "Aucun conflit détecté"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u7af6\u5408\u306f\u898b\u3064\u304b\u308a\u307e\u305b\u3093\u3067\u3057\u305f"
+            "value": "競合は見つかりませんでした"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "\ucda9\ub3cc\uc774 \uac10\uc9c0\ub418\uc9c0 \uc54a\uc558\uc2b5\ub2c8\ub2e4"
+            "value": "충돌이 감지되지 않았습니다"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u041a\u043e\u043d\u0444\u043b\u0438\u043a\u0442\u043e\u0432 \u043d\u0435 \u043e\u0431\u043d\u0430\u0440\u0443\u0436\u0435\u043d\u043e"
+            "value": "Конфликтов не обнаружено"
           }
         },
         "vi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Kh\u00f4ng ph\u00e1t hi\u1ec7n xung \u0111\u1ed9t"
+            "value": "Không phát hiện xung đột"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u672a\u68c0\u6d4b\u5230\u51b2\u7a81"
+            "value": "未检测到冲突"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u672a\u6aa2\u6e2c\u5230\u885d\u7a81"
+            "value": "未檢測到衝突"
           }
         }
       }
@@ -1697,7 +1697,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u00d6ffnen Sie den Bildanmerkungseditor"
+            "value": "Öffnen Sie den Bildanmerkungseditor"
           }
         },
         "en": {
@@ -1709,49 +1709,49 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Abrir editor de anotaciones de im\u00e1genes"
+            "value": "Abrir editor de anotaciones de imágenes"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ouvrir l'\u00e9diteur d'annotations d'images"
+            "value": "Ouvrir l'éditeur d'annotations d'images"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u753b\u50cf\u6ce8\u91c8\u30a8\u30c7\u30a3\u30bf\u3092\u958b\u304f"
+            "value": "画像注釈エディタを開く"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "\uc774\ubbf8\uc9c0 \uc8fc\uc11d \ud3b8\uc9d1\uae30 \uc5f4\uae30"
+            "value": "이미지 주석 편집기 열기"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u041e\u0442\u043a\u0440\u044b\u0442\u044c \u0440\u0435\u0434\u0430\u043a\u0442\u043e\u0440 \u0430\u043d\u043d\u043e\u0442\u0430\u0446\u0438\u0439 \u0438\u0437\u043e\u0431\u0440\u0430\u0436\u0435\u043d\u0438\u0439"
+            "value": "Открыть редактор аннотаций изображений"
           }
         },
         "vi": {
           "stringUnit": {
             "state": "translated",
-            "value": "M\u1edf tr\u00ecnh ch\u1ec9nh s\u1eeda ch\u00fa th\u00edch \u1ea3nh"
+            "value": "Mở trình chỉnh sửa chú thích ảnh"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u6253\u5f00\u56fe\u50cf\u6ce8\u91ca\u7f16\u8f91\u5668"
+            "value": "打开图像注释编辑器"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u6253\u958b\u5716\u50cf\u6ce8\u91cb\u7de8\u8f2f\u5668"
+            "value": "打開圖像注釋編輯器"
           }
         }
       }
@@ -1762,7 +1762,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u00d6ffnen Sie die Einstellungen f\u00fcr Tastaturk\u00fcrzel"
+            "value": "Öffnen Sie die Einstellungen für Tastaturkürzel"
           }
         },
         "en": {
@@ -1774,49 +1774,49 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Abrir configuraci\u00f3n de m\u00e9todos abreviados de teclado"
+            "value": "Abrir configuración de métodos abreviados de teclado"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ouvrir les param\u00e8tres des raccourcis clavier"
+            "value": "Ouvrir les paramètres des raccourcis clavier"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u30ad\u30fc\u30dc\u30fc\u30c9\u30b7\u30e7\u30fc\u30c8\u30ab\u30c3\u30c8\u8a2d\u5b9a\u3092\u958b\u304f"
+            "value": "キーボードショートカット設定を開く"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "\ud0a4\ubcf4\ub4dc \ub2e8\ucd95\ud0a4 \uc124\uc815 \uc5f4\uae30"
+            "value": "키보드 단축키 설정 열기"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u041e\u0442\u043a\u0440\u044b\u0442\u044c \u043d\u0430\u0441\u0442\u0440\u043e\u0439\u043a\u0438 \u0441\u043e\u0447\u0435\u0442\u0430\u043d\u0438\u0439 \u043a\u043b\u0430\u0432\u0438\u0448"
+            "value": "Открыть настройки сочетаний клавиш"
           }
         },
         "vi": {
           "stringUnit": {
             "state": "translated",
-            "value": "M\u1edf c\u00e0i \u0111\u1eb7t Ph\u00edm t\u1eaft b\u00e0n ph\u00edm"
+            "value": "Mở cài đặt Phím tắt bàn phím"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u6253\u5f00\u952e\u76d8\u5feb\u6377\u952e\u8bbe\u7f6e"
+            "value": "打开键盘快捷键设置"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u6253\u958b\u9375\u76e4\u5feb\u6377\u9375\u8a2d\u7f6e"
+            "value": "打開鍵盤快捷鍵設置"
           }
         }
       }
@@ -1827,7 +1827,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u00d6ffnen Sie die Videobearbeitungstools"
+            "value": "Öffnen Sie die Videobearbeitungstools"
           }
         },
         "en": {
@@ -1839,49 +1839,49 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Abrir herramientas de edici\u00f3n de v\u00eddeo"
+            "value": "Abrir herramientas de edición de vídeo"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ouvrir les outils de montage vid\u00e9o"
+            "value": "Ouvrir les outils de montage vidéo"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u52d5\u753b\u7de8\u96c6\u30c4\u30fc\u30eb\u3092\u958b\u304f"
+            "value": "動画編集ツールを開く"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "\ub3d9\uc601\uc0c1 \ud3b8\uc9d1 \ub3c4\uad6c \uc5f4\uae30"
+            "value": "동영상 편집 도구 열기"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u041e\u0442\u043a\u0440\u044b\u0442\u044c \u0438\u043d\u0441\u0442\u0440\u0443\u043c\u0435\u043d\u0442\u044b \u0434\u043b\u044f \u0440\u0435\u0434\u0430\u043a\u0442\u0438\u0440\u043e\u0432\u0430\u043d\u0438\u044f \u0432\u0438\u0434\u0435\u043e"
+            "value": "Открыть инструменты для редактирования видео"
           }
         },
         "vi": {
           "stringUnit": {
             "state": "translated",
-            "value": "M\u1edf c\u00f4ng c\u1ee5 ch\u1ec9nh s\u1eeda video"
+            "value": "Mở công cụ chỉnh sửa video"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u6253\u5f00\u89c6\u9891\u7f16\u8f91\u5de5\u5177"
+            "value": "打开视频编辑工具"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u6253\u958b\u5f71\u7247\u7de8\u8f2f\u5de5\u5177"
+            "value": "打開影片編輯工具"
           }
         }
       }
@@ -1904,49 +1904,49 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Iniciar grabaci\u00f3n de pantalla"
+            "value": "Iniciar grabación de pantalla"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "D\u00e9marrer l'enregistrement d'\u00e9cran"
+            "value": "Démarrer l'enregistrement d'écran"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u753b\u9762\u53ce\u9332\u3092\u958b\u59cb"
+            "value": "画面収録を開始"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "\ud654\uba74 \ub179\ud654 \uc2dc\uc791"
+            "value": "화면 녹화 시작"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u041d\u0430\u0447\u0430\u0442\u044c \u0437\u0430\u043f\u0438\u0441\u044c \u044d\u043a\u0440\u0430\u043d\u0430"
+            "value": "Начать запись экрана"
           }
         },
         "vi": {
           "stringUnit": {
             "state": "translated",
-            "value": "B\u1eaft \u0111\u1ea7u ghi m\u00e0n h\u00ecnh"
+            "value": "Bắt đầu ghi màn hình"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u5f00\u59cb\u5c4f\u5e55\u5f55\u5236"
+            "value": "开始屏幕录制"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u958b\u59cb\u87a2\u5e55\u9304\u5236"
+            "value": "開始螢幕錄制"
           }
         }
       }
@@ -1957,7 +1957,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Klicken Sie auf eine Verkn\u00fcpfungsschaltfl\u00e4che, um neue Schl\u00fcssel aufzuzeichnen. Verwenden Sie die Zeilenumschaltung, um eine Verkn\u00fcpfung zu deaktivieren. Dr\u00fccken Sie Esc, um den Vorgang abzubrechen."
+            "value": "Klicken Sie auf eine Verknüpfungsschaltfläche, um neue Schlüssel aufzuzeichnen. Verwenden Sie die Zeilenumschaltung, um eine Verknüpfung zu deaktivieren. Drücken Sie Esc, um den Vorgang abzubrechen."
           }
         },
         "en": {
@@ -1969,49 +1969,49 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Haga clic en un bot\u00f3n de acceso directo para registrar nuevas claves. Utilice el interruptor de fila para desactivar un acceso directo. Presione Esc para cancelar."
+            "value": "Haga clic en un botón de acceso directo para registrar nuevas claves. Utilice el interruptor de fila para desactivar un acceso directo. Presione Esc para cancelar."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cliquez sur un bouton de raccourci pour enregistrer de nouvelles cl\u00e9s. Utilisez la bascule de ligne pour d\u00e9sactiver un raccourci. Appuyez sur \u00c9chap pour annuler."
+            "value": "Cliquez sur un bouton de raccourci pour enregistrer de nouvelles clés. Utilisez la bascule de ligne pour désactiver un raccourci. Appuyez sur Échap pour annuler."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u30b7\u30e7\u30fc\u30c8\u30ab\u30c3\u30c8\u30dc\u30bf\u30f3\u3092\u30af\u30ea\u30c3\u30af\u3057\u3066\u65b0\u3057\u3044\u30ad\u30fc\u3092\u8a18\u9332\u3057\u307e\u3059\u3002\u884c\u306e\u30c8\u30b0\u30eb\u3067\u30b7\u30e7\u30fc\u30c8\u30ab\u30c3\u30c8\u3092\u30aa\u30d5\u306b\u3067\u304d\u307e\u3059\u3002Esc \u3067\u30ad\u30e3\u30f3\u30bb\u30eb\u3057\u307e\u3059\u3002"
+            "value": "ショートカットボタンをクリックして新しいキーを記録します。行のトグルでショートカットをオフにできます。Esc でキャンセルします。"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "\uc0c8 \ud0a4\ub97c \uae30\ub85d\ud558\ub824\uba74 \ubc14\ub85c\uac00\uae30 \ubc84\ud2bc\uc744 \ud074\ub9ad\ud558\uc138\uc694. \ubc14\ub85c\uac00\uae30\ub97c \ub044\ub824\uba74 \ud589 \ud1a0\uae00\uc744 \uc0ac\uc6a9\ud558\uc138\uc694. \ucde8\uc18c\ud558\ub824\uba74 Esc\ub97c \ub204\ub974\uc138\uc694."
+            "value": "새 키를 기록하려면 바로가기 버튼을 클릭하세요. 바로가기를 끄려면 행 토글을 사용하세요. 취소하려면 Esc를 누르세요."
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u041d\u0430\u0436\u043c\u0438\u0442\u0435 \u043a\u043d\u043e\u043f\u043a\u0443 \u0431\u044b\u0441\u0442\u0440\u043e\u0433\u043e \u0434\u043e\u0441\u0442\u0443\u043f\u0430, \u0447\u0442\u043e\u0431\u044b \u0437\u0430\u043f\u0438\u0441\u0430\u0442\u044c \u043d\u043e\u0432\u044b\u0435 \u043a\u043b\u044e\u0447\u0438. \u0418\u0441\u043f\u043e\u043b\u044c\u0437\u0443\u0439\u0442\u0435 \u043f\u0435\u0440\u0435\u043a\u043b\u044e\u0447\u0430\u0442\u0435\u043b\u044c \u0441\u0442\u0440\u043e\u043a, \u0447\u0442\u043e\u0431\u044b \u043e\u0442\u043a\u043b\u044e\u0447\u0438\u0442\u044c \u044f\u0440\u043b\u044b\u043a. \u041d\u0430\u0436\u043c\u0438\u0442\u0435 Esc \u0434\u043b\u044f \u043e\u0442\u043c\u0435\u043d\u044b."
+            "value": "Нажмите кнопку быстрого доступа, чтобы записать новые ключи. Используйте переключатель строк, чтобы отключить ярлык. Нажмите Esc для отмены."
           }
         },
         "vi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Nh\u1ea5n n\u00fat ph\u00edm t\u1eaft \u0111\u1ec3 ghi t\u1ed5 h\u1ee3p m\u1edbi. D\u00f9ng Backspace/Delete khi \u0111ang ghi \u0111\u1ec3 x\u00f3a ph\u00edm. D\u00f9ng c\u00f4ng t\u1eafc c\u1ee7a h\u00e0ng \u0111\u1ec3 t\u1eaft ph\u00edm t\u1eaft. Nh\u1ea5n Esc \u0111\u1ec3 h\u1ee7y."
+            "value": "Nhấn nút phím tắt để ghi tổ hợp mới. Dùng Backspace/Delete khi đang ghi để xóa phím. Dùng công tắc của hàng để tắt phím tắt. Nhấn Esc để hủy."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u70b9\u51fb\u5feb\u6377\u952e\u6309\u94ae\u5f55\u5236\u65b0\u7684\u6309\u952e\u7ec4\u5408\u3002\u53ef\u901a\u8fc7\u884c\u5185\u5f00\u5173\u505c\u7528\u67d0\u9879\u5feb\u6377\u952e\uff0c\u6309 Esc \u53d6\u6d88\u3002"
+            "value": "点击快捷键按钮录制新的按键组合。可通过行内开关停用某项快捷键，按 Esc 取消。"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u6309\u4e00\u4e0b\u5feb\u901f\u9375\u6309\u9215\u4ee5\u8a2d\u5b9a\u65b0\u7684\u7d44\u5408\u9375\uff1b\u53ef\u7528\u5217\u5167\u958b\u95dc\u505c\u7528\u55ae\u4e00\u5feb\u901f\u9375\u3002\u6309 Esc \u53d6\u6d88\u3002"
+            "value": "按一下快速鍵按鈕以設定新的組合鍵；可用列內開關停用單一快速鍵。按 Esc 取消。"
           }
         }
       }
@@ -2022,7 +2022,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Aufnahmeverkn\u00fcpfungen"
+            "value": "Aufnahmeverknüpfungen"
           }
         },
         "en": {
@@ -2034,7 +2034,7 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Grabaci\u00f3n de atajos"
+            "value": "Grabación de atajos"
           }
         },
         "fr": {
@@ -2046,37 +2046,37 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u9332\u753b\u30b7\u30e7\u30fc\u30c8\u30ab\u30c3\u30c8"
+            "value": "録画ショートカット"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "\ub179\uc74c \ub2e8\ucd95\ud0a4"
+            "value": "녹음 단축키"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u042f\u0440\u043b\u044b\u043a\u0438 \u0437\u0430\u043f\u0438\u0441\u0438"
+            "value": "Ярлыки записи"
           }
         },
         "vi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ph\u00edm t\u1eaft ghi m\u00e0n h\u00ecnh"
+            "value": "Phím tắt ghi màn hình"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u5f55\u97f3\u5feb\u6377\u952e"
+            "value": "录音快捷键"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u9304\u97f3\u5feb\u6377\u9375"
+            "value": "錄音快捷鍵"
           }
         }
       }
@@ -2087,7 +2087,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Im Anmerkungseditor verwendete Standard-MacOS-Verkn\u00fcpfungen."
+            "value": "Im Anmerkungseditor verwendete Standard-MacOS-Verknüpfungen."
           }
         },
         "en": {
@@ -2099,49 +2099,49 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Atajos est\u00e1ndar de macOS utilizados en el editor de anotaciones."
+            "value": "Atajos estándar de macOS utilizados en el editor de anotaciones."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Raccourcis macOS standard utilis\u00e9s dans l'\u00e9diteur d'annotations."
+            "value": "Raccourcis macOS standard utilisés dans l'éditeur d'annotations."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u6ce8\u91c8\u30a8\u30c7\u30a3\u30bf\u3067\u4f7f\u3046\u6a19\u6e96\u306e macOS \u30b7\u30e7\u30fc\u30c8\u30ab\u30c3\u30c8\u3067\u3059\u3002"
+            "value": "注釈エディタで使う標準の macOS ショートカットです。"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "\uc8fc\uc11d \ud3b8\uc9d1\uae30\uc5d0 \uc0ac\uc6a9\ub418\ub294 \ud45c\uc900 macOS \ub2e8\ucd95\ud0a4\uc785\ub2c8\ub2e4."
+            "value": "주석 편집기에 사용되는 표준 macOS 단축키입니다."
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u0421\u0442\u0430\u043d\u0434\u0430\u0440\u0442\u043d\u044b\u0435 \u0441\u043e\u0447\u0435\u0442\u0430\u043d\u0438\u044f \u043a\u043b\u0430\u0432\u0438\u0448 macOS, \u0438\u0441\u043f\u043e\u043b\u044c\u0437\u0443\u0435\u043c\u044b\u0435 \u0432 \u0440\u0435\u0434\u0430\u043a\u0442\u043e\u0440\u0435 \u0430\u043d\u043d\u043e\u0442\u0430\u0446\u0438\u0439."
+            "value": "Стандартные сочетания клавиш macOS, используемые в редакторе аннотаций."
           }
         },
         "vi": {
           "stringUnit": {
             "state": "translated",
-            "value": "C\u00e1c ph\u00edm t\u1eaft macOS chu\u1ea9n d\u00f9ng trong tr\u00ecnh ch\u1ec9nh s\u1eeda Annotate."
+            "value": "Các phím tắt macOS chuẩn dùng trong trình chỉnh sửa Annotate."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u6ce8\u91ca\u7f16\u8f91\u5668\u4e2d\u4f7f\u7528\u7684\u6807\u51c6 macOS \u5feb\u6377\u952e\u3002"
+            "value": "注释编辑器中使用的标准 macOS 快捷键。"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u6ce8\u91cb\u7de8\u8f2f\u5668\u4e2d\u4f7f\u7528\u7684\u6a19\u6e96 macOS \u5feb\u6377\u9375\u3002"
+            "value": "注釋編輯器中使用的標準 macOS 快捷鍵。"
           }
         }
       }
@@ -2152,7 +2152,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Auf Standardwerte zur\u00fccksetzen"
+            "value": "Auf Standardwerte zurücksetzen"
           }
         },
         "en": {
@@ -2170,43 +2170,43 @@
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "R\u00e9initialiser aux valeurs par d\u00e9faut"
+            "value": "Réinitialiser aux valeurs par défaut"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u30c7\u30d5\u30a9\u30eb\u30c8\u306b\u623b\u3059"
+            "value": "デフォルトに戻す"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "\uae30\ubcf8\uac12\uc73c\ub85c \uc7ac\uc124\uc815"
+            "value": "기본값으로 재설정"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u0421\u0431\u0440\u043e\u0441 \u043a \u043d\u0430\u0441\u0442\u0440\u043e\u0439\u043a\u0430\u043c \u043f\u043e \u0443\u043c\u043e\u043b\u0447\u0430\u043d\u0438\u044e"
+            "value": "Сброс к настройкам по умолчанию"
           }
         },
         "vi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Kh\u00f4i ph\u1ee5c m\u1eb7c \u0111\u1ecbnh"
+            "value": "Khôi phục mặc định"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u91cd\u7f6e\u4e3a\u9ed8\u8ba4\u503c"
+            "value": "重置为默认值"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u91cd\u7f6e\u70ba\u9810\u8a2d\u503c"
+            "value": "重置為預設值"
           }
         }
       }
@@ -2234,43 +2234,43 @@
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "D\u00e9finir la touche"
+            "value": "Définir la touche"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u30ad\u30fc\u3092\u8a2d\u5b9a"
+            "value": "キーを設定"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "\ud0a4 \uc124\uc815"
+            "value": "키 설정"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u0417\u0430\u0434\u0430\u0442\u044c \u043a\u043b\u0430\u0432\u0438\u0448\u0443"
+            "value": "Задать клавишу"
           }
         },
         "vi": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u0110\u1eb7t ph\u00edm"
+            "value": "Đặt phím"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u8bbe\u7f6e\u6309\u952e"
+            "value": "设置按键"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u8a2d\u5b9a\u6309\u9375"
+            "value": "設定按鍵"
           }
         }
       }
@@ -2298,43 +2298,43 @@
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "D\u00e9finir le raccourci"
+            "value": "Définir le raccourci"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u30b7\u30e7\u30fc\u30c8\u30ab\u30c3\u30c8\u3092\u8a2d\u5b9a"
+            "value": "ショートカットを設定"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "\ub2e8\ucd95\ud0a4 \uc124\uc815"
+            "value": "단축키 설정"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u0417\u0430\u0434\u0430\u0442\u044c \u0441\u043e\u0447\u0435\u0442\u0430\u043d\u0438\u0435"
+            "value": "Задать сочетание"
           }
         },
         "vi": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u0110\u1eb7t ph\u00edm t\u1eaft"
+            "value": "Đặt phím tắt"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u8bbe\u7f6e\u5feb\u6377\u952e"
+            "value": "设置快捷键"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u8a2d\u5b9a\u5feb\u901f\u9375"
+            "value": "設定快速鍵"
           }
         }
       }
@@ -2345,7 +2345,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Tastaturk\u00fcrzel-Overlay \u00f6ffnen"
+            "value": "Tastaturkürzel-Overlay öffnen"
           }
         },
         "en": {
@@ -2357,7 +2357,7 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Abrir superposici\u00f3n de atajos de teclado"
+            "value": "Abrir superposición de atajos de teclado"
           }
         },
         "fr": {
@@ -2369,37 +2369,37 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u30ad\u30fc\u30dc\u30fc\u30c9\u30b7\u30e7\u30fc\u30c8\u30ab\u30c3\u30c8\u30aa\u30fc\u30d0\u30fc\u30ec\u30a4\u3092\u958b\u304f"
+            "value": "キーボードショートカットオーバーレイを開く"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "\ud0a4\ubcf4\ub4dc \ub2e8\ucd95\ud0a4 \uc624\ubc84\ub808\uc774 \uc5f4\uae30"
+            "value": "키보드 단축키 오버레이 열기"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u041e\u0442\u043a\u0440\u044b\u0442\u044c \u043d\u0430\u043b\u043e\u0436\u0435\u043d\u0438\u0435 \u0441\u043e\u0447\u0435\u0442\u0430\u043d\u0438\u0439 \u043a\u043b\u0430\u0432\u0438\u0448"
+            "value": "Открыть наложение сочетаний клавиш"
           }
         },
         "vi": {
           "stringUnit": {
             "state": "translated",
-            "value": "M\u1edf l\u1edbp ph\u1ee7 danh s\u00e1ch ph\u00edm t\u1eaft"
+            "value": "Mở lớp phủ danh sách phím tắt"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u6253\u5f00\u952e\u76d8\u5feb\u6377\u952e\u6d6e\u5c42"
+            "value": "打开键盘快捷键浮层"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u6253\u958b\u9375\u76e4\u5feb\u901f\u9375\u6d6e\u5c64"
+            "value": "打開鍵盤快速鍵浮層"
           }
         }
       }
@@ -2410,7 +2410,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Klicken Sie zum Aufzeichnen. Verwenden Sie w\u00e4hrend der Aufnahme die R\u00fccktaste oder die Zeilenumschaltung, um eine Verkn\u00fcpfung zu deaktivieren. Esc zum Abbrechen."
+            "value": "Klicken Sie zum Aufzeichnen. Verwenden Sie während der Aufnahme die Rücktaste oder die Zeilenumschaltung, um eine Verknüpfung zu deaktivieren. Esc zum Abbrechen."
           }
         },
         "en": {
@@ -2428,43 +2428,43 @@
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cliquez pour enregistrer. Utilisez Retour arri\u00e8re pendant l'enregistrement ou la bascule de ligne pour d\u00e9sactiver un raccourci. Echap pour annuler."
+            "value": "Cliquez pour enregistrer. Utilisez Retour arrière pendant l'enregistrement ou la bascule de ligne pour désactiver un raccourci. Echap pour annuler."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u30af\u30ea\u30c3\u30af\u3057\u3066\u8a18\u9332\u3057\u307e\u3059\u3002\u8a18\u9332\u4e2d\u306b Backspace \u3092\u62bc\u3059\u304b\u3001\u884c\u306e\u30c8\u30b0\u30eb\u3067\u30b7\u30e7\u30fc\u30c8\u30ab\u30c3\u30c8\u3092\u30aa\u30d5\u306b\u3067\u304d\u307e\u3059\u3002Esc \u3067\u30ad\u30e3\u30f3\u30bb\u30eb\u3057\u307e\u3059\u3002"
+            "value": "クリックして記録します。記録中に Backspace を押すか、行のトグルでショートカットをオフにできます。Esc でキャンセルします。"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "\ub179\uc74c\ud558\ub824\uba74 \ud074\ub9ad\ud558\uc138\uc694. \ubc14\ub85c\uac00\uae30\ub97c \ub044\ub824\uba74 \ub179\uc74c \uc911\uc5d0 \ubc31\uc2a4\ud398\uc774\uc2a4\ub97c \uc0ac\uc6a9\ud558\uac70\ub098 \ud589 \ud1a0\uae00\uc744 \uc0ac\uc6a9\ud558\uc138\uc694. \ucde8\uc18c\ud558\ub824\uba74 Esc\ub97c \ub204\ub974\uc138\uc694."
+            "value": "녹음하려면 클릭하세요. 바로가기를 끄려면 녹음 중에 백스페이스를 사용하거나 행 토글을 사용하세요. 취소하려면 Esc를 누르세요."
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u041d\u0430\u0436\u043c\u0438\u0442\u0435, \u0447\u0442\u043e\u0431\u044b \u0437\u0430\u043f\u0438\u0441\u0430\u0442\u044c. \u0418\u0441\u043f\u043e\u043b\u044c\u0437\u0443\u0439\u0442\u0435 Backspace \u0432\u043e \u0432\u0440\u0435\u043c\u044f \u0437\u0430\u043f\u0438\u0441\u0438 \u0438\u043b\u0438 \u043f\u0435\u0440\u0435\u043a\u043b\u044e\u0447\u0430\u0442\u0435\u043b\u044c \u0441\u0442\u0440\u043e\u043a, \u0447\u0442\u043e\u0431\u044b \u043e\u0442\u043a\u043b\u044e\u0447\u0438\u0442\u044c \u044f\u0440\u043b\u044b\u043a. Esc \u0434\u043b\u044f \u043e\u0442\u043c\u0435\u043d\u044b."
+            "value": "Нажмите, чтобы записать. Используйте Backspace во время записи или переключатель строк, чтобы отключить ярлык. Esc для отмены."
           }
         },
         "vi": {
           "stringUnit": {
             "state": "translated",
-            "value": "B\u1ea5m \u0111\u1ec3 ghi. D\u00f9ng Backspace/Delete khi \u0111ang ghi \u0111\u1ec3 x\u00f3a ph\u00edm. D\u00f9ng c\u00f4ng t\u1eafc c\u1ee7a h\u00e0ng \u0111\u1ec3 t\u1eaft ph\u00edm t\u1eaft. Esc \u0111\u1ec3 h\u1ee7y."
+            "value": "Bấm để ghi. Dùng Backspace/Delete khi đang ghi để xóa phím. Dùng công tắc của hàng để tắt phím tắt. Esc để hủy."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u5355\u51fb\u5373\u53ef\u5f55\u5236\u3002\u5f55\u5236\u65f6\u4f7f\u7528\u9000\u683c\u952e\u6216\u884c\u5207\u6362\u53ef\u5173\u95ed\u5feb\u6377\u65b9\u5f0f\u3002 Esc \u53d6\u6d88\u3002"
+            "value": "单击即可录制。录制时使用退格键或行切换可关闭快捷方式。 Esc 取消。"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u55ae\u64ca\u5373\u53ef\u9304\u5236\u3002\u9304\u5236\u6642\u4f7f\u7528\u9000\u683c\u9375\u6216\u884c\u5207\u63db\u53ef\u95dc\u9589\u5feb\u6377\u65b9\u5f0f\u3002 Esc \u53d6\u6d88\u3002"
+            "value": "單擊即可錄制。錄制時使用退格鍵或行切換可關閉快捷方式。 Esc 取消。"
           }
         }
       }
@@ -2477,6 +2477,60 @@
             "state": "translated",
             "value": "Live-highlight an accessible UI element, then click to capture it"
           }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chọn một thành phần giao diện người dùng cụ thể như cửa sổ, menu hoặc nút"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选择特定的UI元素，如窗口、菜单或按钮"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "選擇特定的UI元素，如視窗、選單或按鈕"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Selecciona un elemento de IU específico como una ventana, menú o botón"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ウィンドウ、メニュー、ボタンなどの特定のUI要素を選択する"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "창, 메뉴 또는 버튼과 같은 특정 UI 요소를 선택합니다"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Выберите определенный элемент интерфейса"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sélectionnez un élément d'interface utilisateur spécifique"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wählen Sie ein bestimmtes UI-Element aus"
+          }
         }
       }
     },
@@ -2486,7 +2540,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Deaktivieren Sie die \u00fcberlappenden macOS-Verkn\u00fcpfungen, um Konflikte mit den Snapzy-Verkn\u00fcpfungen zu vermeiden, die Sie aktiviert lassen."
+            "value": "Deaktivieren Sie die überlappenden macOS-Verknüpfungen, um Konflikte mit den Snapzy-Verknüpfungen zu vermeiden, die Sie aktiviert lassen."
           }
         },
         "en": {
@@ -2504,43 +2558,43 @@
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "D\u00e9sactivez les raccourcis macOS qui se chevauchent pour \u00e9viter les conflits avec les raccourcis Snapzy que vous gardez activ\u00e9s."
+            "value": "Désactivez les raccourcis macOS qui se chevauchent pour éviter les conflits avec les raccourcis Snapzy que vous gardez activés."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u6709\u52b9\u306b\u3057\u305f Snapzy \u30b7\u30e7\u30fc\u30c8\u30ab\u30c3\u30c8\u3068\u306e\u7af6\u5408\u3092\u907f\u3051\u308b\u306b\u306f\u3001\u91cd\u8907\u3059\u308b macOS \u30b7\u30e7\u30fc\u30c8\u30ab\u30c3\u30c8\u3092\u30aa\u30d5\u306b\u3057\u3066\u304f\u3060\u3055\u3044\u3002"
+            "value": "有効にした Snapzy ショートカットとの競合を避けるには、重複する macOS ショートカットをオフにしてください。"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "\ud65c\uc131\ud654\ub41c Snapzy \ub2e8\ucd95\ud0a4\uc640\uc758 \ucda9\ub3cc\uc744 \ubc29\uc9c0\ud558\ub824\uba74 \uacb9\uce58\ub294 macOS \ub2e8\ucd95\ud0a4\ub97c \ub044\uc138\uc694."
+            "value": "활성화된 Snapzy 단축키와의 충돌을 방지하려면 겹치는 macOS 단축키를 끄세요."
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u041e\u0442\u043a\u043b\u044e\u0447\u0438\u0442\u0435 \u043f\u0435\u0440\u0435\u043a\u0440\u044b\u0432\u0430\u044e\u0449\u0438\u0435\u0441\u044f \u044f\u0440\u043b\u044b\u043a\u0438 macOS, \u0447\u0442\u043e\u0431\u044b \u0438\u0437\u0431\u0435\u0436\u0430\u0442\u044c \u043a\u043e\u043d\u0444\u043b\u0438\u043a\u0442\u043e\u0432 \u0441 \u044f\u0440\u043b\u044b\u043a\u0430\u043c\u0438 Snapzy, \u043a\u043e\u0442\u043e\u0440\u044b\u0435 \u0432\u044b \u043e\u0441\u0442\u0430\u0432\u043b\u044f\u0435\u0442\u0435 \u0432\u043a\u043b\u044e\u0447\u0435\u043d\u043d\u044b\u043c\u0438."
+            "value": "Отключите перекрывающиеся ярлыки macOS, чтобы избежать конфликтов с ярлыками Snapzy, которые вы оставляете включенными."
           }
         },
         "vi": {
           "stringUnit": {
             "state": "translated",
-            "value": "T\u1eaft c\u00e1c ph\u00edm t\u1eaft macOS b\u1ecb tr\u00f9ng \u0111\u1ec3 tr\u00e1nh xung \u0111\u1ed9t v\u1edbi c\u00e1c ph\u00edm t\u1eaft Snapzy m\u00e0 b\u1ea1n mu\u1ed1n gi\u1eef b\u1eadt."
+            "value": "Tắt các phím tắt macOS bị trùng để tránh xung đột với các phím tắt Snapzy mà bạn muốn giữ bật."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u5173\u95ed\u91cd\u53e0\u7684 macOS \u5feb\u6377\u65b9\u5f0f\uff0c\u4ee5\u907f\u514d\u4e0e\u60a8\u4fdd\u6301\u542f\u7528\u7684 Snapzy \u5feb\u6377\u65b9\u5f0f\u53d1\u751f\u51b2\u7a81\u3002"
+            "value": "关闭重叠的 macOS 快捷方式，以避免与您保持启用的 Snapzy 快捷方式发生冲突。"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u95dc\u9589\u91cd\u758a\u7684 macOS \u5feb\u6377\u65b9\u5f0f\uff0c\u4ee5\u907f\u514d\u8207\u60a8\u4fdd\u6301\u5553\u7528\u7684 Snapzy \u5feb\u6377\u65b9\u5f0f\u767c\u751f\u885d\u7a81\u3002"
+            "value": "關閉重疊的 macOS 快捷方式，以避免與您保持啓用的 Snapzy 快捷方式發生衝突。"
           }
         }
       }
@@ -2551,7 +2605,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "macOS-Screenshot-Verkn\u00fcpfungen \u00fcberschneiden sich mit Snapzy"
+            "value": "macOS-Screenshot-Verknüpfungen überschneiden sich mit Snapzy"
           }
         },
         "en": {
@@ -2569,43 +2623,43 @@
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Les raccourcis de capture d'\u00e9cran macOS se chevauchent avec Snapzy"
+            "value": "Les raccourcis de capture d'écran macOS se chevauchent avec Snapzy"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "macOS \u306e\u30b9\u30af\u30ea\u30fc\u30f3\u30b7\u30e7\u30c3\u30c8\u30b7\u30e7\u30fc\u30c8\u30ab\u30c3\u30c8\u304c Snapzy \u3068\u91cd\u8907\u3057\u3066\u3044\u307e\u3059"
+            "value": "macOS のスクリーンショットショートカットが Snapzy と重複しています"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "macOS \uc2a4\ud06c\ub9b0\uc0f7 \ub2e8\ucd95\ud0a4\uac00 Snapzy\uc640 \uacb9\uce69\ub2c8\ub2e4"
+            "value": "macOS 스크린샷 단축키가 Snapzy와 겹칩니다"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u042f\u0440\u043b\u044b\u043a\u0438 \u0441\u043d\u0438\u043c\u043a\u043e\u0432 \u044d\u043a\u0440\u0430\u043d\u0430 macOS \u0441\u043e\u0432\u043f\u0430\u0434\u0430\u044e\u0442 \u0441 \u044f\u0440\u043b\u044b\u043a\u0430\u043c\u0438 Snapzy"
+            "value": "Ярлыки снимков экрана macOS совпадают с ярлыками Snapzy"
           }
         },
         "vi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ph\u00edm t\u1eaft ch\u1ee5p m\u00e0n h\u00ecnh macOS \u0111ang tr\u00f9ng v\u1edbi Snapzy"
+            "value": "Phím tắt chụp màn hình macOS đang trùng với Snapzy"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "macOS \u5c4f\u5e55\u622a\u56fe\u5feb\u6377\u952e\u4e0e Snapzy \u91cd\u53e0"
+            "value": "macOS 屏幕截图快捷键与 Snapzy 重叠"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "macOS \u87a2\u5e55\u622a\u5716\u5feb\u6377\u9375\u8207 Snapzy \u91cd\u758a"
+            "value": "macOS 螢幕截圖快捷鍵與 Snapzy 重疊"
           }
         }
       }
@@ -2616,7 +2670,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Systemverkn\u00fcpfungen"
+            "value": "Systemverknüpfungen"
           }
         },
         "en": {
@@ -2634,43 +2688,43 @@
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Raccourcis syst\u00e8me"
+            "value": "Raccourcis système"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u30b7\u30b9\u30c6\u30e0\u30b7\u30e7\u30fc\u30c8\u30ab\u30c3\u30c8"
+            "value": "システムショートカット"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "\uc2dc\uc2a4\ud15c \ubc14\ub85c\uac00\uae30"
+            "value": "시스템 바로가기"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u0421\u0438\u0441\u0442\u0435\u043c\u043d\u044b\u0435 \u044f\u0440\u043b\u044b\u043a\u0438"
+            "value": "Системные ярлыки"
           }
         },
         "vi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ph\u00edm t\u1eaft h\u1ec7 th\u1ed1ng"
+            "value": "Phím tắt hệ thống"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u7cfb\u7edf\u5feb\u6377\u952e"
+            "value": "系统快捷键"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u7cfb\u7d71\u5feb\u6377\u9375"
+            "value": "系統快捷鍵"
           }
         }
       }
@@ -2681,7 +2735,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Das Anmerkungsfenster anheften oder losl\u00f6sen"
+            "value": "Das Anmerkungsfenster anheften oder loslösen"
           }
         },
         "en": {
@@ -2699,43 +2753,43 @@
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u00c9pingler ou d\u00e9s\u00e9pingler la fen\u00eatre d'annotation"
+            "value": "Épingler ou désépingler la fenêtre d'annotation"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u6ce8\u91c8\u30a6\u30a3\u30f3\u30c9\u30a6\u3092\u56fa\u5b9a\u307e\u305f\u306f\u89e3\u9664"
+            "value": "注釈ウィンドウを固定または解除"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "\uc8fc\uc11d \ucc3d \uace0\uc815 \ub610\ub294 \uace0\uc815 \ud574\uc81c"
+            "value": "주석 창 고정 또는 고정 해제"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u0417\u0430\u043a\u0440\u0435\u043f\u0438\u0442\u044c \u0438\u043b\u0438 \u043e\u0442\u043a\u0440\u0435\u043f\u0438\u0442\u044c \u043e\u043a\u043d\u043e \u0430\u043d\u043d\u043e\u0442\u0430\u0446\u0438\u0439"
+            "value": "Закрепить или открепить окно аннотаций"
           }
         },
         "vi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghim ho\u1eb7c b\u1ecf ghim c\u1eeda s\u1ed5 ch\u00fa th\u00edch"
+            "value": "Ghim hoặc bỏ ghim cửa sổ chú thích"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u56fa\u5b9a\u6216\u53d6\u6d88\u56fa\u5b9a\u6ce8\u91ca\u7a97\u53e3"
+            "value": "固定或取消固定注释窗口"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u56fa\u5b9a\u6216\u53d6\u6d88\u56fa\u5b9a\u6ce8\u91cb\u7a97\u53e3"
+            "value": "固定或取消固定注釋窗口"
           }
         }
       }
@@ -2746,7 +2800,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Tools-Verkn\u00fcpfungen"
+            "value": "Tools-Verknüpfungen"
           }
         },
         "en": {
@@ -2770,37 +2824,37 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u30c4\u30fc\u30eb\u30b7\u30e7\u30fc\u30c8\u30ab\u30c3\u30c8"
+            "value": "ツールショートカット"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "\ub3c4\uad6c \ub2e8\ucd95\ud0a4"
+            "value": "도구 단축키"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u0418\u043d\u0441\u0442\u0440\u0443\u043c\u0435\u043d\u0442\u044b \u042f\u0440\u043b\u044b\u043a\u0438"
+            "value": "Инструменты Ярлыки"
           }
         },
         "vi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ph\u00edm t\u1eaft c\u00f4ng c\u1ee5"
+            "value": "Phím tắt công cụ"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u5de5\u5177\u5feb\u6377\u952e"
+            "value": "工具快捷键"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u5de5\u5177\u5feb\u901f\u9375"
+            "value": "工具快速鍵"
           }
         }
       }
@@ -2835,37 +2889,37 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u30a2\u30af\u30b7\u30e7\u30f3\u306b\u6ce8\u91c8\u3092\u4ed8\u3051\u308b"
+            "value": "アクションに注釈を付ける"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "\uc791\uc5c5\uc5d0 \uc8fc\uc11d \ub2ec\uae30"
+            "value": "작업에 주석 달기"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u0414\u0435\u0439\u0441\u0442\u0432\u0438\u044f \u0430\u043d\u043d\u043e\u0442\u0438\u0440\u043e\u0432\u0430\u043d\u0438\u044f"
+            "value": "Действия аннотирования"
           }
         },
         "vi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Thao t\u00e1c Annotate"
+            "value": "Thao tác Annotate"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u6ce8\u91ca\u52a8\u4f5c"
+            "value": "注释动作"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u6ce8\u91cb\u52d5\u4f5c"
+            "value": "注釋動作"
           }
         }
       }
@@ -2894,43 +2948,43 @@
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Annoter la r\u00e9f\u00e9rence"
+            "value": "Annoter la référence"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u53c2\u7167\u306b\u6ce8\u91c8\u3092\u4ed8\u3051\u308b"
+            "value": "参照に注釈を付ける"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "\ucc38\uc870\uc5d0 \uc8fc\uc11d \ub2ec\uae30"
+            "value": "참조에 주석 달기"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u0421\u0441\u044b\u043b\u043a\u0430 \u043d\u0430 \u0430\u043d\u043d\u043e\u0442\u0430\u0446\u0438\u044e"
+            "value": "Ссылка на аннотацию"
           }
         },
         "vi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Tham chi\u1ebfu Annotate"
+            "value": "Tham chiếu Annotate"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u6ce8\u91ca\u53c2\u8003"
+            "value": "注释参考"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u6ce8\u91cb\u53c3\u8003"
+            "value": "注釋參考"
           }
         }
       }
@@ -2959,43 +3013,43 @@
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Annoter les cl\u00e9s d'outils"
+            "value": "Annoter les clés d'outils"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u30c4\u30fc\u30eb \u30ad\u30fc\u306b\u6ce8\u91c8\u3092\u4ed8\u3051\u308b"
+            "value": "ツール キーに注釈を付ける"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "\ub3c4\uad6c \ud0a4\uc5d0 \uc8fc\uc11d \ub2ec\uae30"
+            "value": "도구 키에 주석 달기"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u041a\u043b\u0430\u0432\u0438\u0448\u0438 \u0438\u043d\u0441\u0442\u0440\u0443\u043c\u0435\u043d\u0442\u043e\u0432 \u0434\u043b\u044f \u0430\u043d\u043d\u043e\u0442\u0438\u0440\u043e\u0432\u0430\u043d\u0438\u044f"
+            "value": "Клавиши инструментов для аннотирования"
           }
         },
         "vi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ph\u00edm c\u00f4ng c\u1ee5 Annotate"
+            "value": "Phím công cụ Annotate"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u6ce8\u91ca\u5de5\u5177\u952e"
+            "value": "注释工具键"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u6ce8\u91cb\u5de5\u5177\u9375"
+            "value": "注釋工具鍵"
           }
         }
       }
@@ -3018,49 +3072,49 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Captura de aplicaci\u00f3n: %@"
+            "value": "Captura de aplicación: %@"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Capture d\u2019application\u00a0: %@"
+            "value": "Capture d’application : %@"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u30a2\u30d7\u30ea\u30ad\u30e3\u30d7\u30c1\u30e3: %@"
+            "value": "アプリキャプチャ: %@"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "\uc571 \ucea1\ucc98: %@"
+            "value": "앱 캡처: %@"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u0417\u0430\u0445\u0432\u0430\u0442 \u043f\u0440\u0438\u043b\u043e\u0436\u0435\u043d\u0438\u044f: %@"
+            "value": "Захват приложения: %@"
           }
         },
         "vi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ch\u1ee5p \u1ee9ng d\u1ee5ng: %@"
+            "value": "Chụp ứng dụng: %@"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u5e94\u7528\u7a97\u53e3\u622a\u5c4f\uff1a%@"
+            "value": "应用窗口截屏：%@"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u61c9\u7528\u7a0b\u5f0f\u8996\u7a97\u622a\u5716\uff1a%@"
+            "value": "應用程式視窗截圖：%@"
           }
         }
       }
@@ -3083,7 +3137,7 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Grabaci\u00f3n de aplicaci\u00f3n: %@"
+            "value": "Grabación de aplicación: %@"
           }
         },
         "fr": {
@@ -3095,37 +3149,37 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u30a2\u30d7\u30ea\u30b1\u30fc\u30b7\u30e7\u30f3\u9332\u753b: %@"
+            "value": "アプリケーション録画: %@"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "\uc560\ud50c\ub9ac\ucf00\uc774\uc158 \ub179\ud654: %@"
+            "value": "애플리케이션 녹화: %@"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u0417\u0430\u043f\u0438\u0441\u044c \u043f\u0440\u0438\u043b\u043e\u0436\u0435\u043d\u0438\u044f: %@"
+            "value": "Запись приложения: %@"
           }
         },
         "vi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ghi h\u00ecnh \u1ee9ng d\u1ee5ng: %@"
+            "value": "Ghi hình ứng dụng: %@"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u5e94\u7528\u5f55\u5c4f\uff1a%@"
+            "value": "应用录屏：%@"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u61c9\u7528\u7a0b\u5f0f\u5f71\u97f3\uff1a%@"
+            "value": "應用程式影音：%@"
           }
         }
       }
@@ -3136,7 +3190,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Sensible Daten automatisch schw\u00e4rzen"
+            "value": "Sensible Daten automatisch schwärzen"
           }
         },
         "en": {
@@ -3148,49 +3202,49 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Redactar autom\u00e1ticamente datos confidenciales"
+            "value": "Redactar automáticamente datos confidenciales"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Masquer automatiquement les donn\u00e9es sensibles"
+            "value": "Masquer automatiquement les données sensibles"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u6a5f\u5bc6\u30c7\u30fc\u30bf\u306e\u81ea\u52d5\u30e2\u30b6\u30a4\u30af"
+            "value": "機密データの自動モザイク"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "\ubbfc\uac10\ud55c \ub370\uc774\ud130 \uc790\ub3d9 \ub9c8\uc2a4\ud0b9"
+            "value": "민감한 데이터 자동 마스킹"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u0410\u0432\u0442\u043e\u043c\u0430\u0442\u0438\u0447\u0435\u0441\u043a\u043e\u0435 \u0441\u043a\u0440\u044b\u0442\u0438\u0435 \u043a\u043e\u043d\u0444\u0438\u0434\u0435\u043d\u0446\u0438\u0430\u043b\u044c\u043d\u044b\u0445 \u0434\u0430\u043d\u043d\u044b\u0445"
+            "value": "Автоматическое скрытие конфиденциальных данных"
           }
         },
         "vi": {
           "stringUnit": {
             "state": "translated",
-            "value": "T\u1ef1 \u0111\u1ed9ng l\u00e0m m\u1edd d\u1eef li\u1ec7u nh\u1ea1y c\u1ea3m"
+            "value": "Tự động làm mờ dữ liệu nhạy cảm"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u81ea\u52a8\u906e\u853d\u654f\u611f\u6570\u636e"
+            "value": "自动遮蔽敏感数据"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u81ea\u52d5\u906e\u853d\u654f\u611f\u8cc7\u6599"
+            "value": "自動遮蔽敏感資料"
           }
         }
       }
@@ -3219,43 +3273,43 @@
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Annuler / D\u00e9s\u00e9lectionner"
+            "value": "Annuler / Désélectionner"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u30ad\u30e3\u30f3\u30bb\u30eb / \u9078\u629e\u89e3\u9664"
+            "value": "キャンセル / 選択解除"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "\ucde8\uc18c / \uc120\ud0dd \ucde8\uc18c"
+            "value": "취소 / 선택 취소"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u041e\u0442\u043c\u0435\u043d\u0438\u0442\u044c/\u043e\u0442\u043c\u0435\u043d\u0438\u0442\u044c \u0432\u044b\u0431\u043e\u0440"
+            "value": "Отменить/отменить выбор"
           }
         },
         "vi": {
           "stringUnit": {
             "state": "translated",
-            "value": "H\u1ee7y / B\u1ecf ch\u1ecdn"
+            "value": "Hủy / Bỏ chọn"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u53d6\u6d88/\u53d6\u6d88\u9009\u62e9"
+            "value": "取消/取消选择"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u53d6\u6d88/\u53d6\u6d88\u9078\u64c7"
+            "value": "取消/取消選擇"
           }
         }
       }
@@ -3266,7 +3320,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Schlie\u00dfen"
+            "value": "Schließen"
           }
         },
         "en": {
@@ -3290,37 +3344,37 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u9589\u3058\u308b"
+            "value": "閉じる"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "\ub2eb\uae30"
+            "value": "닫기"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u0417\u0430\u043a\u0440\u044b\u0442\u044c"
+            "value": "Закрыть"
           }
         },
         "vi": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u0110\u00f3ng"
+            "value": "Đóng"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u5173\u95ed"
+            "value": "关闭"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u95dc\u9589"
+            "value": "關閉"
           }
         }
       }
@@ -3349,43 +3403,43 @@
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "T\u00e9l\u00e9chargement dans le cloud"
+            "value": "Téléchargement dans le cloud"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u30af\u30e9\u30a6\u30c9\u30a2\u30c3\u30d7\u30ed\u30fc\u30c9"
+            "value": "クラウドアップロード"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "\ud074\ub77c\uc6b0\ub4dc \uc5c5\ub85c\ub4dc"
+            "value": "클라우드 업로드"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u0417\u0430\u0433\u0440\u0443\u0437\u043a\u0430 \u0432 \u043e\u0431\u043b\u0430\u043a\u043e"
+            "value": "Загрузка в облако"
           }
         },
         "vi": {
           "stringUnit": {
             "state": "translated",
-            "value": "T\u1ea3i l\u00ean cloud"
+            "value": "Tải lên cloud"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u4e91\u7aef\u4e0a\u4f20"
+            "value": "云端上传"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u96f2\u7aef\u4e0a\u50b3"
+            "value": "雲端上傳"
           }
         }
       }
@@ -3396,7 +3450,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Zuschneiden best\u00e4tigen"
+            "value": "Zuschneiden bestätigen"
           }
         },
         "en": {
@@ -3420,37 +3474,37 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u30c8\u30ea\u30df\u30f3\u30b0\u3092\u78ba\u8a8d"
+            "value": "トリミングを確認"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "\uc790\ub974\uae30 \ud655\uc778"
+            "value": "자르기 확인"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u041f\u043e\u0434\u0442\u0432\u0435\u0440\u0434\u0438\u0442\u044c \u043e\u0431\u0440\u0435\u0437\u043a\u0443"
+            "value": "Подтвердить обрезку"
           }
         },
         "vi": {
           "stringUnit": {
             "state": "translated",
-            "value": "X\u00e1c nh\u1eadn c\u1eaft"
+            "value": "Xác nhận cắt"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u786e\u8ba4\u88c1\u526a"
+            "value": "确认裁剪"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u78ba\u8a8d\u88c1\u526a"
+            "value": "確認裁剪"
           }
         }
       }
@@ -3461,7 +3515,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Kopieren und schlie\u00dfen"
+            "value": "Kopieren und schließen"
           }
         },
         "en": {
@@ -3485,37 +3539,37 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u30b3\u30d4\u30fc\u3057\u3066\u9589\u3058\u308b"
+            "value": "コピーして閉じる"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "\ubcf5\uc0ac\ud558\uace0 \ub2eb\uae30"
+            "value": "복사하고 닫기"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u041a\u043e\u043f\u0438\u0440\u043e\u0432\u0430\u0442\u044c \u0438 \u0437\u0430\u043a\u0440\u044b\u0442\u044c"
+            "value": "Копировать и закрыть"
           }
         },
         "vi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Sao ch\u00e9p & \u0110\u00f3ng"
+            "value": "Sao chép & Đóng"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u590d\u5236\u5e76\u5173\u95ed"
+            "value": "复制并关闭"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u8907\u88fd\u4e26\u95dc\u9589"
+            "value": "複製並關閉"
           }
         }
       }
@@ -3526,61 +3580,61 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "In den Einstellungen anpassen\u2026"
+            "value": "In den Einstellungen anpassen…"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Customize in Settings\u2026"
+            "value": "Customize in Settings…"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Personalizar en Configuraci\u00f3n\u2026"
+            "value": "Personalizar en Configuración…"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Personnaliser dans Param\u00e8tres\u2026"
+            "value": "Personnaliser dans Paramètres…"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u8a2d\u5b9a\u3067\u30ab\u30b9\u30bf\u30de\u30a4\u30ba\u2026"
+            "value": "設定でカスタマイズ…"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "\uc124\uc815\uc5d0\uc11c \uc0ac\uc6a9\uc790 \uc815\uc758\ud558\uc138\uc694..."
+            "value": "설정에서 사용자 정의하세요..."
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u041d\u0430\u0441\u0442\u0440\u043e\u0438\u0442\u044c \u0432 \u043d\u0430\u0441\u0442\u0440\u043e\u0439\u043a\u0430\u0445\u2026"
+            "value": "Настроить в настройках…"
           }
         },
         "vi": {
           "stringUnit": {
             "state": "translated",
-            "value": "T\u00f9y ch\u1ec9nh trong C\u00e0i \u0111\u1eb7t\u2026"
+            "value": "Tùy chỉnh trong Cài đặt…"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u5728\u201c\u8bbe\u7f6e\u201d\u4e2d\u81ea\u5b9a\u4e49..."
+            "value": "在“设置”中自定义..."
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u5728\u201c\u8a2d\u7f6e\u201d\u4e2d\u81ea\u5b9a\u7fa9..."
+            "value": "在“設置”中自定義..."
           }
         }
       }
@@ -3591,7 +3645,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Anmerkung l\u00f6schen"
+            "value": "Anmerkung löschen"
           }
         },
         "en": {
@@ -3603,7 +3657,7 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Eliminar anotaci\u00f3n"
+            "value": "Eliminar anotación"
           }
         },
         "fr": {
@@ -3615,37 +3669,37 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u6ce8\u91c8\u306e\u524a\u9664"
+            "value": "注釈の削除"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "\uc8fc\uc11d \uc0ad\uc81c"
+            "value": "주석 삭제"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u0423\u0434\u0430\u043b\u0438\u0442\u044c \u0430\u043d\u043d\u043e\u0442\u0430\u0446\u0438\u044e"
+            "value": "Удалить аннотацию"
           }
         },
         "vi": {
           "stringUnit": {
             "state": "translated",
-            "value": "X\u00f3a ch\u00fa th\u00edch"
+            "value": "Xóa chú thích"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u5220\u9664\u6ce8\u91ca"
+            "value": "删除注释"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u522a\u9664\u6ce8\u91cb"
+            "value": "刪除注釋"
           }
         }
       }
@@ -3674,43 +3728,43 @@
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u00c0 l'int\u00e9rieur de l'\u00e9diteur d'annotations"
+            "value": "À l'intérieur de l'éditeur d'annotations"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u6ce8\u91c8\u30a8\u30c7\u30a3\u30bf\u30fc\u306e\u5185\u90e8"
+            "value": "注釈エディターの内部"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "\uc8fc\uc11d \ud3b8\uc9d1\uae30 \ub0b4\ubd80"
+            "value": "주석 편집기 내부"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u0412\u043d\u0443\u0442\u0440\u0438 \u0440\u0435\u0434\u0430\u043a\u0442\u043e\u0440\u0430 \u0430\u043d\u043d\u043e\u0442\u0430\u0446\u0438\u0439"
+            "value": "Внутри редактора аннотаций"
           }
         },
         "vi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Trong tr\u00ecnh ch\u1ec9nh s\u1eeda Annotate"
+            "value": "Trong trình chỉnh sửa Annotate"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u5185\u90e8\u6ce8\u91ca\u7f16\u8f91\u5668"
+            "value": "内部注释编辑器"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u5167\u90e8\u6ce8\u91cb\u7de8\u8f2f\u5668"
+            "value": "內部注釋編輯器"
           }
         }
       }
@@ -3721,7 +3775,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "10\u00a0Pixel verschieben"
+            "value": "10 Pixel verschieben"
           }
         },
         "en": {
@@ -3739,43 +3793,43 @@
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "D\u00e9placer 10px"
+            "value": "Déplacer 10px"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "10px \u5fae\u8abf\u6574"
+            "value": "10px 微調整"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "10px \ub11b\uc9c0"
+            "value": "10px 넛지"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u0421\u0434\u0432\u0438\u043d\u0443\u0442\u044c \u043d\u0430 10 \u043f\u0438\u043a\u0441\u0435\u043b\u0435\u0439"
+            "value": "Сдвинуть на 10 пикселей"
           }
         },
         "vi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Di chuy\u1ec3n 10px"
+            "value": "Di chuyển 10px"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u5fae\u79fb 10px"
+            "value": "微移 10px"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u5fae\u79fb 10px"
+            "value": "微移 10px"
           }
         }
       }
@@ -3798,49 +3852,49 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Anotaci\u00f3n de empuje"
+            "value": "Anotación de empuje"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Annotation de d\u00e9placement"
+            "value": "Annotation de déplacement"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u6ce8\u91c8\u3092\u30ca\u30c3\u30b8\u3059\u308b"
+            "value": "注釈をナッジする"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "\ub11b\uc9c0 \uc8fc\uc11d"
+            "value": "넛지 주석"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u0421\u0434\u0432\u0438\u043d\u0443\u0442\u044c \u0430\u043d\u043d\u043e\u0442\u0430\u0446\u0438\u044e"
+            "value": "Сдвинуть аннотацию"
           }
         },
         "vi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Di chuy\u1ec3n ch\u00fa th\u00edch"
+            "value": "Di chuyển chú thích"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u5fae\u79fb\u6ce8\u91ca"
+            "value": "微移注释"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u5fae\u79fb\u6ce8\u91cb"
+            "value": "微移注釋"
           }
         }
       }
@@ -3863,7 +3917,7 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "S\u00f3lo grabaci\u00f3n"
+            "value": "Sólo grabación"
           }
         },
         "fr": {
@@ -3875,37 +3929,37 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u9332\u97f3\u306e\u307f"
+            "value": "録音のみ"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "\ub179\uc74c\ub9cc"
+            "value": "녹음만"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u0422\u043e\u043b\u044c\u043a\u043e \u0437\u0430\u043f\u0438\u0441\u044c"
+            "value": "Только запись"
           }
         },
         "vi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ch\u1ec9 khi ghi m\u00e0n h\u00ecnh"
+            "value": "Chỉ khi ghi màn hình"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u4ec5\u5f55\u97f3"
+            "value": "仅录音"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u50c5\u9304\u97f3"
+            "value": "僅錄音"
           }
         }
       }
@@ -3940,37 +3994,37 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u3084\u308a\u76f4\u3057"
+            "value": "やり直し"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "\ub2e4\uc2dc \ud558\ub2e4"
+            "value": "다시 하다"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u041f\u043e\u0432\u0442\u043e\u0440\u0438\u0442\u044c"
+            "value": "Повторить"
           }
         },
         "vi": {
           "stringUnit": {
             "state": "translated",
-            "value": "L\u00e0m l\u1ea1i"
+            "value": "Làm lại"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u91cd\u505a"
+            "value": "重做"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u91cd\u505a"
+            "value": "重做"
           }
         }
       }
@@ -3981,61 +4035,61 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Speichern unter\u2026"
+            "value": "Speichern unter…"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Save As\u2026"
+            "value": "Save As…"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Guardar como\u2026"
+            "value": "Guardar como…"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Enregistrer sous\u2026"
+            "value": "Enregistrer sous…"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u540d\u524d\u3092\u4ed8\u3051\u3066\u4fdd\u5b58\u2026"
+            "value": "名前を付けて保存…"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "\ub2e4\ub978 \uc774\ub984\uc73c\ub85c \uc800\uc7a5\u2026"
+            "value": "다른 이름으로 저장…"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u0421\u043e\u0445\u0440\u0430\u043d\u0438\u0442\u044c \u043a\u0430\u043a\u2026"
+            "value": "Сохранить как…"
           }
         },
         "vi": {
           "stringUnit": {
             "state": "translated",
-            "value": "L\u01b0u th\u00e0nh\u2026"
+            "value": "Lưu thành…"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u53e6\u5b58\u4e3a..."
+            "value": "另存为..."
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u53e6\u5b58\u70ba..."
+            "value": "另存為..."
           }
         }
       }
@@ -4064,43 +4118,43 @@
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Enregistrer (Termin\u00e9)"
+            "value": "Enregistrer (Terminé)"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u4fdd\u5b58 (\u5b8c\u4e86)"
+            "value": "保存 (完了)"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "\uc800\uc7a5 (\uc644\ub8cc)"
+            "value": "저장 (완료)"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u0421\u043e\u0445\u0440\u0430\u043d\u0438\u0442\u044c (\u0413\u043e\u0442\u043e\u0432\u043e)"
+            "value": "Сохранить (Готово)"
           }
         },
         "vi": {
           "stringUnit": {
             "state": "translated",
-            "value": "L\u01b0u (Xong)"
+            "value": "Lưu (Xong)"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u4fdd\u5b58\uff08\u5b8c\u6210\uff09"
+            "value": "保存（完成）"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u4fdd\u5b58\uff08\u5b8c\u6210\uff09"
+            "value": "保存（完成）"
           }
         }
       }
@@ -4123,49 +4177,49 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Captura de pantalla + Grabaci\u00f3n"
+            "value": "Captura de pantalla + Grabación"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Capture d'\u00e9cran + enregistrement"
+            "value": "Capture d'écran + enregistrement"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u30b9\u30af\u30ea\u30fc\u30f3\u30b7\u30e7\u30c3\u30c8 + \u9332\u753b"
+            "value": "スクリーンショット + 録画"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "\uc2a4\ud06c\ub9b0\uc0f7 + \ub179\ud654"
+            "value": "스크린샷 + 녹화"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u0421\u043a\u0440\u0438\u043d\u0448\u043e\u0442 + \u0437\u0430\u043f\u0438\u0441\u044c"
+            "value": "Скриншот + запись"
           }
         },
         "vi": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u1ea2nh ch\u1ee5p + Ghi m\u00e0n h\u00ecnh"
+            "value": "Ảnh chụp + Ghi màn hình"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u622a\u56fe+\u5f55\u97f3"
+            "value": "截图+录音"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u622a\u5716+\u9304\u97f3"
+            "value": "截圖+錄音"
           }
         }
       }
@@ -4194,43 +4248,43 @@
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Capture d'\u00e9cran uniquement"
+            "value": "Capture d'écran uniquement"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u30b9\u30af\u30ea\u30fc\u30f3\u30b7\u30e7\u30c3\u30c8\u306e\u307f"
+            "value": "スクリーンショットのみ"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "\uc2a4\ud06c\ub9b0\uc0f7\ub9cc"
+            "value": "스크린샷만"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u0422\u043e\u043b\u044c\u043a\u043e \u0441\u043a\u0440\u0438\u043d\u0448\u043e\u0442"
+            "value": "Только скриншот"
           }
         },
         "vi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ch\u1ec9 v\u1edbi \u1ea3nh ch\u1ee5p"
+            "value": "Chỉ với ảnh chụp"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u4ec5\u622a\u56fe"
+            "value": "仅截图"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u50c5\u622a\u5716"
+            "value": "僅截圖"
           }
         }
       }
@@ -4265,37 +4319,37 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u30ad\u30e3\u30d7\u30c1\u30e3"
+            "value": "キャプチャ"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "\ucea1\ucc98"
+            "value": "캡처"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u0417\u0430\u0445\u0432\u0430\u0442\u0438\u0442\u044c"
+            "value": "Захватить"
           }
         },
         "vi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ch\u1ee5p"
+            "value": "Chụp"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u622a\u5c4f"
+            "value": "截屏"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u622a\u5716"
+            "value": "截圖"
           }
         }
       }
@@ -4330,37 +4384,37 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u30c4\u30fc\u30eb"
+            "value": "ツール"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "\ub3c4\uad6c"
+            "value": "도구"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u0418\u043d\u0441\u0442\u0440\u0443\u043c\u0435\u043d\u0442\u044b"
+            "value": "Инструменты"
           }
         },
         "vi": {
           "stringUnit": {
             "state": "translated",
-            "value": "C\u00f4ng c\u1ee5"
+            "value": "Công cụ"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u5de5\u5177"
+            "value": "工具"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u5de5\u5177"
+            "value": "工具"
           }
         }
       }
@@ -4371,7 +4425,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Dr\u00fccken Sie Esc oder klicken Sie au\u00dferhalb, um"
+            "value": "Drücken Sie Esc oder klicken Sie außerhalb, um"
           }
         },
         "en": {
@@ -4389,43 +4443,43 @@
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Appuyez sur Echap ou cliquez \u00e0 l'ext\u00e9rieur pour fermer"
+            "value": "Appuyez sur Echap ou cliquez à l'extérieur pour fermer"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "Esc \u30ad\u30fc\u3092\u62bc\u3059\u304b\u3001\u5916\u5074\u3092\u30af\u30ea\u30c3\u30af\u3057\u3066\u9589\u3058\u307e\u3059"
+            "value": "Esc キーを押すか、外側をクリックして閉じます"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "\ub2eb\uc73c\ub824\uba74 Esc \ud0a4\ub97c \ub204\ub974\uac70\ub098 \ubc14\uae65\ucabd\uc744 \ud074\ub9ad\ud558\uc138\uc694"
+            "value": "닫으려면 Esc 키를 누르거나 바깥쪽을 클릭하세요"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u041d\u0430\u0436\u043c\u0438\u0442\u0435 Esc \u0438\u043b\u0438 \u0449\u0435\u043b\u043a\u043d\u0438\u0442\u0435 \u0441\u043d\u0430\u0440\u0443\u0436\u0438, \u0447\u0442\u043e\u0431\u044b \u0437\u0430\u043a\u0440\u044b\u0442\u044c"
+            "value": "Нажмите Esc или щелкните снаружи, чтобы закрыть"
           }
         },
         "vi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Nh\u1ea5n Esc ho\u1eb7c b\u1ea5m ra ngo\u00e0i \u0111\u1ec3 \u0111\u00f3ng"
+            "value": "Nhấn Esc hoặc bấm ra ngoài để đóng"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u6309 Esc \u6216\u5355\u51fb\u5916\u90e8\u5373\u53ef\u5173\u95ed"
+            "value": "按 Esc 或单击外部即可关闭"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u6309 Esc \u6216\u55ae\u64ca\u5916\u90e8\u5373\u53ef\u95dc\u9589"
+            "value": "按 Esc 或單擊外部即可關閉"
           }
         }
       }
@@ -4436,7 +4490,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Tastaturk\u00fcrzel"
+            "value": "Tastaturkürzel"
           }
         },
         "en": {
@@ -4460,37 +4514,37 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u30ad\u30fc\u30dc\u30fc\u30c9 \u30b7\u30e7\u30fc\u30c8\u30ab\u30c3\u30c8"
+            "value": "キーボード ショートカット"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "\ud0a4\ubcf4\ub4dc \ub2e8\ucd95\ud0a4"
+            "value": "키보드 단축키"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u0421\u043e\u0447\u0435\u0442\u0430\u043d\u0438\u044f \u043a\u043b\u0430\u0432\u0438\u0448"
+            "value": "Сочетания клавиш"
           }
         },
         "vi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ph\u00edm t\u1eaft b\u00e0n ph\u00edm"
+            "value": "Phím tắt bàn phím"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u952e\u76d8\u5feb\u6377\u952e"
+            "value": "键盘快捷键"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u9375\u76e4\u5feb\u6377\u9375"
+            "value": "鍵盤快捷鍵"
           }
         }
       }
@@ -4519,43 +4573,43 @@
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Goupille \u00e0 bascule"
+            "value": "Goupille à bascule"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u30c8\u30b0\u30eb\u30d4\u30f3"
+            "value": "トグルピン"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "\ud540 \uc804\ud658"
+            "value": "핀 전환"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u041f\u0435\u0440\u0435\u043a\u043b\u044e\u0447\u0438\u0442\u044c \u0431\u0443\u043b\u0430\u0432\u043a\u0443"
+            "value": "Переключить булавку"
           }
         },
         "vi": {
           "stringUnit": {
             "state": "translated",
-            "value": "B\u1eadt/t\u1eaft ghim"
+            "value": "Bật/tắt ghim"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u5207\u6362\u9488"
+            "value": "切换针"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u5207\u63db\u91dd"
+            "value": "切換針"
           }
         }
       }
@@ -4566,7 +4620,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "R\u00fcckg\u00e4ngig machen"
+            "value": "Rückgängig machen"
           }
         },
         "en": {
@@ -4590,37 +4644,37 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u5143\u306b\u623b\u3059"
+            "value": "元に戻す"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "\uc2e4\ud589 \ucde8\uc18c"
+            "value": "실행 취소"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u041e\u0442\u043c\u0435\u043d\u0438\u0442\u044c"
+            "value": "Отменить"
           }
         },
         "vi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ho\u00e0n t\u00e1c"
+            "value": "Hoàn tác"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u64a4\u6d88"
+            "value": "撤消"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u64a4\u6d88"
+            "value": "撤消"
           }
         }
       }
@@ -4631,7 +4685,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Klicken Sie, um eine Verkn\u00fcpfung aufzuzeichnen."
+            "value": "Klicken Sie, um eine Verknüpfung aufzuzeichnen."
           }
         },
         "en": {
@@ -4655,37 +4709,37 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u30af\u30ea\u30c3\u30af\u3057\u3066\u30b7\u30e7\u30fc\u30c8\u30ab\u30c3\u30c8\u3092\u8a18\u9332\u3057\u307e\u3059\u3002"
+            "value": "クリックしてショートカットを記録します。"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "\ubc14\ub85c\uac00\uae30\ub97c \ub179\uc74c\ud558\ub824\uba74 \ud074\ub9ad\ud558\uc138\uc694."
+            "value": "바로가기를 녹음하려면 클릭하세요."
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u041d\u0430\u0436\u043c\u0438\u0442\u0435, \u0447\u0442\u043e\u0431\u044b \u0437\u0430\u043f\u0438\u0441\u0430\u0442\u044c \u044f\u0440\u043b\u044b\u043a."
+            "value": "Нажмите, чтобы записать ярлык."
           }
         },
         "vi": {
           "stringUnit": {
             "state": "translated",
-            "value": "B\u1ea5m \u0111\u1ec3 ghi m\u1ed9t ph\u00edm t\u1eaft."
+            "value": "Bấm để ghi một phím tắt."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u5355\u51fb\u4ee5\u8bb0\u5f55\u5feb\u6377\u65b9\u5f0f\u3002"
+            "value": "单击以记录快捷方式。"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u55ae\u64ca\u4ee5\u8a18\u9304\u5feb\u6377\u65b9\u5f0f\u3002"
+            "value": "單擊以記錄快捷方式。"
           }
         }
       }
@@ -4696,7 +4750,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Tasten dr\u00fccken..."
+            "value": "Tasten drücken..."
           }
         },
         "en": {
@@ -4720,37 +4774,37 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u30ad\u30fc\u3092\u62bc\u3057\u3066\u304f\u3060\u3055\u3044..."
+            "value": "キーを押してください..."
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "\ud0a4\ub97c \ub204\ub974\uc138\uc694..."
+            "value": "키를 누르세요..."
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u041d\u0430\u0436\u0438\u043c\u0430\u0439\u0442\u0435 \u043a\u043b\u0430\u0432\u0438\u0448\u0438..."
+            "value": "Нажимайте клавиши..."
           }
         },
         "vi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Nh\u1ea5n ph\u00edm..."
+            "value": "Nhấn phím..."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u6309\u952e..."
+            "value": "按键..."
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u6309\u9375..."
+            "value": "按鍵..."
           }
         }
       }
@@ -4761,7 +4815,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Aktivieren Sie diese Verkn\u00fcpfung, um sie zu bearbeiten."
+            "value": "Aktivieren Sie diese Verknüpfung, um sie zu bearbeiten."
           }
         },
         "en": {
@@ -4785,37 +4839,37 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u7de8\u96c6\u3059\u308b\u306b\u306f\u3001\u3053\u306e\u30b7\u30e7\u30fc\u30c8\u30ab\u30c3\u30c8\u3092\u30aa\u30f3\u306b\u3057\u307e\u3059\u3002"
+            "value": "編集するには、このショートカットをオンにします。"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "\ud3b8\uc9d1\ud558\ub824\uba74 \uc774 \ub2e8\ucd95\ud0a4\ub97c \ucf1c\uc138\uc694."
+            "value": "편집하려면 이 단축키를 켜세요."
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u0412\u043a\u043b\u044e\u0447\u0438\u0442\u0435 \u044d\u0442\u043e\u0442 \u044f\u0440\u043b\u044b\u043a, \u0447\u0442\u043e\u0431\u044b \u0440\u0435\u0434\u0430\u043a\u0442\u0438\u0440\u043e\u0432\u0430\u0442\u044c \u0435\u0433\u043e."
+            "value": "Включите этот ярлык, чтобы редактировать его."
           }
         },
         "vi": {
           "stringUnit": {
             "state": "translated",
-            "value": "B\u1eadt ph\u00edm t\u1eaft n\u00e0y \u0111\u1ec3 ch\u1ec9nh s\u1eeda."
+            "value": "Bật phím tắt này để chỉnh sửa."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u6253\u5f00\u6b64\u5feb\u6377\u65b9\u5f0f\u8fdb\u884c\u7f16\u8f91\u3002"
+            "value": "打开此快捷方式进行编辑。"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u6253\u958b\u6b64\u5feb\u6377\u65b9\u5f0f\u9032\u884c\u7de8\u8f2f\u3002"
+            "value": "打開此快捷方式進行編輯。"
           }
         }
       }
@@ -4844,13 +4898,13 @@
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Utilis\u00e9 par %@"
+            "value": "Utilisé par %@"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "%@ \u306b\u3088\u3063\u3066\u4f7f\u7528\u3055\u308c\u307e\u3059"
+            "value": "%@ によって使用されます"
           }
         },
         "ko": {
@@ -4862,25 +4916,25 @@
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u0418\u0441\u043f\u043e\u043b\u044c\u0437\u0443\u0435\u0442\u0441\u044f %@"
+            "value": "Используется %@"
           }
         },
         "vi": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u0110ang \u0111\u01b0\u1ee3c %@ d\u00f9ng"
+            "value": "Đang được %@ dùng"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u7531 %@"
+            "value": "由 %@"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u7531 %@"
+            "value": "由 %@"
           }
         }
       }
@@ -4909,43 +4963,43 @@
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "D\u00e9j\u00e0 utilis\u00e9 par %@."
+            "value": "Déjà utilisé par %@."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "%@ \u306b\u3088\u3063\u3066\u3059\u3067\u306b\u4f7f\u7528\u3055\u308c\u3066\u3044\u307e\u3059\u3002"
+            "value": "%@ によってすでに使用されています。"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "\uc5d0\uc11c \uc0ac\uc6a9\ud568 %@\uc774(\uac00) \uc774\ubbf8 \uc0ac\uc6a9\ud588\uc2b5\ub2c8\ub2e4."
+            "value": "에서 사용함 %@이(가) 이미 사용했습니다."
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u0423\u0436\u0435 \u0438\u0441\u043f\u043e\u043b\u044c\u0437\u0443\u0435\u0442\u0441\u044f %@."
+            "value": "Уже используется %@."
           }
         },
         "vi": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u0110\u00e3 \u0111\u01b0\u1ee3c %@ d\u00f9ng."
+            "value": "Đã được %@ dùng."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u4f7f\u7528\u5df2\u88ab %@ \u4f7f\u7528\u3002"
+            "value": "使用已被 %@ 使用。"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u4f7f\u7528\u5df2\u88ab %@ \u4f7f\u7528\u3002"
+            "value": "使用已被 %@ 使用。"
           }
         }
       }
@@ -4974,43 +5028,43 @@
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "D\u00e9j\u00e0 utilis\u00e9 par %@ dans Annotate Editor."
+            "value": "Déjà utilisé par %@ dans Annotate Editor."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "Annotate Editor \u306e %@ \u306b\u3088\u3063\u3066\u3059\u3067\u306b\u4f7f\u7528\u3055\u308c\u3066\u3044\u307e\u3059\u3002"
+            "value": "Annotate Editor の %@ によってすでに使用されています。"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "Annotate Editor\uc5d0\uc11c %@\uc774(\uac00) \uc774\ubbf8 \uc0ac\uc6a9\ud588\uc2b5\ub2c8\ub2e4."
+            "value": "Annotate Editor에서 %@이(가) 이미 사용했습니다."
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u0423\u0436\u0435 \u0438\u0441\u043f\u043e\u043b\u044c\u0437\u0443\u0435\u0442\u0441\u044f %@ \u0432 \u0440\u0435\u0434\u0430\u043a\u0442\u043e\u0440\u0435 \u0430\u043d\u043d\u043e\u0442\u0430\u0446\u0438\u0439."
+            "value": "Уже используется %@ в редакторе аннотаций."
           }
         },
         "vi": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u0110\u00e3 \u0111\u01b0\u1ee3c %@ d\u00f9ng trong tr\u00ecnh ch\u1ec9nh s\u1eeda Annotate."
+            "value": "Đã được %@ dùng trong trình chỉnh sửa Annotate."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u5df2\u88ab\u6ce8\u91ca\u7f16\u8f91\u5668\u4e2d\u7684 %@ \u4f7f\u7528\u3002"
+            "value": "已被注释编辑器中的 %@ 使用。"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u5df2\u88ab\u6ce8\u91cb\u7de8\u8f2f\u5668\u4e2d\u7684 %@ \u4f7f\u7528\u3002"
+            "value": "已被注釋編輯器中的 %@ 使用。"
           }
         }
       }
@@ -5021,7 +5075,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Entspricht %@. macOS k\u00f6nnte gewinnen."
+            "value": "Entspricht %@. macOS könnte gewinnen."
           }
         },
         "en": {
@@ -5039,43 +5093,43 @@
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Correspond \u00e0 %@. macOS pourrait gagner."
+            "value": "Correspond à %@. macOS pourrait gagner."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "%@ \u306b\u4e00\u81f4\u3057\u307e\u3059\u3002 macOS\u304c\u52dd\u3064\u304b\u3082\u3057\u308c\u306a\u3044\u3002"
+            "value": "%@ に一致します。 macOSが勝つかもしれない。"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "%@\uacfc(\uc640) \uc77c\uce58\ud569\ub2c8\ub2e4. macOS\uac00 \uc774\uae38 \uc218\ub3c4 \uc788\uc2b5\ub2c8\ub2e4."
+            "value": "%@과(와) 일치합니다. macOS가 이길 수도 있습니다."
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u0421\u043e\u0432\u043f\u0430\u0434\u0430\u0435\u0442 %@. macOS \u043c\u043e\u0436\u0435\u0442 \u043f\u043e\u0431\u0435\u0434\u0438\u0442\u044c."
+            "value": "Совпадает %@. macOS может победить."
           }
         },
         "vi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Tr\u00f9ng v\u1edbi %@. macOS c\u00f3 th\u1ec3 \u01b0u ti\u00ean ph\u00edm t\u1eaft n\u00e0y."
+            "value": "Trùng với %@. macOS có thể ưu tiên phím tắt này."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u5339\u914d%@\u3002 macOS \u53ef\u80fd\u4f1a\u83b7\u80dc\u3002"
+            "value": "匹配%@。 macOS 可能会获胜。"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u5339\u914d%@\u3002 macOS \u53ef\u80fd\u6703\u7372\u52dd\u3002"
+            "value": "匹配%@。 macOS 可能會獲勝。"
           }
         }
       }
@@ -5098,7 +5152,7 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u00c1rea de captura de macOS"
+            "value": "Área de captura de macOS"
           }
         },
         "fr": {
@@ -5110,37 +5164,37 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "macOS \u30ad\u30e3\u30d7\u30c1\u30e3\u9818\u57df"
+            "value": "macOS キャプチャ領域"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "macOS \ucea1\ucc98 \uc601\uc5ed"
+            "value": "macOS 캡처 영역"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u041e\u0431\u043b\u0430\u0441\u0442\u044c \u0437\u0430\u0445\u0432\u0430\u0442\u0430 macOS"
+            "value": "Область захвата macOS"
           }
         },
         "vi": {
           "stringUnit": {
             "state": "translated",
-            "value": "macOS Ch\u1ee5p v\u00f9ng"
+            "value": "macOS Chụp vùng"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "macOS \u622a\u53d6\u533a\u57df"
+            "value": "macOS 截取区域"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "macOS \u5340\u57df\u622a\u53d6"
+            "value": "macOS 區域截取"
           }
         }
       }
@@ -5169,43 +5223,43 @@
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Capture macOS en plein \u00e9cran"
+            "value": "Capture macOS en plein écran"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "macOS \u30ad\u30e3\u30d7\u30c1\u30e3\u5168\u753b\u9762"
+            "value": "macOS キャプチャ全画面"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "macOS \ucea1\ucc98 \uc804\uccb4 \ud654\uba74"
+            "value": "macOS 캡처 전체 화면"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "macOS \u0417\u0430\u0445\u0432\u0430\u0442 \u0432\u0441\u0435\u0433\u043e \u044d\u043a\u0440\u0430\u043d\u0430"
+            "value": "macOS Захват всего экрана"
           }
         },
         "vi": {
           "stringUnit": {
             "state": "translated",
-            "value": "macOS Ch\u1ee5p to\u00e0n m\u00e0n h\u00ecnh"
+            "value": "macOS Chụp toàn màn hình"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "macOS \u5168\u5c4f\u622a\u5c4f"
+            "value": "macOS 全屏截屏"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "macOS \u5168\u87a2\u5e55\u622a\u5716"
+            "value": "macOS 全螢幕截圖"
           }
         }
       }
@@ -5228,7 +5282,7 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u00c1rea de copia de macOS"
+            "value": "Área de copia de macOS"
           }
         },
         "fr": {
@@ -5240,37 +5294,37 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "macOS \u30b3\u30d4\u30fc\u9818\u57df"
+            "value": "macOS コピー領域"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "macOS \ubcf5\uc0ac \uc601\uc5ed"
+            "value": "macOS 복사 영역"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u041e\u0431\u043b\u0430\u0441\u0442\u044c \u043a\u043e\u043f\u0438\u0440\u043e\u0432\u0430\u043d\u0438\u044f macOS"
+            "value": "Область копирования macOS"
           }
         },
         "vi": {
           "stringUnit": {
             "state": "translated",
-            "value": "macOS Sao ch\u00e9p v\u00f9ng"
+            "value": "macOS Sao chép vùng"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "macOS \u590d\u5236\u533a\u57df"
+            "value": "macOS 复制区域"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "macOS \u8907\u88fd\u5340\u57df"
+            "value": "macOS 複製區域"
           }
         }
       }
@@ -5299,43 +5353,43 @@
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Copier macOS en plein \u00e9cran"
+            "value": "Copier macOS en plein écran"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "macOS \u5168\u753b\u9762\u30b3\u30d4\u30fc"
+            "value": "macOS 全画面コピー"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "macOS \ubcf5\uc0ac \uc804\uccb4 \ud654\uba74"
+            "value": "macOS 복사 전체 화면"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "macOS \u041a\u043e\u043f\u0438\u0440\u043e\u0432\u0430\u0442\u044c \u0432\u0435\u0441\u044c \u044d\u043a\u0440\u0430\u043d"
+            "value": "macOS Копировать весь экран"
           }
         },
         "vi": {
           "stringUnit": {
             "state": "translated",
-            "value": "macOS Sao ch\u00e9p to\u00e0n m\u00e0n h\u00ecnh"
+            "value": "macOS Sao chép toàn màn hình"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "macOS \u590d\u5236\u5168\u5c4f"
+            "value": "macOS 复制全屏"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "macOS \u8907\u88fd\u5168\u5c4f"
+            "value": "macOS 複製全屏"
           }
         }
       }
@@ -5358,49 +5412,49 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Opciones de captura de pantalla y grabaci\u00f3n de macOS"
+            "value": "Opciones de captura de pantalla y grabación de macOS"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Options de capture d'\u00e9cran et d'enregistrement macOS"
+            "value": "Options de capture d'écran et d'enregistrement macOS"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "macOS \u30b9\u30af\u30ea\u30fc\u30f3\u30b7\u30e7\u30c3\u30c8\u3068\u8a18\u9332\u30aa\u30d7\u30b7\u30e7\u30f3"
+            "value": "macOS スクリーンショットと記録オプション"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "macOS \uc2a4\ud06c\ub9b0\uc0f7 \ubc0f \ub179\ud654 \uc635\uc158"
+            "value": "macOS 스크린샷 및 녹화 옵션"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "\u041f\u0430\u0440\u0430\u043c\u0435\u0442\u0440\u044b \u0441\u043a\u0440\u0438\u043d\u0448\u043e\u0442\u0430 \u0438 \u0437\u0430\u043f\u0438\u0441\u0438 macOS"
+            "value": "Параметры скриншота и записи macOS"
           }
         },
         "vi": {
           "stringUnit": {
             "state": "translated",
-            "value": "T\u00f9y ch\u1ecdn ch\u1ee5p v\u00e0 ghi m\u00e0n h\u00ecnh macOS"
+            "value": "Tùy chọn chụp và ghi màn hình macOS"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "macOS \u5c4f\u5e55\u622a\u56fe\u548c\u5f55\u5236\u9009\u9879"
+            "value": "macOS 屏幕截图和录制选项"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "macOS \u87a2\u5e55\u622a\u5716\u548c\u9304\u5236\u9078\u9805"
+            "value": "macOS 螢幕截圖和錄制選項"
           }
         }
       }
