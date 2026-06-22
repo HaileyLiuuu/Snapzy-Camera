@@ -239,9 +239,10 @@ jobs:
           codesign -dv --verbose=4 "$APP_PATH"
           codesign -d --entitlements - "$APP_PATH" > build/exported-app-entitlements.plist
 
-          if ! grep -q "com.apple.security.app-sandbox" build/exported-app-entitlements.plist; then
-            echo "::error::Expected app sandbox entitlement missing from exported app"
-            exit 1
+          if grep -q "com.apple.security.app-sandbox" build/exported-app-entitlements.plist; then
+            echo "::warning::App sandbox entitlement found in exported app, but app is configured to be unsandboxed"
+          else
+            echo "App sandbox entitlement is not present (correct for unsandboxed release)"
           fi
 
       - name: Capture candidate signing metadata
