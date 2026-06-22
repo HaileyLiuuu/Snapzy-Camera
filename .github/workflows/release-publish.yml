@@ -556,18 +556,28 @@ jobs:
             NOTES_HTML="<h3>🔧 Maintenance</h3><ul><li>Bug fixes and improvements</li></ul>"
           fi
 
-          echo "release_notes_html=$NOTES_HTML" >> "$GITHUB_OUTPUT"
+          RELEASE_NOTES_PATH="build/release-notes.html"
+          printf '%s' "$NOTES_HTML" > "$RELEASE_NOTES_PATH"
+          echo "release_notes_path=$RELEASE_NOTES_PATH" >> "$GITHUB_OUTPUT"
 
       - name: Update appcast.xml
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+          BUILD_NUMBER: ${{ steps.build.outputs.number }}
+          ED_SIGNATURE: ${{ steps.sparkle_sign.outputs.signature }}
+          RELEASE_NOTES_PATH: ${{ steps.release_notes.outputs.release_notes_path }}
         run: |
+          set -euo pipefail
+          DMG_PATH="${dmg_path:?dmg_path is not set}"
+          RELEASE_NOTES_HTML="$(cat "$RELEASE_NOTES_PATH")"
           chmod +x scripts/update-appcast.sh
           ./scripts/update-appcast.sh \
-            "${{ steps.version.outputs.version }}" \
-            "${{ steps.build.outputs.number }}" \
-            "${{ env.dmg_path }}" \
+            "$VERSION" \
+            "$BUILD_NUMBER" \
+            "$DMG_PATH" \
             "appcast.xml" \
-            "${{ steps.sparkle_sign.outputs.signature }}" \
-            "${{ steps.release_notes.outputs.release_notes_html }}"
+            "$ED_SIGNATURE" \
+            "$RELEASE_NOTES_HTML"
 
       - name: Update Homebrew cask
         run: |
