@@ -149,7 +149,6 @@ jobs:
       - name: Export app
         run: |
           set -euo pipefail
-          mkdir -p build build/export
           ARCHIVE_PATH="build/Snapzy.xcarchive"
 
           if [ ! -d "$ARCHIVE_PATH" ]; then
@@ -157,83 +156,71 @@ jobs:
             exit 1
           fi
 
+          # Always extract from archive manually — xcodebuild -exportArchive
+          # with automatic signing doesn't work in headless CI.
+          ditto "$ARCHIVE_PATH/Products/Applications/Snapzy.app" build/Snapzy.app
+
+          APP_PATH="build/Snapzy.app"
+          SPARKLE_FRAMEWORK="$APP_PATH/Contents/Frameworks/Sparkle.framework"
+
+          # Determine signing identity and timestamp flag
           if [ "${HAS_DEVELOPER_ID_CERT}" = "true" ]; then
-            # Signed export via Xcode (Developer ID)
-            cat > build/ExportOptions.plist << 'PLIST'
-          <?xml version="1.0" encoding="UTF-8"?>
-          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-          <plist version="1.0">
-          <dict>
-            <key>method</key>
-            <string>developer-id</string>
-            <key>signingStyle</key>
-            <string>automatic</string>
-          </dict>
-          </plist>
-          PLIST
-            xcodebuild -exportArchive \
-              -archivePath "$ARCHIVE_PATH" \
-              -exportPath build/export \
-              -exportOptionsPlist build/ExportOptions.plist
+            # Discover Developer ID identity from keychain
+            SIGN_IDENTITY=$(security find-identity -v -p codesigning | grep "Developer ID Application" | head -1 | sed 's/.*"\(.*\)".*/\1/')
+            TIMESTAMP_FLAG="--timestamp"
+            echo "Signing with Developer ID: $SIGN_IDENTITY"
+          elif [ "${HAS_SELF_SIGNED_CERT}" = "true" ]; then
+            SIGN_IDENTITY="Snapzy Self-Signed"
+            TIMESTAMP_FLAG="--timestamp=none"
+            echo "Signing with self-signed certificate: $SIGN_IDENTITY"
           else
-            # Manual export - copy from archive and sign the full bundle
-            ditto "$ARCHIVE_PATH/Products/Applications/Snapzy.app" build/Snapzy.app
-
-            APP_PATH="build/Snapzy.app"
-            SPARKLE_FRAMEWORK="$APP_PATH/Contents/Frameworks/Sparkle.framework"
-
-            # Determine signing identity:
-            #   Self-signed cert → stable identity → TCC permissions persist across updates
-            #   Ad-hoc (--sign -) → unique per build → TCC revoked every update
-            if [ "${HAS_SELF_SIGNED_CERT}" = "true" ]; then
-              SIGN_IDENTITY="Snapzy Self-Signed"
-              echo "Signing with self-signed certificate: $SIGN_IDENTITY"
-            else
-              SIGN_IDENTITY="-"
-              echo "::warning::Signing ad-hoc by explicit override — TCC and Keychain trust may be lost after update"
-            fi
-
-            # Sign Sparkle components inside-out per official docs
-            # See: https://sparkle-project.org/documentation/sandboxing/#code-signing
-            if [ -d "$SPARKLE_FRAMEWORK/Versions/B/XPCServices/Installer.xpc" ]; then
-              codesign --force --sign "$SIGN_IDENTITY" -o runtime --timestamp=none "$SPARKLE_FRAMEWORK/Versions/B/XPCServices/Installer.xpc"
-            fi
-            if [ -d "$SPARKLE_FRAMEWORK/Versions/B/XPCServices/Downloader.xpc" ]; then
-              codesign --force --sign "$SIGN_IDENTITY" -o runtime --preserve-metadata=entitlements --timestamp=none "$SPARKLE_FRAMEWORK/Versions/B/XPCServices/Downloader.xpc"
-            fi
-            if [ -f "$SPARKLE_FRAMEWORK/Versions/B/Autoupdate" ]; then
-              codesign --force --sign "$SIGN_IDENTITY" -o runtime --timestamp=none "$SPARKLE_FRAMEWORK/Versions/B/Autoupdate"
-            fi
-            if [ -d "$SPARKLE_FRAMEWORK/Versions/B/Updater.app" ]; then
-              codesign --force --sign "$SIGN_IDENTITY" -o runtime --timestamp=none "$SPARKLE_FRAMEWORK/Versions/B/Updater.app"
-            fi
-            if [ -d "$SPARKLE_FRAMEWORK" ]; then
-              codesign --force --sign "$SIGN_IDENTITY" -o runtime --timestamp=none "$SPARKLE_FRAMEWORK"
-            fi
-
-            # Pre-process entitlements: codesign does NOT substitute Xcode
-            # variables like $(PRODUCT_BUNDLE_IDENTIFIER). We must do it manually
-            # or Sparkle's XPC mach-lookup ports won't match (causes error 4005).
-            BUNDLE_ID=$(/usr/libexec/PlistBuddy -c "Print :CFBundleIdentifier" "$APP_PATH/Contents/Info.plist")
-            PROCESSED_ENTITLEMENTS="$RUNNER_TEMP/processed-entitlements.plist"
-            sed "s/\$(PRODUCT_BUNDLE_IDENTIFIER)/$BUNDLE_ID/g" Snapzy/Snapzy.entitlements > "$PROCESSED_ENTITLEMENTS"
-            echo "Processed entitlements with bundle ID: $BUNDLE_ID"
-
-            codesign \
-              --force \
-              --sign "$SIGN_IDENTITY" \
-              --entitlements "$PROCESSED_ENTITLEMENTS" \
-              --timestamp=none \
-              "$APP_PATH"
+            SIGN_IDENTITY="-"
+            TIMESTAMP_FLAG="--timestamp=none"
+            echo "::warning::Signing ad-hoc — TCC and Keychain trust may be lost after update"
           fi
+
+          # Clean extended attributes before signing
+          xattr -rc "$APP_PATH"
+
+          # Sign Sparkle components inside-out
+          if [ -d "$SPARKLE_FRAMEWORK/Versions/B/XPCServices/Installer.xpc" ]; then
+            codesign --force --sign "$SIGN_IDENTITY" -o runtime $TIMESTAMP_FLAG \
+              "$SPARKLE_FRAMEWORK/Versions/B/XPCServices/Installer.xpc"
+          fi
+          if [ -d "$SPARKLE_FRAMEWORK/Versions/B/XPCServices/Downloader.xpc" ]; then
+            codesign --force --sign "$SIGN_IDENTITY" -o runtime --preserve-metadata=entitlements \
+              $TIMESTAMP_FLAG "$SPARKLE_FRAMEWORK/Versions/B/XPCServices/Downloader.xpc"
+          fi
+          if [ -f "$SPARKLE_FRAMEWORK/Versions/B/Autoupdate" ]; then
+            codesign --force --sign "$SIGN_IDENTITY" -o runtime $TIMESTAMP_FLAG \
+              "$SPARKLE_FRAMEWORK/Versions/B/Autoupdate"
+          fi
+          if [ -d "$SPARKLE_FRAMEWORK/Versions/B/Updater.app" ]; then
+            codesign --force --sign "$SIGN_IDENTITY" -o runtime $TIMESTAMP_FLAG \
+              "$SPARKLE_FRAMEWORK/Versions/B/Updater.app"
+          fi
+          if [ -d "$SPARKLE_FRAMEWORK" ]; then
+            codesign --force --sign "$SIGN_IDENTITY" -o runtime $TIMESTAMP_FLAG \
+              "$SPARKLE_FRAMEWORK"
+          fi
+
+          # Pre-process entitlements (Xcode variable substitution)
+          BUNDLE_ID=$(/usr/libexec/PlistBuddy -c "Print :CFBundleIdentifier" "$APP_PATH/Contents/Info.plist")
+          PROCESSED_ENTITLEMENTS="$RUNNER_TEMP/processed-entitlements.plist"
+          sed "s/\$(PRODUCT_BUNDLE_IDENTIFIER)/$BUNDLE_ID/g" Snapzy/Snapzy.entitlements > "$PROCESSED_ENTITLEMENTS"
+          echo "Processed entitlements with bundle ID: $BUNDLE_ID"
+
+          # Sign main app bundle (with hardened runtime!)
+          codesign --force --sign "$SIGN_IDENTITY" \
+            -o runtime \
+            --entitlements "$PROCESSED_ENTITLEMENTS" \
+            $TIMESTAMP_FLAG \
+            "$APP_PATH"
 
       - name: Verify exported app bundle
         run: |
           set -euo pipefail
           APP_PATH="build/Snapzy.app"
-          if [ -d "build/export/Snapzy.app" ]; then
-            APP_PATH="build/export/Snapzy.app"
-          fi
 
           codesign --verify --deep --strict --verbose=4 "$APP_PATH"
           codesign -dv --verbose=4 "$APP_PATH"
@@ -245,13 +232,18 @@ jobs:
             echo "App sandbox entitlement is not present (correct for unsandboxed release)"
           fi
 
+          # Verify hardened runtime flag
+          HR_FLAGS=$(codesign -dvvv "$APP_PATH" 2>&1 | grep "flags=" || true)
+          if ! echo "$HR_FLAGS" | grep -q "runtime"; then
+            echo "::error::Hardened runtime not enabled on $APP_PATH"
+            exit 1
+          fi
+          echo "Hardened runtime verified: $HR_FLAGS"
+
       - name: Capture candidate signing metadata
         run: |
           set -euo pipefail
           APP_PATH="build/Snapzy.app"
-          if [ -d "build/export/Snapzy.app" ]; then
-            APP_PATH="build/export/Snapzy.app"
-          fi
 
           codesign -dr - "$APP_PATH" 2>&1 | sed -n 's/^designated => //p' > build/candidate-designated-requirement.txt
           codesign -dvv "$APP_PATH" > build/candidate-signature.txt 2>&1 || true
@@ -335,9 +327,6 @@ jobs:
         run: |
           set -euo pipefail
           APP_PATH="build/Snapzy.app"
-          if [ -d "build/export/Snapzy.app" ]; then
-            APP_PATH="build/export/Snapzy.app"
-          fi
 
           if [ ! -d "$APP_PATH" ]; then
             echo "::error::Snapzy.app not found at expected path: $APP_PATH"
@@ -362,18 +351,44 @@ jobs:
 
       # --- Notarization (conditional, for when Apple Developer account is available) ---
       - name: Notarize DMG
-        if: env.HAS_NOTARIZATION_CREDENTIALS == 'true'
+        if: env.HAS_DEVELOPER_ID_CERT == 'true' && env.HAS_NOTARIZATION_CREDENTIALS == 'true'
         env:
           APPLE_ID: ${{ secrets.APPLE_ID }}
           APPLE_ID_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
         run: |
-          xcrun notarytool submit "${{ env.dmg_path }}" \
+          set -euo pipefail
+
+          # Submit and capture output for potential log retrieval
+          SUBMIT_OUTPUT=$(xcrun notarytool submit "${{ env.dmg_path }}" \
             --apple-id "$APPLE_ID" \
             --password "$APPLE_ID_PASSWORD" \
             --team-id "$APPLE_TEAM_ID" \
-            --wait
+            --wait \
+            --timeout 15m 2>&1) || {
+            SUBMIT_EXIT=$?
+            echo "$SUBMIT_OUTPUT"
+
+            # Extract submission ID for log retrieval
+            SUBMISSION_ID=$(echo "$SUBMIT_OUTPUT" | grep -oE '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}' | head -1)
+
+            if [ -n "$SUBMISSION_ID" ]; then
+              echo "::group::Notarization log (submission $SUBMISSION_ID)"
+              xcrun notarytool log "$SUBMISSION_ID" \
+                --apple-id "$APPLE_ID" \
+                --password "$APPLE_ID_PASSWORD" \
+                --team-id "$APPLE_TEAM_ID" 2>&1 || echo "Failed to retrieve notarization log"
+              echo "::endgroup::"
+            else
+              echo "::warning::Could not extract submission ID for log retrieval"
+            fi
+
+            exit $SUBMIT_EXIT
+          }
+
+          echo "$SUBMIT_OUTPUT"
           xcrun stapler staple "${{ env.dmg_path }}"
+          echo "DMG notarized and stapled successfully"
 
       - name: Compute SHA256
         id: sha256

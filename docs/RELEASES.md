@@ -2,9 +2,21 @@
 
 ## Prerequisites
 
-1. EdDSA private key in Keychain (generated via `generate_keys`)
-2. Preferred: Developer ID signed and notarized app
-3. GitHub repository with Releases enabled
+1. EdDSA private key for Sparkle (`SPARKLE_PRIVATE_KEY` secret)
+2. One of the following signing strategies (in priority order):
+
+| Strategy | Required Secrets | Notarization |
+|----------|-----------------|--------------|
+| Developer ID | `DEVELOPER_ID_P12`, `DEVELOPER_ID_PASSWORD` | Yes (with `APPLE_ID`, `APPLE_ID_PASSWORD`, `APPLE_TEAM_ID`) |
+| Self-signed cert | `SELF_SIGNED_CERT_P12`, `SELF_SIGNED_CERT_PASSWORD` | No |
+| Ad-hoc | `ALLOW_ADHOC_RELEASE=true` (repo variable) | No |
+
+## CI Signing Architecture
+
+The release workflow uses manual `codesign` for all signing strategies. The binary is extracted from the Xcode archive via `ditto` and signed component-by-component (inside-out for Sparkle framework).
+
+- **Developer ID builds** use `--timestamp` (secure timestamp from Apple) and hardened runtime (`-o runtime`) — both required for notarization.
+- **Self-signed and ad-hoc builds** use `--timestamp=none` (no Apple server access needed) but still enable hardened runtime.
 
 ## Release Steps
 
@@ -111,13 +123,23 @@ defaults delete com.trongduong.snapzy SULastCheckTime
 # Run app and click "Check for Updates..."
 ```
 
-## Fallback Distribution
+## Distribution Tiers
 
-When Developer ID credentials are unavailable, the GitHub release workflow now produces an ad-hoc signed fallback app and verifies the bundle with `codesign --verify --deep --strict`.
+### Developer ID (recommended)
+- Signed with Apple Developer ID certificate
+- Hardened runtime enabled
+- Notarized by Apple (if credentials configured)
+- Users can install without Gatekeeper warnings
 
+### Self-signed Certificate
+- Preserves TCC permissions across Sparkle updates
+- Not notarized — users must right-click > Open on first launch
 - Move the app to `/Applications` before first launch
-- Expect Gatekeeper/notarization limitations on these fallback builds
-- If permissions were granted to an older bundle ID, macOS will require re-granting them
+
+### Ad-hoc (emergency fallback)
+- Requires `ALLOW_ADHOC_RELEASE=true` repository variable
+- TCC permissions and Keychain trust lost after every update
+- Not suitable for regular distribution
 
 ## Release Notifications
 
@@ -184,3 +206,9 @@ See the commented examples at the bottom of `release-notify.yml`.
 2. **Signature errors**: Ensure private key matches public key in app
 3. **No updates found**: Verify appcast.xml sparkle:version > current CFBundleVersion
 4. **Notification not sent**: Verify the channel secret (e.g., `DISCORD_WEBHOOK_URL`) is set correctly in GitHub repository settings. Check the `release-notify` workflow run logs for HTTP status warnings.
+5. **Notarization rejected**: Check the notarization log in the GitHub Actions output (printed automatically on failure). Common causes:
+   - Missing hardened runtime (`flags=` line doesn't show `runtime`)
+   - Missing secure timestamp (`--timestamp=none` was used)
+   - `com.apple.security.get-task-allow` entitlement present in release build
+6. **Notarization timeout**: Apple service can be slow. The workflow uses a 15-minute timeout. If consistently timing out, check DMG size and Apple system status.
+7. **Stapling failed**: Ensure the DMG was notarized successfully first. `stapler staple` only works after Apple issues a ticket.
