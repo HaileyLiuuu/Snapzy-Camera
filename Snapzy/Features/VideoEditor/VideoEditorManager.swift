@@ -41,9 +41,7 @@ final class VideoEditorManager {
   private func becomeAccessoryAppIfNeeded() {
     guard !hasOpenWindows else { return }
     guard !AnnotateManager.shared.hasOpenWindows else { return }
-    if NSApp.activationPolicy() != .accessory {
-      NSApp.setActivationPolicy(.accessory)
-    }
+    NSApp.revertActivationPolicyToAccessoryIfNeeded()
   }
 
   /// Open video editor for a quick access item

@@ -746,15 +746,17 @@ final class AppStatusBarController: ObservableObject {
   }
 
   @objc private func windowDidClose(_ notification: Notification) {
-    if let window = notification.object as? NSWindow, trackedPreferencesWindow === window {
+    let closingWindow = notification.object as? NSWindow
+    if let window = closingWindow, trackedPreferencesWindow === window {
       DiagnosticLogger.shared.log(.debug, .preferences, "Tracked preferences window closed")
       trackedPreferencesWindow = nil
       removeTrackedPreferencesWindowExclusion()
     }
 
-    // Check if any visible windows remain (excluding status bar popover)
+    // Check if any visible windows remain (excluding status bar popover and the closing window)
     let visibleWindows = NSApp.windows.filter { window in
       window.isVisible &&
+      window !== closingWindow &&
       window.className != "NSStatusBarWindow" &&
       window.level == .normal
     }
@@ -959,4 +961,20 @@ final class AppStatusBarController: ObservableObject {
       await self.recorder.removeRuntimeExcludedWindow(windowID: windowID)
     }
   }
+
+  #if DEBUG
+    var didElevateForSettingsForTesting: Bool {
+      get { didElevateForSettings }
+      set { didElevateForSettings = newValue }
+    }
+
+    var trackedPreferencesWindowForTesting: NSWindow? {
+      get { trackedPreferencesWindow }
+      set { trackedPreferencesWindow = newValue }
+    }
+
+    func simulateWindowDidClose(notification: Notification) {
+      windowDidClose(notification)
+    }
+  #endif
 }

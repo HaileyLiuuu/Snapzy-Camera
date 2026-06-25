@@ -79,9 +79,7 @@ final class AnnotateManager {
   private func becomeAccessoryAppIfNeeded() {
     guard windowControllers.isEmpty && manualWindowControllers.isEmpty else { return }
     guard !VideoEditorManager.shared.hasOpenWindows else { return }
-    if NSApp.activationPolicy() != .accessory {
-      NSApp.setActivationPolicy(.accessory)
-    }
+    NSApp.revertActivationPolicyToAccessoryIfNeeded()
   }
 
   /// Check if any annotate windows are open
