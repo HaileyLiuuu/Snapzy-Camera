@@ -79,6 +79,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 
 
+
+## [1.25.2] - 2026-06-26
+
+### Bug Fixes
+-  Improve drag-and-drop functionality for Quick Access customization and update drag payload handling (0177932)
+
+### Chore
+- chore: update appcast, cask, and readme for v1.25.1 (6708e85)
+
+### Contributors
+- @duongductrong
+- @github-actions[bot]
+
 ## [1.25.1] - 2026-06-25
 
 ### Bug Fixes
