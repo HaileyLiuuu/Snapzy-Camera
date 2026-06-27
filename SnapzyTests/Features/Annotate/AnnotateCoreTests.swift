@@ -2115,4 +2115,21 @@ final class AnnotateCoreTests: XCTestCase {
     let region = SpotlightRegion(rect: CGRect(x: 0, y: 0, width: 100, height: 100), cornerRadius: 14, opacity: 0.75)
     XCTAssertEqual(region.opacity, 0.75, accuracy: 0.001)
   }
+
+  @MainActor
+  func testSpotlightOpacityPersistence() throws {
+    let defaults = UserDefaultsFactory.make()
+    let firstState = makeAnnotateState(defaults: defaults)
+    firstState.activateTool(.spotlight)
+
+    // Change the spotlight opacity (darkness) tool default property
+    firstState.quickSpotlightOpacityBinding.wrappedValue = 0.75
+
+    // Re-initialize state with the same defaults to simulate reload/reopen
+    let reloadedState = makeAnnotateState(defaults: defaults)
+
+    // Assert that the default spotlight opacity for the spotlight tool has persisted
+    let spotlightProperties = reloadedState.annotationCreationProperties(for: .spotlight)
+    XCTAssertEqual(spotlightProperties.spotlightOpacity, 0.75, accuracy: 0.001)
+  }
 }

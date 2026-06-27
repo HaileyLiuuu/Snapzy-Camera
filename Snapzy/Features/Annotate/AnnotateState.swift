@@ -75,6 +75,7 @@ final class AnnotateState: ObservableObject {
     var opacity: CGFloat
     var rotationDegrees: CGFloat
     var watermarkStyle: String
+    var spotlightOpacity: CGFloat?
 
     init?(_ properties: AnnotationProperties) {
       guard let strokeColor = RGBAColor(color: properties.strokeColor),
@@ -91,6 +92,7 @@ final class AnnotateState: ObservableObject {
       self.opacity = properties.opacity
       self.rotationDegrees = properties.rotationDegrees
       self.watermarkStyle = properties.watermarkStyle.rawValue
+      self.spotlightOpacity = properties.spotlightOpacity
     }
 
     var annotationProperties: AnnotationProperties {
@@ -103,7 +105,8 @@ final class AnnotateState: ObservableObject {
         fontName: fontName,
         opacity: opacity,
         rotationDegrees: rotationDegrees,
-        watermarkStyle: WatermarkStyle(rawValue: watermarkStyle) ?? .single
+        watermarkStyle: WatermarkStyle(rawValue: watermarkStyle) ?? .single,
+        spotlightOpacity: spotlightOpacity ?? 0.5
       )
     }
   }
@@ -3037,6 +3040,7 @@ final class AnnotateState: ObservableObject {
     sanitized.fontSize = min(max(properties.fontSize, 12), 72)
     sanitized.opacity = AnnotationProperties.clampedOpacity(properties.opacity)
     sanitized.rotationDegrees = AnnotationProperties.clampedRotationDegrees(properties.rotationDegrees)
+    sanitized.spotlightOpacity = AnnotationProperties.clampedSpotlightOpacity(properties.spotlightOpacity)
     if tool == .filledRectangle {
       sanitized.fillColor = sanitized.strokeColor
     }
