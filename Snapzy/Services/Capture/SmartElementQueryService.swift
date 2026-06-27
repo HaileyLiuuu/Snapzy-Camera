@@ -176,12 +176,17 @@ final class SmartElementQueryService {
   }
 
   private func emit(_ rect: CGRect?) {
-    DispatchQueue.main.async { [weak self] in
+    let block = { [weak self] in
       guard let self = self else { return }
       if self.hasEmittedAtLeastOnce && rect == self.lastEmittedRect { return }
       self.hasEmittedAtLeastOnce = true
       self.lastEmittedRect = rect
       self.detectedSubject.send(rect)
+    }
+    if Thread.isMainThread {
+      block()
+    } else {
+      DispatchQueue.main.async(execute: block)
     }
   }
 

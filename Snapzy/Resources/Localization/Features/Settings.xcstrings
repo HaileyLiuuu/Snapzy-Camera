@@ -4466,10 +4466,64 @@
     "preferences-general.menu-bar-icon-description": {
       "extractionState": "stale",
       "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Greifen Sie über die Menüleiste auf Snapzy zu. Wenn das Symbol ausgeblendet ist, öffnen Sie Snapzy erneut, um die Einstellungen anzuzeigen."
+          }
+        },
         "en": {
           "stringUnit": {
             "state": "translated",
             "value": "Access Snapzy from the menu bar. When hidden, open Snapzy again to show settings."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Accede a Snapzy desde la barra de menú. Cuando esté oculto, vuelve a abrir Snapzy para mostrar la configuración."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Accédez à Snapzy depuis la barre de menus. S'il est masqué, ouvrez à nouveau Snapzy pour afficher les paramètres."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "メニューバーからSnapzyにアクセスします。非表示の場合は、もう一度Snapzyを開いて設定を表示します。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "메뉴 바에서 Snapzy에 액세스합니다. 아이콘이 숨겨져 있을 때 설정을 표시하려면 Snapzy를 다시 실행하십시오."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Доступ к Snapzy из строки меню. Если он скрыт, снова откройте Snapzy, чтобы показать настройки."
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Truy cập Snapzy từ thanh menu. Khi bị ẩn, hãy mở lại Snapzy một lần nữa để hiển thị cài đặt."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "从菜单栏访问 Snapzy。隐藏时，再次打开 Snapzy 以显示设置。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "從選單列存取 Snapzy。隱藏時，再次打開 Snapzy 以顯示設定。"
           }
         }
       }
@@ -4477,10 +4531,64 @@
     "preferences-general.menu-bar-icon-title": {
       "extractionState": "stale",
       "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Menüleistensymbol anzeigen"
+          }
+        },
         "en": {
           "stringUnit": {
             "state": "translated",
             "value": "Show menu bar icon"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mostrar icono en la barra de menús"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Afficher l'icône de la barre des menus"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "メニューバーのアイコンを表示"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "메뉴 바 아이콘 표시"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Показывать значок в строке меню"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hiển thị biểu tượng trên thanh menu"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "显示菜单栏图标"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "顯示選單列圖示"
           }
         }
       }

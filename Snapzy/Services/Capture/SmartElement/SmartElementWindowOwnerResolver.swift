@@ -43,6 +43,8 @@ final class SmartElementWindowOwnerResolver: SmartElementWindowOwnerResolving {
     guard
       let windowNumber = windowInfo[kCGWindowNumber as String] as? NSNumber,
       let ownerPID = windowInfo[kCGWindowOwnerPID as String] as? NSNumber,
+      let layer = windowInfo[kCGWindowLayer as String] as? NSNumber,
+      layer.intValue == 0,
       let bounds = windowInfo[kCGWindowBounds as String] as? NSDictionary,
       let quartzRect = CGRect(dictionaryRepresentation: bounds)?.standardized
     else {
