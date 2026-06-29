@@ -81,6 +81,33 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 
 
+
+## [1.26.1] - 2026-06-29
+
+### Features
+-  Add quick access shortcut for editing the latest capture (adc00dd)
+-  Add a keyboard shortcut to edit the latest capture from its preview (#295) (1215697)
+-  Snap video trim handles to playhead (#300) (4aaf3c7)
+-  Add URL scheme integration toggle in advanced settings and update documentation (f65fd7f)
+
+### Bug Fixes
+-  Implement multi-display capture functionality for area screenshots (#308) (10bb15f)
+-  Enhance area screenshot functionality with multi-display correctness and selection modes (#308) (f5018dc)
+-  Support Fn key in shortcut recording and matching (#306) (2b673f1)
+
+### Chore
+- chore: Enhance discard edits and close logic with unsaved changes alert (5f37d68)
+- refactor: Add toggle for enabling/disabling open editor shortcut (42ac6e4)
+- chore: configure swiftformat settings and workflows (838bd2a)
+- chore: update appcast, cask, and readme for v1.26.0 (4854a9b)
+
+### Contributors
+- @duongductrong
+- @github-actions[bot]
+- @rv4no
+- @vxirau
+- @williamcachamwri
+
 ## [1.26.0] - 2026-06-27
 
 ### Features
