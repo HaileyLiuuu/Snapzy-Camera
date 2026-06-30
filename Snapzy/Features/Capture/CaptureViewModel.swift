@@ -235,6 +235,29 @@ final class ScreenCaptureViewModel: ObservableObject, KeyboardShortcutDelegate {
         NSApp.activate(ignoringOtherApps: true)
       }
 
+      // Force cursor tracking re-evaluation on restored windows.
+      // orderFront does not trigger mouseEntered, so if the mouse is
+      // already over a restored window, tracking areas won't fire and
+      // the cursor may appear stuck or invisible.
+      // Post a synthetic mouse-moved event to force macOS to
+      // re-evaluate cursor rects immediately.
+      DispatchQueue.main.async {
+        let mouseLocation = NSEvent.mouseLocation
+        if let syntheticEvent = NSEvent.mouseEvent(
+          with: .mouseMoved,
+          location: mouseLocation,
+          modifierFlags: [],
+          timestamp: ProcessInfo.processInfo.systemUptime,
+          windowNumber: 0,
+          context: nil,
+          eventNumber: 0,
+          clickCount: 0,
+          pressure: 0
+        ) {
+          NSApp.postEvent(syntheticEvent, atStart: false)
+        }
+      }
+
       DiagnosticLogger.shared.log(.debug, .ui, "Hidden Snapzy windows restored", context: [
         "count": "\(liveEntries.count)"
       ])

@@ -395,6 +395,18 @@ final class AreaSelectionController: NSObject {
     if !selectionBackdrops.isEmpty {
       previouslyActiveApplication = NSWorkspace.shared.frontmostApplication
       NSApp.activate(ignoringOtherApps: true)
+
+      // When a normal-level window (e.g., Settings) was recently hidden, macOS may
+      // not immediately assign key focus to the overlay panel. Schedule a follow-up
+      // key assignment after the activation takes effect.
+      if let keyboardDisplay = keyboardOwnerDisplayID,
+         let keyWindow = windowPool[keyboardDisplay] {
+        DispatchQueue.main.async { [weak keyWindow] in
+          guard let keyWindow, keyWindow.isVisible else { return }
+          keyWindow.makeKey()
+          keyWindow.makeFirstResponder(keyWindow.overlayView)
+        }
+      }
     } else {
       previouslyActiveApplication = nil
       // For non-frozen sessions (recording, OCR, cutout) we cannot activate
