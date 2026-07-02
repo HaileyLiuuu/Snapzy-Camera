@@ -121,9 +121,7 @@ final class RecordingAudioLevelMeter: ObservableObject, @unchecked Sendable {
     guard let formatDesc = CMSampleBufferGetFormatDescription(sampleBuffer) else {
       return nil
     }
-    guard let format = AVAudioFormat(cmAudioFormatDescription: formatDesc) else {
-      return nil
-    }
+    let format = AVAudioFormat(cmAudioFormatDescription: formatDesc)
     let frames = CMSampleBufferGetNumSamples(sampleBuffer)
     guard frames > 0,
           let pcm = AVAudioPCMBuffer(pcmFormat: format, frameCapacity: AVAudioFrameCount(frames)) else {

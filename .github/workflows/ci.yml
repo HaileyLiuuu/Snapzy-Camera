@@ -42,6 +42,7 @@ jobs:
             SnapzyTests/SmartElementQueryServiceTests
             SnapzyTests/SandboxOffDataMigrationServiceTests
             SnapzyTests/AppStatusBarControllerTests
+            SnapzyTests/RecordingAudioLevelMeterTests
         run: |
           set -euo pipefail
           mkdir -p build
