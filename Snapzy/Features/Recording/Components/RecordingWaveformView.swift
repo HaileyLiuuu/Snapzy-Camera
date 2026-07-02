@@ -2,10 +2,15 @@
 //  RecordingWaveformView.swift
 //  Snapzy
 //
-//  Ambient ocean-style waveform rendered behind the recording status bar. Amplitude
-//  is driven by the live audio level (0...1); the wave flattens when silent and
-//  freezes when inactive (paused). Pure-render Canvas — no @State mutation, no
-//  .drawingGroup()/.blur(), capped at ~30fps to protect recording performance.
+//  Living waveform rendered behind the recording status bar. The wave does NOT travel
+//  horizontally — it stays in place and reacts to the live audio level (0...1) by
+//  bouncing its amplitude. Instead of pulsing as one uniform beat, the surface is built
+//  from several fixed control points that each react independently: every point has its
+//  own amplitude weight and its own phase-offset bob, so the wave feels alive and
+//  flexible. All motion scales with the audio level, so silence stays near-flat (no
+//  decorative animation) while real sound makes the independent points come alive.
+//  Frozen flat when inactive (paused / not recording). Pure-render Canvas — no @State
+//  mutation, ~30fps cap to protect recording performance.
 //
 
 import SwiftUI
@@ -18,17 +23,29 @@ struct RecordingWaveformView: View {
 
   @Environment(\.colorScheme) private var colorScheme
 
-  /// Fraction of height the tallest peak may occupy (keeps controls legible).
-  private let maxAmplitudeFraction: CGFloat = 0.35
-  // Baseline sits low so the glow rises from the bottom edge of the bar.
+  /// Moderate span so the wave stays an ambient glow behind the controls —
+  /// loud speech swells clearly but peaks don't reach the top edge. The lively
+  /// feel comes from the meter's sensitivity, not from a tall amplitude.
+  private let maxAmplitudeFraction: CGFloat = 0.45
+  /// Resting line sits low-ish so the wave rises upward from a calm baseline.
   private let baselineFraction: CGFloat = 0.72
-  private let step: CGFloat = 3
+  /// Very faint residual amplitude while recording: silence stays calm and near
+  /// flat (a barely-living glow, not a frozen line) so the wave visibly *rises*
+  /// the moment real sound arrives — a clear "audio is being captured" cue.
+  private let idleAmplitude: CGFloat = 0.02
+  /// Independently-reacting control points across the wave. More points → finer, more
+  /// flexible surface; each one bobs on its own phase so the wave never moves in unison.
+  private let nodeCount = 9
 
   var body: some View {
+    // The timer only drives each node's phase-offset bob — the wave stays put, it does
+    // not travel. Because every node's motion scales with `level`, silence reads as
+    // near-flat and only live sound brings the independent points to life. Paused → flat.
     TimelineView(.animation(minimumInterval: 1.0 / 30.0, paused: !isActive)) { timeline in
       Canvas { context, size in
         let t = timeline.date.timeIntervalSinceReferenceDate
-        let amp = isActive ? CGFloat(level) : 0
+        // While active, never drop below the idle ripple; paused → fully flat.
+        let amp = isActive ? max(CGFloat(level), idleAmplitude) : 0
         let path = wavePath(in: size, time: t, amplitude: amp)
         let baseline = size.height * baselineFraction
         context.fill(
@@ -50,20 +67,27 @@ struct RecordingWaveformView: View {
   private func wavePath(in size: CGSize, time: Double, amplitude: CGFloat) -> Path {
     let baseline = size.height * baselineFraction
     let peak = size.height * maxAmplitudeFraction
-    var path = Path()
-    path.move(to: CGPoint(x: 0, y: baseline))
+    let t = CGFloat(time)
 
-    var x: CGFloat = 0
-    while x <= size.width {
-      let xNorm = size.width > 0 ? x / size.width : 0
-      let y = baseline - waveHeight(xNorm, time: time, amplitude: amplitude) * peak
-      path.addLine(to: CGPoint(x: x, y: y))
-      x += step
+    // Resolve each fixed node to a height that bobs on its own weight, speed and phase,
+    // so no two points peak at the same instant → a living, non-uniform surface.
+    var points: [CGPoint] = []
+    points.reserveCapacity(nodeCount)
+    for i in 0 ..< nodeCount {
+      let f = CGFloat(i)
+      let xNorm = nodeCount > 1 ? f / CGFloat(nodeCount - 1) : 0
+      let envelope = 0.35 + 0.65 * sin(xNorm * .pi)      // natural arch; edges stay lively
+      let weight = 0.6 + 0.4 * abs(sin(f * 1.3 + 0.6))   // per-node amplitude 0.6…1.0
+      let speed = 1.4 + 0.7 * (0.5 + 0.5 * sin(f * 2.1)) // per-node bob rate 1.4…2.1
+      let phase = f * 1.7                                // spread timing offsets per node
+      let wobble = 0.62 + 0.38 * sin(t * speed + phase)  // independent bob, 0.24…1.0
+      let h = amplitude * envelope * weight * wobble
+      points.append(CGPoint(x: xNorm * size.width, y: baseline - h * peak))
     }
-    // Ensure the final sample lands exactly on the trailing edge.
-    let lastNorm: CGFloat = 1
-    let lastY = baseline - waveHeight(lastNorm, time: time, amplitude: amplitude) * peak
-    path.addLine(to: CGPoint(x: size.width, y: lastY))
+
+    var path = Path()
+    path.move(to: points[0])
+    addSmoothCurve(through: points, to: &path) // Catmull-Rom spline through the nodes
 
     // Close down to the bottom for a filled glow.
     path.addLine(to: CGPoint(x: size.width, y: size.height))
@@ -72,14 +96,19 @@ struct RecordingWaveformView: View {
     return path
   }
 
-  /// Superimposed travelling sines → organic ocean interference. Scaled by amplitude.
-  private func waveHeight(_ xNorm: CGFloat, time: Double, amplitude: CGFloat) -> CGFloat {
-    let twoPi = CGFloat.pi * 2
-    let t = CGFloat(time)
-    let w1 = sin(xNorm * twoPi * 1.0 + t * 1.6) * 0.60
-    let w2 = sin(xNorm * twoPi * 2.3 + t * 2.1 + 1.2) * 0.30
-    let w3 = sin(xNorm * twoPi * 3.7 + t * 2.7 + 2.4) * 0.10
-    return (w1 + w2 + w3) * amplitude
+  /// Append a smooth Catmull-Rom spline (expressed as cubic Béziers) through `points`,
+  /// so the independently-bobbing nodes read as one flexible wave rather than a polyline.
+  private func addSmoothCurve(through points: [CGPoint], to path: inout Path) {
+    guard points.count > 1 else { return }
+    for i in 0 ..< points.count - 1 {
+      let p0 = points[max(i - 1, 0)]
+      let p1 = points[i]
+      let p2 = points[i + 1]
+      let p3 = points[min(i + 2, points.count - 1)]
+      let c1 = CGPoint(x: p1.x + (p2.x - p0.x) / 6, y: p1.y + (p2.y - p0.y) / 6)
+      let c2 = CGPoint(x: p2.x - (p3.x - p1.x) / 6, y: p2.y - (p3.y - p1.y) / 6)
+      path.addCurve(to: p2, control1: c1, control2: c2)
+    }
   }
 
   // MARK: - Theming

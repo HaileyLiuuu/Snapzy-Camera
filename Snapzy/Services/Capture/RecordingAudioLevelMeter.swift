@@ -32,13 +32,14 @@ final class RecordingAudioLevelMeter: ObservableObject, @unchecked Sendable {
   private var isFrozen = false
   private var lastPublish: CFAbsoluteTime = 0
 
-  // Tunables (Phase 04 may adjust).
-  private let attack: Float = 0.4 // blend factor when rising (fast)
-  private let decay: Float = 0.12 // blend factor when falling (slow)
-  private let noiseFloorDB: Float = -60 // below this reads as silence
-  private let minDB: Float = -60
-  private let maxDB: Float = 0
-  private let publishInterval: CFAbsoluteTime = 1.0 / 30.0
+  // Tunables — voice-reactive envelope.
+  private let attack: Float = 0.5 // fast rise → snappy response to loud speech
+  private let decay: Float = 0.08 // slow fall → soft, ocean-like settle
+  private let noiseFloorDB: Float = -50 // gate room hiss below this → clean silence
+  private let minDB: Float = -54 // low end of usable window (whisper territory)
+  private let maxDB: Float = -6 // loud speech saturates near here → tall peaks
+  private let silenceKnee: Float = 0.12 // below this normalized level → still 0 (room tone)
+  private let publishInterval: CFAbsoluteTime = 1.0 / 60.0 // fresh envelope for the 30fps view
 
   // MARK: - Ingest
 
@@ -87,12 +88,16 @@ final class RecordingAudioLevelMeter: ObservableObject, @unchecked Sendable {
     let blend = combined > smoothed ? attack : decay
     smoothed = smoothed * (1 - blend) + combined * blend
 
-    // Gate quiet signal to the floor so silence reads as a flat 0. `noiseFloorDB`
-    // is kept separate from `minDB` so the two can diverge during Phase 04 tuning
-    // (a livelier window, e.g. floor -50 / min -60, without touching the mapping).
+    // Gate room hiss below the noise floor to a clean 0, then map the usable
+    // window (minDB…maxDB) to 0…1 so whispers read low and loud speech saturates.
     let db = 20 * log10(max(smoothed, 1e-7))
     let gated = db < noiseFloorDB ? minDB : db
-    let norm = max(0, min(1, (gated - minDB) / (maxDB - minDB)))
+    let mapped = max(0, min(1, (gated - minDB) / (maxDB - minDB)))
+
+    // Soft low-end knee: collapse residual room tone (below `silenceKnee`) to a
+    // clean 0 so the wave stays still when the user isn't speaking, then rescale
+    // the remainder to a full 0…1 so real sound clearly lifts it above rest.
+    let norm = mapped <= silenceKnee ? 0 : (mapped - silenceKnee) / (1 - silenceKnee)
 
     let now = CFAbsoluteTimeGetCurrent()
     guard now - lastPublish >= publishInterval else { return }
