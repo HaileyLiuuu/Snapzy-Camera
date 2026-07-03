@@ -8629,7 +8629,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Annotate"
+            "value": "Anmerkungen"
           }
         },
         "en": {
@@ -8641,49 +8641,49 @@
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Annotate"
+            "value": "Anotar"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Annotate"
+            "value": "Annoter"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "Annotate"
+            "value": "注釈"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "Annotate"
+            "value": "주석"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Annotate"
+            "value": "Аннотации"
           }
         },
         "vi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Annotate"
+            "value": "Chú thích"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "Annotate"
+            "value": "标注"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "Annotate"
+            "value": "標註"
           }
         }
       }
