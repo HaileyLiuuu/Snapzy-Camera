@@ -48,6 +48,7 @@ jobs:
             SnapzyTests/AnnotateExportSaveTests/testSaveAsIsCoveredByManualInteractionOnly
             SnapzyTests/AnnotateBackgroundRedactionTests/testApplyBackgroundCutoutStartsProcessingOnSupportedOS
             SnapzyTests/AnnotateBackgroundRedactionTests/testAutoRedactSensitiveDataStartsScan
+            SnapzyTests/AnnotateMockupTests/testMockupExporterRenderProducesImageWithSourceImage
         run: |
           set -euo pipefail
           mkdir -p build

@@ -29,17 +29,34 @@ final class MockupState: ObservableObject {
     @Published var sourceURL: URL?
 
     // MARK: - 3D Transform Parameters
+    // NOTE: each clamp guards its reassignment. `didSet` fires on every write —
+    // even one that leaves the value unchanged — so an unconditional
+    // `rotationX = clamp(...)` re-triggers `didSet` forever (stack overflow /
+    // SIGSEGV). The `!=` guard makes the re-entrant pass a no-op, bounding
+    // recursion at depth 2.
     @Published var rotationX: Double = 0 {
-        didSet { rotationX = clamp(rotationX, min: -45, max: 45) }
+        didSet {
+            let clamped = clamp(rotationX, min: -45, max: 45)
+            if clamped != rotationX { rotationX = clamped }
+        }
     }
     @Published var rotationY: Double = 0 {
-        didSet { rotationY = clamp(rotationY, min: -45, max: 45) }
+        didSet {
+            let clamped = clamp(rotationY, min: -45, max: 45)
+            if clamped != rotationY { rotationY = clamped }
+        }
     }
     @Published var rotationZ: Double = 0 {
-        didSet { rotationZ = clamp(rotationZ, min: -180, max: 180) }
+        didSet {
+            let clamped = clamp(rotationZ, min: -180, max: 180)
+            if clamped != rotationZ { rotationZ = clamped }
+        }
     }
     @Published var perspective: Double = 0.5 {
-        didSet { perspective = clamp(perspective, min: 0.1, max: 1.0) }
+        didSet {
+            let clamped = clamp(perspective, min: 0.1, max: 1.0)
+            if clamped != perspective { perspective = clamped }
+        }
     }
 
     // MARK: - Styling
