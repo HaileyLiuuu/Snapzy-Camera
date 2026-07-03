@@ -54,6 +54,16 @@ enum ShortcutOverlayContentBuilder {
         ]
       ),
       ShortcutOverlaySection(
+        id: "history",
+        title: L10n.PreferencesShortcuts.historySection,
+        items: historyItems(manager: keyboard)
+      ),
+      ShortcutOverlaySection(
+        id: "quick-access",
+        title: L10n.PreferencesShortcuts.quickAccessSection,
+        items: quickAccessItems()
+      ),
+      ShortcutOverlaySection(
         id: "annotate-actions",
         title: L10n.ShortcutOverlay.annotateActions,
         items: AnnotateActionShortcutKind.allCases.map { kind in
@@ -141,6 +151,7 @@ enum ShortcutOverlayContentBuilder {
 
     items.append(globalItem(kind: .objectCutout, icon: "person.crop.rectangle", manager: manager))
     items.append(globalItem(kind: .ocr, icon: "text.viewfinder", manager: manager))
+    items.append(globalItem(kind: .smartElement, icon: "dot.viewfinder", manager: manager))
     return items
   }
 
@@ -157,6 +168,43 @@ enum ShortcutOverlayContentBuilder {
         isEnabled: manager.isShortcutEnabled(for: .recording),
         display: recordingConfig.map { .keycaps($0.displayParts) } ?? .text(L10n.Common.none)
       ),
+      globalItem(kind: .pauseResumeRecording, icon: "pause.circle", manager: manager),
+      globalItem(kind: .togglePenRecording, icon: "pencil.tip.crop.circle", manager: manager),
+      globalItem(kind: .restartRecording, icon: "arrow.counterclockwise.circle", manager: manager),
+      globalItem(kind: .deleteRecording, icon: "trash.circle", manager: manager),
+    ]
+  }
+
+  private static func historyItems(manager: KeyboardShortcutManager) -> [ShortcutOverlayItem] {
+    let historyFloating = HistoryFloatingManager.shared
+    let toggleShortcut = historyFloating.toggleModeShortcut
+
+    return [
+      globalItem(kind: .history, icon: "clock.arrow.circlepath", manager: manager),
+      ShortcutOverlayItem(
+        id: "history-toggle-mode",
+        icon: "arrow.left.and.right",
+        title: L10n.PreferencesHistory.toggleModeShortcutTitle,
+        subtitle: nil,
+        isEnabled: historyFloating.isEnabled && historyFloating.isToggleModeShortcutEnabled,
+        display: toggleShortcut.map { .keycaps($0.displayParts) } ?? .text(L10n.Common.none)
+      )
+    ]
+  }
+
+  private static func quickAccessItems() -> [ShortcutOverlayItem] {
+    let quickAccess = QuickAccessManager.shared
+    let shortcut = quickAccess.openEditorShortcut
+
+    return [
+      ShortcutOverlayItem(
+        id: "quick-access-edit-latest",
+        icon: "pencil.tip.crop.circle",
+        title: L10n.PreferencesShortcuts.editLatestCapture,
+        subtitle: nil,
+        isEnabled: quickAccess.openEditorShortcutEnabled,
+        display: shortcut.map { .keycaps($0.displayParts) } ?? .text(L10n.Common.none)
+      )
     ]
   }
 
