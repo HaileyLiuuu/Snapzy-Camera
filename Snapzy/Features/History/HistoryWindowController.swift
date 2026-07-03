@@ -12,6 +12,7 @@ extension Notification.Name {
   static let historyCopySelection = Notification.Name("historyCopySelection")
   static let historyActivateSelection = Notification.Name("historyActivateSelection")
   static let historyDeleteSelection = Notification.Name("historyDeleteSelection")
+  static let historySelectAll = Notification.Name("historySelectAll")
 }
 
 final class HistoryWindow: NSWindow {
@@ -28,6 +29,15 @@ final class HistoryWindow: NSWindow {
       }
 
       NotificationCenter.default.post(name: .historyCopySelection, object: self)
+      return true
+    }
+
+    if event.keyCode == 0 && flags == .command {
+      if isTextInputActive {
+        return super.performKeyEquivalent(with: event)
+      }
+
+      NotificationCenter.default.post(name: .historySelectAll, object: self)
       return true
     }
 

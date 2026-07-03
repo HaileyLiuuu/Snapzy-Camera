@@ -150,6 +150,75 @@ final class HistoryFloatingLayoutTests: XCTestCase {
     XCTAssertTrue(manager.isToggleModeShortcutEnabled)
   }
 
+  func testHistoryFloatingPanelCmdAPostNotification() {
+    let panel = HistoryFloatingPanel(contentRect: NSRect(x: 0, y: 0, width: 100, height: 100))
+    let expectation = expectation(forNotification: .historySelectAll, object: panel, handler: nil)
+    
+    let event = NSEvent.keyEvent(
+      with: .keyDown,
+      location: .zero,
+      modifierFlags: .command,
+      timestamp: 0,
+      windowNumber: 0,
+      context: nil,
+      characters: "a",
+      charactersIgnoringModifiers: "a",
+      isARepeat: false,
+      keyCode: 0
+    )
+    
+    guard let event = event else {
+      XCTFail("Failed to create Cmd+A event")
+      return
+    }
+    
+    let handled = panel.performKeyEquivalent(with: event)
+    XCTAssertTrue(handled)
+    
+    wait(for: [expectation], timeout: 1.0)
+  }
+
+  func testHistoryFloatingPanelCmdANoNotificationWhenTextInputActive() {
+    let panel = HistoryFloatingPanel(contentRect: NSRect(x: 0, y: 0, width: 100, height: 100))
+    
+    let textView = NSTextView(frame: NSRect(x: 0, y: 0, width: 50, height: 50))
+    panel.contentView?.addSubview(textView)
+    let madeFirstResponder = panel.makeFirstResponder(textView)
+    XCTAssertTrue(madeFirstResponder)
+    
+    let observer = NotificationCenter.default.addObserver(
+      forName: .historySelectAll,
+      object: panel,
+      queue: nil
+    ) { _ in
+      XCTFail("Notification should not be posted when text input is active")
+    }
+    defer {
+      NotificationCenter.default.removeObserver(observer)
+    }
+    
+    let event = NSEvent.keyEvent(
+      with: .keyDown,
+      location: .zero,
+      modifierFlags: .command,
+      timestamp: 0,
+      windowNumber: 0,
+      context: nil,
+      characters: "a",
+      charactersIgnoringModifiers: "a",
+      isARepeat: false,
+      keyCode: 0
+    )
+    
+    guard let event = event else {
+      XCTFail("Failed to create Cmd+A event")
+      return
+    }
+    
+    let handled = panel.performKeyEquivalent(with: event)
+    XCTAssertFalse(handled)
+  }
+
   // MARK: - Helpers
 
   private func makeDefaults(

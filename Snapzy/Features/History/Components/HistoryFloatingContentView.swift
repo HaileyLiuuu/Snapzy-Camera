@@ -131,6 +131,11 @@ struct HistoryFloatingContentView: View {
         guard notification.object is HistoryFloatingPanel else { return }
         deleteSelectedRecords()
       }
+      .onReceive(NotificationCenter.default.publisher(for: .historySelectAll)) { notification in
+        guard notification.object is HistoryFloatingPanel else { return }
+        guard manager.presentationMode == .expanded else { return }
+        selectAllExpandedRecords()
+      }
   }
 
   private var content: some View {

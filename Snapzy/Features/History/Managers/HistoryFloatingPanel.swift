@@ -67,6 +67,15 @@ final class HistoryFloatingPanel: NSPanel {
       return true
     }
 
+    if event.keyCode == 0 && flags == .command {
+      if isTextInputActive {
+        return super.performKeyEquivalent(with: event)
+      }
+
+      NotificationCenter.default.post(name: .historySelectAll, object: self)
+      return true
+    }
+
     if HistoryFloatingManager.shared.isToggleModeShortcutEnabled,
        let toggleShortcut = HistoryFloatingManager.shared.toggleModeShortcut,
        let eventShortcut = ShortcutConfig(from: event) {

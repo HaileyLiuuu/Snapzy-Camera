@@ -67,6 +67,10 @@ struct HistoryMainView: View {
       guard notification.object is HistoryWindow else { return }
       deleteSelectedRecords()
     }
+    .onReceive(NotificationCenter.default.publisher(for: .historySelectAll)) { notification in
+      guard notification.object is HistoryWindow else { return }
+      selectAllFilteredRecords()
+    }
     .onChange(of: filteredRecordIDs) { ids in
       selectedIds.formIntersection(Set(ids))
     }
