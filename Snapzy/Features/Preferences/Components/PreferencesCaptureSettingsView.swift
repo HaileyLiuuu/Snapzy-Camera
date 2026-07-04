@@ -37,6 +37,7 @@ struct CaptureSettingsView: View {
   @AppStorage(PreferencesKeys.screenshotShowCursor) private var screenshotShowCursor = false
   @AppStorage(PreferencesKeys.screenshotFreezeArea) private var freezeAreaCapture = false
   @AppStorage(PreferencesKeys.screenshotShowSelectionAreaOverlay) private var showSelectionAreaOverlay = true
+  @AppStorage(PreferencesKeys.screenshotReverseMagnifierZoomDirection) private var reverseMagnifierZoomDirection = false
 
   @AppStorage(PreferencesKeys.screenshotFormat) private var screenshotFormat = "png"
   @AppStorage(PreferencesKeys.scrollingCaptureShowHints) private var scrollingCaptureShowHints = true
@@ -158,13 +159,26 @@ struct CaptureSettingsView: View {
               Toggle("", isOn: $hideDesktopWidgets)
                 .labelsHidden()
             }
+          }
 
+          Section(L10n.PreferencesCapture.overlaySection) {
             SettingRow(
               icon: "macwindow",
               title: L10n.PreferencesCapture.showSelectionAreaOverlayTitle,
               description: L10n.PreferencesCapture.showSelectionAreaOverlayDescription
             ) {
               Toggle("", isOn: $showSelectionAreaOverlay)
+                .labelsHidden()
+            }
+          }
+
+          Section(L10n.PreferencesCapture.magnifierZoomSection) {
+            SettingRow(
+              icon: "arrow.up.and.down",
+              title: L10n.PreferencesCapture.reverseMagnifierZoomDirectionTitle,
+              description: L10n.PreferencesCapture.reverseMagnifierZoomDirectionDescription
+            ) {
+              Toggle("", isOn: $reverseMagnifierZoomDirection)
                 .labelsHidden()
             }
           }

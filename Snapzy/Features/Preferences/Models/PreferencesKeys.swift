@@ -55,6 +55,7 @@ enum PreferencesKeys {
   static let screenshotShowCursor = "screenshot.showCursor"
   static let screenshotFreezeArea = "screenshot.freezeArea"
   static let screenshotShowSelectionAreaOverlay = "screenshot.showSelectionAreaOverlay"
+  static let screenshotReverseMagnifierZoomDirection = "screenshot.reverseMagnifierZoomDirection"
   static let scrollingCaptureShowHints = "scrollingCapture.showHints"
   static let backgroundCutoutAutoCropEnabled = "backgroundCutout.autoCropEnabled"
   static let annotateCanvasPresets = "annotate.canvasPresets.v1"

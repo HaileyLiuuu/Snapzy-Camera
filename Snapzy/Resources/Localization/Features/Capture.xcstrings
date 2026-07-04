@@ -15996,10 +15996,46 @@
     "preferences-capture.show-selection-area-overlay-title": {
       "extractionState": "manual",
       "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Auswahlbereichs-Overlay anzeigen"
+          }
+        },
         "en": {
           "stringUnit": {
             "state": "translated",
             "value": "Show selection area overlay"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mostrar superposición de la zona de selección"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Afficher la superposition de la zone de sélection"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "選択エリアのオーバーレイを表示"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "선택 영역 오버레이 표시"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Показывать оверлей области выбора"
           }
         },
         "vi": {
@@ -16007,22 +16043,342 @@
             "state": "translated",
             "value": "Hiển thị lớp phủ vùng chọn"
           }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "显示选区叠加层"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "顯示選區疊加層"
+          }
         }
       }
     },
     "preferences-capture.show-selection-area-overlay-description": {
       "extractionState": "manual",
       "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hintergrund außerhalb des Auswahlbereichs beim Aufnehmen abdunkeln"
+          }
+        },
         "en": {
           "stringUnit": {
             "state": "translated",
             "value": "Dim the background outside the selection area during capture"
           }
         },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Atenuar el fondo fuera del área de selección durante la captura"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Assombrir l'arrière-plan en dehors de la zone de sélection pendant la capture"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "キャプチャ中に選択エリア外の背景を暗くします"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "캡처 중 선택 영역 외부 배경을 어둡게 처리"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Затемнять фон за пределами области выбора во время снимка"
+          }
+        },
         "vi": {
           "stringUnit": {
             "state": "translated",
             "value": "Làm tối phần màn hình bên ngoài vùng chọn khi chụp"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "截图时调暗选择区域外部的背景"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "擷取時調暗選擇區域外部的背景"
+          }
+        }
+      }
+    },
+    "preferences-capture.reverse-magnifier-zoom-direction-title": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lupen-Zoomrichtung umkehren"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reverse magnifier zoom direction"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Invertir dirección de zoom de la lupa"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inverser la direction du zoom de la loupe"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "虫眼鏡のズーム方向を反転"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "돋보기 줌 방향 반전"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Обратное направление зума лупы"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Đảo ngược hướng cuộn zoom kính lúp"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "反转放大镜缩放方向"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "反轉放大鏡縮放方向"
+          }
+        }
+      }
+    },
+    "preferences-capture.reverse-magnifier-zoom-direction-description": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mausrad-Zoomrichtung umkehren (nach unten scrollen zum Vergrößern)"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Invert the scroll wheel zoom direction (scroll down to zoom in)"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Invertir la dirección de zoom de la rueda de desplazamiento (desplazarse hacia abajo para acercar)"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inverser le sens du zoom de la molette (défiler vers le bas pour zoomer)"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "スクロールホイールのズーム方向を反転します（下にスクロールして拡大）"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "스크롤 휠 줌 방향 반전 (아래로 스크롤하여 확대)"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Инвертировать направление зума колесика мыши (прокрутка вниз для увеличения)"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Đảo ngược hướng của con lăn khi phóng to/thu nhỏ (cuộn xuống để phóng to)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "反转滚轮缩放方向（向下滚动以放大）"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "反轉滾輪縮放方向（向下滾動以放大）"
+          }
+        }
+      }
+    },
+    "preferences-capture.overlay-section": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Overlay"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Overlay"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Superposición"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Superposition"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "オーバーレイ"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "오버레이"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Оверлей"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lớp phủ"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "覆盖"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "覆蓋"
+          }
+        }
+      }
+    },
+    "preferences-capture.magnifier-zoom-section": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lupen-Zoom"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Magnifier Zoom"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zoom de lupa"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zoom de la loupe"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "虫眼鏡ズーム"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "돋보기 줌"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Зум лупы"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Thu phóng kính lúp"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "放大镜缩放"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "放大鏡縮放"
           }
         }
       }

@@ -2506,6 +2506,26 @@ enum L10n {
       defaultValue: "Dim the background outside the selection area during capture",
       comment: "Capture preferences setting description"
     )
+    static let reverseMagnifierZoomDirectionTitle = string(
+      "preferences-capture.reverse-magnifier-zoom-direction-title",
+      defaultValue: "Reverse magnifier zoom direction",
+      comment: "Capture preferences setting title"
+    )
+    static let reverseMagnifierZoomDirectionDescription = string(
+      "preferences-capture.reverse-magnifier-zoom-direction-description",
+      defaultValue: "Invert the scroll wheel zoom direction (scroll down to zoom in)",
+      comment: "Capture preferences setting description"
+    )
+    static let overlaySection = string(
+      "preferences-capture.overlay-section",
+      defaultValue: "Overlay",
+      comment: "Capture preferences section title"
+    )
+    static let magnifierZoomSection = string(
+      "preferences-capture.magnifier-zoom-section",
+      defaultValue: "Magnifier Zoom",
+      comment: "Capture preferences section title"
+    )
     static let showCursorTitle = string(
       "preferences-capture.show-cursor-title",
       defaultValue: "Show cursor",
