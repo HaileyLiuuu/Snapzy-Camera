@@ -487,8 +487,7 @@ final class AreaSelectionOverlayTests: XCTestCase {
       pressure: 0
     )!)
 
-    let mirror = Mirror(reflecting: overlayView!)
-    guard let imgLayer = mirror.children.first(where: { $0.label == "magnifierImageLayer" })?.value as? CALayer else {
+    guard let imgLayer = overlayView.testMagnifierImageLayer else {
       XCTFail("magnifierImageLayer not found")
       return
     }

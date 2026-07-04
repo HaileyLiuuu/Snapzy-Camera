@@ -1334,7 +1334,6 @@ final class AreaSelectionOverlayView: NSView {
   var dimLayer: CALayer!
   var insideSelectionOverlayLayer: CAShapeLayer!
   private var showSelectionAreaOverlay = true
-  private var reverseMagnifierZoomDirection = false
   private var backdropPixelDataArray: [UInt8]?
   private var backdropWidth = 0
   private var backdropHeight = 0
@@ -1344,17 +1343,8 @@ final class AreaSelectionOverlayView: NSView {
   private var didLogMissingLumaData = false
 
   // MARK: - Magnifying Glass Zoom (Pixel-level zoom)
-  private var magnifierContainerLayer: CALayer?
-  private var magnifierImageLayer: CALayer?
-  private var magnifierCenterPixelLayer: CAShapeLayer?
-  private var magnifierInfoBackgroundLayer: CALayer?
-  private var magnifierInfoTextLayer: CATextLayer?
+  private let magnifier = AreaSelectionMagnifier()
   private var currentBackdropImage: CGImage?
-  private var magnifierZoom: CGFloat = 1.0 // Starts at 1.0 (deactivated)
-  private let magnifierSize: CGFloat = 130.0
-  private let magnifierGap: CGFloat = 20.0
-  private let minMagnifierZoom: CGFloat = 1.0
-  private let maxMagnifierZoom: CGFloat = 20.0
 
 
   private lazy var reusableDimMaskLayer: CAShapeLayer = {
@@ -1687,7 +1677,7 @@ final class AreaSelectionOverlayView: NSView {
     crosshairIndicatorLayer.isHidden = true
     hideSizeIndicator()
     showSelectionAreaOverlay = UserDefaults.standard.object(forKey: PreferencesKeys.screenshotShowSelectionAreaOverlay) as? Bool ?? true
-    reverseMagnifierZoomDirection = UserDefaults.standard.object(forKey: PreferencesKeys.screenshotReverseMagnifierZoomDirection) as? Bool ?? false
+    magnifier.reverseZoomDirection = UserDefaults.standard.object(forKey: PreferencesKeys.screenshotReverseMagnifierZoomDirection) as? Bool ?? false
     dimLayer.backgroundColor = showSelectionAreaOverlay ? dimColor.cgColor : nil
     dimLayer.mask = nil
     dimLayer.frame = bounds
@@ -1907,7 +1897,7 @@ final class AreaSelectionOverlayView: NSView {
 
     self.currentBackdropImage = backdrop.image
     cacheBackdropPixels(from: backdrop.image, scale: backdrop.scaleFactor)
-    if magnifierZoom > 1.0 {
+    if magnifier.zoom > 1.0 {
       updateMagnifier(at: currentMousePosition)
     }
   }
@@ -1918,7 +1908,7 @@ final class AreaSelectionOverlayView: NSView {
     snapshotLayer.contents = nil
     snapshotLayer.contentsScale = 1.0
     snapshotLayer.isHidden = true
-    removeMagnifierLayers()
+    magnifier.removeLayers()
     CATransaction.commit()
 
     backdropPixelDataArray = nil
@@ -1926,192 +1916,30 @@ final class AreaSelectionOverlayView: NSView {
     backdropHeight = 0
     backdropScale = 1.0
     currentBackdropImage = nil
-    magnifierZoom = 1.0
+    magnifier.zoom = 1.0
   }
 
   // MARK: - Magnifying Glass Zoom Implementation
 
-  private func setupMagnifierLayersIfNeeded() {
-    guard magnifierContainerLayer == nil else { return }
-    guard let rootLayer = layer else { return }
-
-    CATransaction.begin()
-    CATransaction.setDisableActions(true)
-
-    // Container layer: provides border, corner radius, and shadow
-    let container = CALayer()
-    container.frame = CGRect(x: 0, y: 0, width: magnifierSize, height: magnifierSize)
-    container.cornerRadius = 12
-    container.borderColor = NSColor.white.withAlphaComponent(0.4).cgColor
-    container.borderWidth = 1.5
-    container.shadowColor = NSColor.black.cgColor
-    container.shadowOffset = CGSize(width: 0, height: -4)
-    container.shadowRadius = 8
-    container.shadowOpacity = 0.4
-    container.actions = disabledActions
-    container.isHidden = true
-    rootLayer.addSublayer(container)
-    self.magnifierContainerLayer = container
-
-    // Image layer: displays nearest-neighbor pixelated zoom
-    let imgLayer = CALayer()
-    imgLayer.frame = container.bounds
-    imgLayer.cornerRadius = 12
-    imgLayer.masksToBounds = true
-    imgLayer.magnificationFilter = .nearest
-    imgLayer.contentsGravity = .resize
-    imgLayer.actions = disabledActions
-    container.addSublayer(imgLayer)
-    self.magnifierImageLayer = imgLayer
-
-    // Center pixel indicator layer: thin border highlighting the target pixel
-    let centerIndicator = CAShapeLayer()
-    centerIndicator.strokeColor = NSColor.systemRed.cgColor
-    centerIndicator.fillColor = nil
-    centerIndicator.lineWidth = 1.0
-    centerIndicator.actions = disabledActions
-    imgLayer.addSublayer(centerIndicator)
-    self.magnifierCenterPixelLayer = centerIndicator
-
-    // Info Pill Background
-    let infoBg = CALayer()
-    infoBg.backgroundColor = NSColor.black.withAlphaComponent(0.7).cgColor
-    infoBg.cornerRadius = 4
-    infoBg.actions = disabledActions
-    container.addSublayer(infoBg)
-    self.magnifierInfoBackgroundLayer = infoBg
-
-    // Info Pill Text
-    let infoText = CATextLayer()
-    configureOverlayTextLayer(infoText)
-    container.addSublayer(infoText)
-    self.magnifierInfoTextLayer = infoText
-
-    CATransaction.commit()
-  }
-
-  private func removeMagnifierLayers() {
-    CATransaction.begin()
-    CATransaction.setDisableActions(true)
-    magnifierContainerLayer?.removeFromSuperlayer()
-    magnifierContainerLayer = nil
-    magnifierImageLayer = nil
-    magnifierCenterPixelLayer = nil
-    magnifierInfoBackgroundLayer = nil
-    magnifierInfoTextLayer = nil
-    CATransaction.commit()
-  }
-
   private func updateMagnifier(at point: CGPoint) {
-    guard magnifierZoom > 1.0, currentBackdropImage != nil else {
-      removeMagnifierLayers()
-      return
-    }
-
-    setupMagnifierLayersIfNeeded()
-
-    guard let container = magnifierContainerLayer,
-          let imgLayer = magnifierImageLayer,
-          let centerIndicator = magnifierCenterPixelLayer,
-          let infoBg = magnifierInfoBackgroundLayer,
-          let infoText = magnifierInfoTextLayer else {
-      return
-    }
-
-    CATransaction.begin()
-    CATransaction.setDisableActions(true)
-
-    // Compute magnifier window frame based on mouse position
-    var originX = point.x + magnifierGap
-    var originY = point.y + magnifierGap
-
-    // Check boundary & flip dynamically
-    if originX + magnifierSize > bounds.maxX {
-      originX = point.x - magnifierGap - magnifierSize
-    }
-    if originY + magnifierSize > bounds.maxY {
-      originY = point.y - magnifierGap - magnifierSize
-    }
-
-    // Absolute screen clamping
-    originX = max(bounds.minX, min(bounds.maxX - magnifierSize, originX))
-    originY = max(bounds.minY, min(bounds.maxY - magnifierSize, originY))
-
-    container.frame = CGRect(x: originX, y: originY, width: magnifierSize, height: magnifierSize)
-    container.isHidden = false
-
-    // Set cropped and scaled image contents via contentsRect (nearest-neighbor)
-    imgLayer.contents = currentBackdropImage
-    let norm_w = magnifierSize / (magnifierZoom * bounds.width)
-    let norm_h = magnifierSize / (magnifierZoom * bounds.height)
-    let norm_x = (point.x / bounds.width) - norm_w / 2.0
-    let norm_y = (point.y / bounds.height) - norm_h / 2.0
-    imgLayer.contentsRect = CGRect(x: norm_x, y: norm_y, width: norm_w, height: norm_h)
-
-    // Central pixel highlight rect
-    let cx = magnifierSize / 2.0
-    let cy = magnifierSize / 2.0
-    let px = cx - magnifierZoom / 2.0
-    let py = cy - magnifierZoom / 2.0
-    let pixelRect = CGRect(x: px, y: py, width: magnifierZoom, height: magnifierZoom)
-    centerIndicator.path = CGPath(rect: pixelRect, transform: nil)
-
-    // Read pixel color under cursor from backdropPixelDataArray
-    var hexText = ""
-    if let pixelData = backdropPixelDataArray, backdropWidth > 0, backdropHeight > 0 {
-      let scaleX = bounds.width > 0 ? CGFloat(backdropWidth) / bounds.width : backdropScale
-      let scaleY = bounds.height > 0 ? CGFloat(backdropHeight) / bounds.height : backdropScale
-      let pixelX = point.x * scaleX
-      let pixelY = point.y * scaleY
-      let x = max(0, min(backdropWidth - 1, Int(pixelX)))
-      let y = max(0, min(backdropHeight - 1, backdropHeight - 1 - Int(pixelY)))
-      let pixelOffset = (y * backdropWidth + x) * 4
-      if pixelOffset + 2 < pixelData.count {
-        let r = pixelData[pixelOffset]
-        let g = pixelData[pixelOffset + 1]
-        let b = pixelData[pixelOffset + 2]
-        hexText = String(format: "#%02X%02X%02X", r, g, b)
-      }
-    }
-
-    let zoomString = String(format: "%.0fx", magnifierZoom)
-    let infoString = hexText.isEmpty ? zoomString : "\(zoomString) • \(hexText)"
-    let attributes = overlayTextAttributes
-    let textSize = infoString.size(withAttributes: attributes)
-    let textPadding: CGFloat = 4.0
-    let pillWidth = textSize.width + textPadding * 4
-    let pillHeight = textSize.height + textPadding
-    let pillX = (magnifierSize - pillWidth) / 2.0
-    let pillY = 6.0
-
-    infoBg.frame = CGRect(x: pillX, y: pillY, width: pillWidth, height: pillHeight)
-    infoBg.isHidden = false
-
-    infoText.string = infoString
-    infoText.frame = CGRect(
-      x: pillX + textPadding * 2,
-      y: pillY + textPadding / 2.0 - 0.5,
-      width: textSize.width,
-      height: textSize.height
+    magnifier.update(
+      at: point,
+      bounds: bounds,
+      backdropImage: currentBackdropImage,
+      pixelData: backdropPixelDataArray,
+      backdropWidth: backdropWidth,
+      backdropHeight: backdropHeight,
+      backdropScale: backdropScale,
+      contentsScale: screenScaleFactor,
+      in: layer ?? CALayer()
     )
-    infoText.isHidden = false
-
-    CATransaction.commit()
   }
 
   override func scrollWheel(with event: NSEvent) {
     if event.modifierFlags.contains(.command) {
       let delta = event.scrollingDeltaY != 0 ? event.scrollingDeltaY : event.deltaY
       if delta != 0 {
-        let multiplier: CGFloat = event.hasPreciseScrollingDeltas ? 0.2 : 1.0
-        var directionSign: CGFloat = delta > 0 ? 1.0 : -1.0
-        if reverseMagnifierZoomDirection {
-          directionSign = -directionSign
-        }
-        let zoomChange = directionSign * multiplier
-        let oldZoom = magnifierZoom
-        magnifierZoom = max(minMagnifierZoom, min(maxMagnifierZoom, magnifierZoom + zoomChange))
-        if magnifierZoom != oldZoom {
+        if magnifier.handleScroll(delta: delta, hasPreciseScrollingDeltas: event.hasPreciseScrollingDeltas) {
           updateMagnifier(at: currentMousePosition)
         }
       }
@@ -2126,31 +1954,26 @@ final class AreaSelectionOverlayView: NSView {
   var testSnapshotLayer: CALayer { snapshotLayer }
   var testBackdropPixelDataArray: [UInt8]? { backdropPixelDataArray }
   var testMagnifierZoom: CGFloat {
-    get { magnifierZoom }
-    set { magnifierZoom = newValue }
+    get { magnifier.zoom }
+    set { magnifier.zoom = newValue }
   }
   func testUpdateMagnifier(at point: CGPoint) {
     updateMagnifier(at: point)
   }
   var testMagnifierContainerLayer: CALayer? {
-    magnifierContainerLayer
+    magnifier.containerLayer
+  }
+  var testMagnifierImageLayer: CALayer? {
+    magnifier.imageLayer
   }
   var testReverseMagnifierZoomDirection: Bool {
-    get { reverseMagnifierZoomDirection }
-    set { reverseMagnifierZoomDirection = newValue }
+    get { magnifier.reverseZoomDirection }
+    set { magnifier.reverseZoomDirection = newValue }
   }
   func testScrollWheel(deltaY: CGFloat, modifierFlags: NSEvent.ModifierFlags, hasPreciseScrollingDeltas: Bool = false) {
     if modifierFlags.contains(.command) {
       if deltaY != 0 {
-        let multiplier: CGFloat = hasPreciseScrollingDeltas ? 0.2 : 1.0
-        var directionSign: CGFloat = deltaY > 0 ? 1.0 : -1.0
-        if reverseMagnifierZoomDirection {
-          directionSign = -directionSign
-        }
-        let zoomChange = directionSign * multiplier
-        let oldZoom = magnifierZoom
-        magnifierZoom = max(minMagnifierZoom, min(maxMagnifierZoom, magnifierZoom + zoomChange))
-        if magnifierZoom != oldZoom {
+        if magnifier.handleScroll(delta: deltaY, hasPreciseScrollingDeltas: hasPreciseScrollingDeltas) {
           updateMagnifier(at: currentMousePosition)
         }
       }
@@ -2490,7 +2313,7 @@ final class AreaSelectionOverlayView: NSView {
       localCurrentPoint = nil
     }
 
-    if magnifierZoom > 1.0 {
+    if magnifier.zoom > 1.0 {
       updateMagnifier(at: currentMousePosition)
     }
 
