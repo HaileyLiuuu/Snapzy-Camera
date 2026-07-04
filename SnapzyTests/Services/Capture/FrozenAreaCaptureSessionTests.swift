@@ -818,4 +818,91 @@ final class FrozenAreaCaptureSessionTests: XCTestCase {
     XCTAssertEqual(result.image.width, 100)
     XCTAssertEqual(result.image.height, 100)
   }
+
+  // MARK: - Transition re-freeze (snapshot replacement updates crop source)
+
+  /// Read the RGB of the top-left pixel of a CGImage (for solid-color crop assertions).
+  private func topLeftRGB(of image: CGImage) -> (r: UInt8, g: UInt8, b: UInt8)? {
+    var pixel = [UInt8](repeating: 0, count: 4)
+    let bitmapInfo = CGImageAlphaInfo.premultipliedLast.rawValue | CGBitmapInfo.byteOrder32Big.rawValue
+    guard let ctx = CGContext(
+      data: &pixel,
+      width: 1,
+      height: 1,
+      bitsPerComponent: 8,
+      bytesPerRow: 4,
+      space: CGColorSpaceCreateDeviceRGB(),
+      bitmapInfo: bitmapInfo
+    ) else { return nil }
+    // Draw the image's top-left region into the 1x1 context.
+    ctx.draw(image, in: CGRect(x: 0, y: 1 - CGFloat(image.height), width: CGFloat(image.width), height: CGFloat(image.height)))
+    return (pixel[0], pixel[1], pixel[2])
+  }
+
+  func testAddSnapshot_replacesBackdropAndCropSource() throws {
+    // GIVEN: a frozen session with an initial RED snapshot on display 1.
+    guard let redImage = TestImageFactory.solidColor(width: 400, height: 400, red: 255, green: 0, blue: 0) else {
+      XCTFail("Failed to create red image"); return
+    }
+    let redSnapshot = FrozenDisplaySnapshot(
+      displayID: 1,
+      screenFrame: CGRect(x: 0, y: 0, width: 200, height: 200),
+      scaleFactor: 2.0,
+      colorSpaceName: nil,
+      image: redImage
+    )
+    let session = FrozenAreaCaptureSession.fromSnapshot(redSnapshot)
+    XCTAssertTrue((session.backdrop(for: 1)?.image as AnyObject) === (redImage as AnyObject),
+                  "Initial backdrop must reference the red snapshot image")
+
+    // WHEN: a transition re-freeze replaces display 1 with a BLUE snapshot (same display).
+    guard let blueImage = TestImageFactory.solidColor(width: 400, height: 400, red: 0, green: 0, blue: 255) else {
+      XCTFail("Failed to create blue image"); return
+    }
+    let blueSnapshot = FrozenDisplaySnapshot(
+      displayID: 1,
+      screenFrame: CGRect(x: 0, y: 0, width: 200, height: 200),
+      scaleFactor: 2.0,
+      colorSpaceName: nil,
+      image: blueImage
+    )
+    session.addSnapshot(blueSnapshot)
+
+    // THEN: the visible backdrop now references the blue image (preview reflects new state)...
+    XCTAssertTrue((session.backdrop(for: 1)?.image as AnyObject) === (blueImage as AnyObject),
+                  "After re-freeze, backdrop must reference the new blue snapshot image")
+
+    // ...and the FINAL crop source samples blue, not the stale red (capture reflects new state).
+    let selection = makeSelection(rect: CGRect(x: 10, y: 10, width: 50, height: 50), displayID: 1)
+    let cropped = try session.cropImage(for: selection)
+    guard let rgb = topLeftRGB(of: cropped.image) else {
+      XCTFail("Failed to sample cropped image"); return
+    }
+    XCTAssertEqual(rgb.b, 255, "Crop must contain the new (blue) content after re-freeze")
+    XCTAssertEqual(rgb.r, 0, "Crop must NOT contain the stale (red) content after re-freeze")
+  }
+
+  func testAddSnapshot_doesNotAffectOtherDisplays() throws {
+    // GIVEN: two displays with distinct snapshots.
+    guard let redImage = TestImageFactory.solidColor(width: 200, height: 200, red: 255, green: 0, blue: 0),
+          let greenImage = TestImageFactory.solidColor(width: 200, height: 200, red: 0, green: 255, blue: 0) else {
+      XCTFail("Failed to create images"); return
+    }
+    let session = FrozenAreaCaptureSession.fromSnapshots([
+      FrozenDisplaySnapshot(displayID: 1, screenFrame: CGRect(x: 0, y: 0, width: 200, height: 200), scaleFactor: 1.0, colorSpaceName: nil, image: redImage),
+      FrozenDisplaySnapshot(displayID: 2, screenFrame: CGRect(x: 200, y: 0, width: 200, height: 200), scaleFactor: 1.0, colorSpaceName: nil, image: greenImage),
+    ])
+
+    // WHEN: re-freezing only display 1.
+    guard let blueImage = TestImageFactory.solidColor(width: 200, height: 200, red: 0, green: 0, blue: 255) else {
+      XCTFail("Failed to create blue image"); return
+    }
+    session.addSnapshot(FrozenDisplaySnapshot(displayID: 1, screenFrame: CGRect(x: 0, y: 0, width: 200, height: 200), scaleFactor: 1.0, colorSpaceName: nil, image: blueImage))
+
+    // THEN: display 2 is untouched.
+    XCTAssertTrue((session.backdrop(for: 2)?.image as AnyObject) === (greenImage as AnyObject),
+                  "Re-freezing display 1 must not affect display 2's snapshot")
+    XCTAssertTrue((session.backdrop(for: 1)?.image as AnyObject) === (blueImage as AnyObject),
+                  "Display 1 must reflect the re-frozen blue snapshot")
+  }
 }

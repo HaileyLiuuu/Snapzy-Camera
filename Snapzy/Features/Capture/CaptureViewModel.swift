@@ -894,6 +894,16 @@ final class ScreenCaptureViewModel: ObservableObject, KeyboardShortcutDelegate {
           excludeDesktopWidgets: excludeDesktopWidgets,
           excludeOwnApplication: excludeOwnApplication
         )
+      },
+      onTransitionRecapture: { [weak self] in
+        self?.refreshFrozenDisplaysAfterTransition(
+          sessionID: sessionID,
+          frozenSession: frozenSession,
+          showCursor: showCursor,
+          excludeDesktopIcons: excludeDesktopIcons,
+          excludeDesktopWidgets: excludeDesktopWidgets,
+          excludeOwnApplication: excludeOwnApplication
+        )
       }
     ) { [weak self] selection in
       guard let self else {
@@ -1364,6 +1374,96 @@ final class ScreenCaptureViewModel: ObservableObject, KeyboardShortcutDelegate {
         "target_ms": "50",
       ]
     )
+  }
+
+  /// Re-freeze the frozen session's displays at full quality after a Space/app/desktop
+  /// transition settles. Updates both the visible backdrop and the crop source
+  /// (`FrozenAreaCaptureSession`) so the on-screen preview AND the final capture reflect
+  /// the current screen — not the stale initial freeze. Frozen sessions only. Reuses the
+  /// same capture + apply path as lazy display preparation (DRY). Fresh shareable content
+  /// (no stale prefetch) so exclusions/window list match the post-transition state.
+  private func refreshFrozenDisplaysAfterTransition(
+    sessionID: UUID,
+    frozenSession: FrozenAreaCaptureSession,
+    showCursor: Bool,
+    excludeDesktopIcons: Bool,
+    excludeDesktopWidgets: Bool,
+    excludeOwnApplication: Bool
+  ) {
+    guard activeAreaSelectionSessionID == sessionID else { return }
+    let currentDisplayIDs = Set(NSScreen.screens.compactMap { $0.displayID })
+    let displayIDs = frozenSession.displayIDs.intersection(currentDisplayIDs)
+    guard !displayIDs.isEmpty else { return }
+
+    for displayID in displayIDs {
+      Task { @MainActor [weak self] in
+        guard let self, self.activeAreaSelectionSessionID == sessionID else { return }
+        let startedAt = Date()
+
+        // Fast CoreGraphics path when no cursor/desktop exclusions are needed. The overlay
+        // is capture-excluded (sharingType == .none), so it is not baked into the snapshot.
+        if !showCursor, !excludeDesktopIcons, !excludeDesktopWidgets,
+           let screen = NSScreen.screens.first(where: { $0.displayID == displayID }) {
+          let screenFrame = screen.frame
+          let backingScale = screen.backingScaleFactor
+          let colorSpaceName = self.captureManager.preferredCaptureColorSpaceName(for: screen)
+          let captureManager = self.captureManager
+          let fastSnapshot = await AreaSelectionController.shared.withDisplayOverlayHiddenAsync(
+            for: displayID
+          ) {
+            await Task.detached {
+              captureManager.captureFastDisplaySnapshotOffMain(
+                displayID: displayID,
+                screenFrame: screenFrame,
+                backingScaleFactor: backingScale,
+                colorSpaceName: colorSpaceName
+              )
+            }.value
+          }
+          guard self.activeAreaSelectionSessionID == sessionID else { return }
+          if let fastSnapshot {
+            self.applyLazyFrozenSnapshot(
+              fastSnapshot,
+              mode: "transition-refreeze-cg",
+              displayID: displayID,
+              startedAt: startedAt,
+              sessionID: sessionID,
+              frozenSession: frozenSession
+            )
+            return
+          }
+        }
+
+        // ScreenCaptureKit path (exclusions on, or fast path unavailable).
+        do {
+          let snapshots = try await self.captureManager.captureDisplaySnapshots(
+            displayIDs: [displayID],
+            showCursor: showCursor,
+            excludeDesktopIcons: excludeDesktopIcons,
+            excludeDesktopWidgets: excludeDesktopWidgets,
+            excludeOwnApplication: excludeOwnApplication,
+            prefetchedContentTask: nil
+          )
+          guard self.activeAreaSelectionSessionID == sessionID,
+                let snapshot = snapshots[displayID] else { return }
+          self.applyLazyFrozenSnapshot(
+            snapshot,
+            mode: "transition-refreeze-sck",
+            displayID: displayID,
+            startedAt: startedAt,
+            sessionID: sessionID,
+            frozenSession: frozenSession
+          )
+        } catch {
+          DiagnosticLogger.shared.logError(
+            .capture,
+            error,
+            "Frozen transition re-freeze failed",
+            context: ["displayID": "\(displayID)"]
+          )
+        }
+      }
+    }
   }
 
   private func cancelLazyAreaSnapshotTasks(clearFailures: Bool = true) {

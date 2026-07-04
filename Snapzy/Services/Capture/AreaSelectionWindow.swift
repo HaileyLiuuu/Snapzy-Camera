@@ -26,6 +26,12 @@ typealias AreaSelectionCompletionWithMode = (CGRect?, SelectionMode) -> Void
 /// Callback type for displays that should be prepared during a selection session.
 typealias AreaSelectionDisplayActivationHandler = (CGDirectDisplayID) -> Void
 
+/// Callback type invoked when a frozen session should re-freeze its displays after a
+/// Space/app/desktop transition settles. Only frozen screenshot sessions provide this;
+/// its presence is the immutable frozen-vs-live discriminator (unlike the mutable
+/// `selectionBackdrops` visibility, which the luma recapture overwrites).
+typealias AreaSelectionTransitionRecaptureHandler = @MainActor () -> Void
+
 // MARK: - NSScreen Extension for Display ID
 
 extension NSScreen {
@@ -69,6 +75,7 @@ final class AreaSelectionController: NSObject {
   private var allowsApplicationWindowSelection = false
   private var applicationConfiguration: AreaSelectionApplicationConfiguration?
   private var displayActivationHandler: AreaSelectionDisplayActivationHandler?
+  private var transitionRecaptureHandler: AreaSelectionTransitionRecaptureHandler?
   private var windowSelectionSnapshot: WindowSelectionSnapshot?
   private var windowSelectionTask: Task<Void, Never>?
   private var selectionSessionID = UUID()
@@ -335,6 +342,7 @@ final class AreaSelectionController: NSObject {
     applicationConfiguration: AreaSelectionApplicationConfiguration?,
     initialInteractionMode: AreaSelectionInteractionMode = .manualRegion,
     onDisplayActivationRequested: AreaSelectionDisplayActivationHandler? = nil,
+    onTransitionRecapture: AreaSelectionTransitionRecaptureHandler? = nil,
     completion: @escaping AreaSelectionResultCompletion
   ) {
     self.completion = nil
@@ -345,7 +353,8 @@ final class AreaSelectionController: NSObject {
       backdrops: backdrops,
       applicationConfiguration: applicationConfiguration,
       initialInteractionMode: initialInteractionMode,
-      onDisplayActivationRequested: onDisplayActivationRequested
+      onDisplayActivationRequested: onDisplayActivationRequested,
+      onTransitionRecapture: onTransitionRecapture
     )
   }
 
@@ -354,7 +363,8 @@ final class AreaSelectionController: NSObject {
     backdrops: [CGDirectDisplayID: AreaSelectionBackdrop],
     applicationConfiguration: AreaSelectionApplicationConfiguration? = nil,
     initialInteractionMode: AreaSelectionInteractionMode = .manualRegion,
-    onDisplayActivationRequested: AreaSelectionDisplayActivationHandler? = nil
+    onDisplayActivationRequested: AreaSelectionDisplayActivationHandler? = nil,
+    onTransitionRecapture: AreaSelectionTransitionRecaptureHandler? = nil
   ) {
     QuickAccessManager.shared.suspendForCapture()
     // Always clean up prior session's monitors to prevent orphaned leaks
@@ -377,6 +387,7 @@ final class AreaSelectionController: NSObject {
     liveFallbackDisplayIDs.removeAll()
     self.applicationConfiguration = applicationConfiguration
     displayActivationHandler = onDisplayActivationRequested
+    transitionRecaptureHandler = onTransitionRecapture
     requestedDisplayActivationIDs.removeAll()
     deferredBackdropDisplayIDs.removeAll()
     allowsApplicationWindowSelection = applicationConfiguration != nil
@@ -611,7 +622,7 @@ final class AreaSelectionController: NSObject {
     windowSelectionTask = nil
   }
 
-  func applyBackdrop(_ backdrop: AreaSelectionBackdrop, for displayID: CGDirectDisplayID) {
+  func applyBackdrop(_ backdrop: AreaSelectionBackdrop, for displayID: CGDirectDisplayID, animated: Bool = false) {
     let shouldDeferVisualBackdrop = manualSelectionStartPoint != nil
       && selectionBackdrops[displayID] == nil
     liveFallbackDisplayIDs.remove(displayID)
@@ -622,7 +633,8 @@ final class AreaSelectionController: NSObject {
       deferredBackdropDisplayIDs.insert(displayID)
     } else {
       deferredBackdropDisplayIDs.remove(displayID)
-      window.overlayView.applyBackdrop(backdrop)
+      // Animate only when caller opts in and no manual drag is active.
+      window.overlayView.applyBackdrop(backdrop, animated: animated && manualSelectionStartPoint == nil)
     }
     window.overlayView.setSelectionEnabled(selectionEnabled(for: displayID))
     window.overlayView.activatePendingSelectionIfNeeded()
@@ -755,6 +767,21 @@ final class AreaSelectionController: NSObject {
 
       guard isPresenting else { return }
 
+      // Frozen sessions re-freeze affected displays at full quality (updates both the
+      // visible backdrop and the FrozenAreaCaptureSession crop source) via the handler.
+      // Gate on the immutable handler — NOT selectionBackdrops visibility, which the
+      // invisible luma recapture below would itself overwrite after the first transition.
+      // Live / recording / backdrop-less sessions fall through to the cheap luma recapture.
+      if let transitionRecaptureHandler {
+        DiagnosticLogger.shared.log(
+          .info,
+          .capture,
+          "Frozen session re-freezing displays after transition settle"
+        )
+        transitionRecaptureHandler()
+        return
+      }
+
       DiagnosticLogger.shared.log(
         .info,
         .capture,
@@ -770,7 +797,6 @@ final class AreaSelectionController: NSObject {
         let screenFrame = screen.frame
         let backingScale = screen.backingScaleFactor
         let sessionID = self.selectionSessionID
-
         Task { [weak self] in
           let backdrop = await Task.detached { () -> AreaSelectionBackdrop? in
             guard let cgImage = CGWindowListCreateImage(
@@ -789,7 +815,7 @@ final class AreaSelectionController: NSObject {
 
           guard let self, self.selectionSessionID == sessionID else { return }
           if let backdrop {
-            self.applyBackdrop(backdrop, for: displayID)
+            self.applyBackdrop(backdrop, for: displayID, animated: true)
           }
         }
       }
@@ -937,6 +963,7 @@ final class AreaSelectionController: NSObject {
     deferredBackdropDisplayIDs.removeAll()
     applicationConfiguration = nil
     displayActivationHandler = nil
+    transitionRecaptureHandler = nil
     allowsApplicationWindowSelection = false
     interactionMode = .manualRegion
     windowSelectionSnapshot = nil
@@ -2106,13 +2133,28 @@ final class AreaSelectionOverlayView: NSView {
     CATransaction.commit()
   }
 
-  func applyBackdrop(_ backdrop: AreaSelectionBackdrop) {
+  func applyBackdrop(_ backdrop: AreaSelectionBackdrop, animated: Bool = false) {
+    let shouldAnimate = animated
+      && BackdropTransitionEffect.shouldCrossfade(
+           isReapplication: currentBackdropImage != nil,
+           isVisible: backdrop.isVisible)
+
+    // Frame, scale, and visibility are never animated.
     CATransaction.begin()
     CATransaction.setDisableActions(true)
     snapshotLayer.frame = bounds
-    snapshotLayer.contents = backdrop.image
     snapshotLayer.contentsScale = backdrop.scaleFactor
     snapshotLayer.isHidden = !backdrop.isVisible
+    CATransaction.commit()
+
+    // Contents swap: crossfade on re-apply when opted-in, hard swap otherwise.
+    CATransaction.begin()
+    if shouldAnimate {
+      BackdropTransitionEffect.addCrossfade(to: snapshotLayer)
+    } else {
+      CATransaction.setDisableActions(true)
+    }
+    snapshotLayer.contents = backdrop.image
     CATransaction.commit()
 
     self.currentBackdropImage = backdrop.image
