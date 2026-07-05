@@ -113,6 +113,20 @@ Or if you cloned the repo:
 
 This will remove the app from `/Applications`, delete preferences and caches, and reset TCC permissions (Screen Recording, Microphone, Accessibility). You may need to log out or reboot for permission changes to fully take effect.
 
+### Reset Permissions
+
+If you only want to reset TCC permissions (Screen Recording, Microphone, Accessibility) without uninstalling the app:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/duongductrong/Snapzy/master/reset-permissions.sh | bash
+```
+
+Or if you cloned the repo:
+
+```bash
+./reset-permissions.sh
+```
+
 ## Shortcuts
 
 | Action                                                  | Shortcut |

@@ -123,6 +123,20 @@ Hoặc nếu bạn đã clone repo:
 
 Lệnh này sẽ xóa ứng dụng khỏi `/Applications`, xóa preferences và cache, đồng thời reset quyền TCC (Screen Recording, Microphone, Accessibility). Bạn có thể cần đăng xuất hoặc khởi động lại để thay đổi quyền có hiệu lực hoàn toàn.
 
+### Reset quyền
+
+Nếu bạn chỉ muốn reset lại quyền TCC (Screen Recording, Microphone, Accessibility) mà không cần gỡ cài đặt ứng dụng:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/duongductrong/Snapzy/master/reset-permissions.sh | bash
+```
+
+Hoặc nếu bạn đã clone repo:
+
+```bash
+./reset-permissions.sh
+```
+
 <a id="shortcuts"></a>
 
 ## Phím tắt

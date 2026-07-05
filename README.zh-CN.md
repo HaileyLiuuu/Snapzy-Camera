@@ -123,6 +123,20 @@ curl -fsSL https://raw.githubusercontent.com/duongductrong/Snapzy/master/uninsta
 
 该脚本会从 `/Applications` 中移除应用，删除偏好设置和缓存，并重置 TCC 权限（Screen Recording、Microphone、Accessibility）。权限变更可能需要注销或重启后才会完全生效。
 
+### 重置权限
+
+如果你只想重置 TCC 权限（Screen Recording、Microphone、Accessibility）而不卸载应用：
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/duongductrong/Snapzy/master/reset-permissions.sh | bash
+```
+
+如果你已经 clone 了仓库，也可以直接运行：
+
+```bash
+./reset-permissions.sh
+```
+
 <a id="shortcuts"></a>
 
 ## 快捷键
