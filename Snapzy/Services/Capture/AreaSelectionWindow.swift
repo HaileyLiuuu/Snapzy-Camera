@@ -1869,7 +1869,7 @@ final class AreaSelectionOverlayView: NSView {
     rootLayer.addSublayer(crosshairIndicatorLayer)
 
     sizeIndicatorBackgroundLayer = CALayer()
-    sizeIndicatorBackgroundLayer.backgroundColor = NSColor.black.withAlphaComponent(0.7).cgColor
+    sizeIndicatorBackgroundLayer.backgroundColor = NSColor.clear.cgColor
     sizeIndicatorBackgroundLayer.cornerRadius = 4
     sizeIndicatorBackgroundLayer.actions = disabledActions
     sizeIndicatorBackgroundLayer.isHidden = true
@@ -1877,6 +1877,12 @@ final class AreaSelectionOverlayView: NSView {
 
     sizeIndicatorTextLayer = CATextLayer()
     configureOverlayTextLayer(sizeIndicatorTextLayer)
+    sizeIndicatorTextLayer.font = coordinateIndicatorFont as CTFont
+    sizeIndicatorTextLayer.fontSize = coordinateIndicatorFont.pointSize
+    sizeIndicatorTextLayer.shadowColor = NSColor.black.cgColor
+    sizeIndicatorTextLayer.shadowOffset = CGSize(width: 0.5, height: -1.0)
+    sizeIndicatorTextLayer.shadowRadius = 1.0
+    sizeIndicatorTextLayer.shadowOpacity = 1.0
     rootLayer.addSublayer(sizeIndicatorTextLayer)
 
     modeHintBackgroundLayer = CALayer()
@@ -2422,6 +2428,23 @@ final class AreaSelectionOverlayView: NSView {
     ]
   }
 
+  private let coordinateIndicatorFont = NSFont.systemFont(ofSize: 10, weight: .medium)
+
+  private var coordinateTextAttributes: [NSAttributedString.Key: Any] {
+    [
+      .font: coordinateIndicatorFont,
+      .foregroundColor: NSColor.white,
+    ]
+  }
+
+  private func multiLineTextSize(_ text: String, attributes: [NSAttributedString.Key: Any]) -> CGSize {
+    let lines = text.components(separatedBy: "\n")
+    let maxWidth = lines.map { $0.size(withAttributes: attributes).width }.max() ?? 0
+    let lineHeight = "0".size(withAttributes: attributes).height
+    let totalHeight = lineHeight * CGFloat(lines.count) + 2.0
+    return CGSize(width: maxWidth, height: totalHeight)
+  }
+
   private func configureOverlayTextLayer(_ textLayer: CATextLayer) {
     textLayer.actions = disabledActions
     textLayer.font = overlayFont as CTFont
@@ -2448,54 +2471,39 @@ final class AreaSelectionOverlayView: NSView {
 
   private func updateSizeIndicator(for rect: CGRect, measuredSize: CGSize? = nil) {
     let displayedSize = measuredSize ?? rect.size
-    let sizeText = "\(Int(displayedSize.width)) x \(Int(displayedSize.height))"
-    let attributes = overlayTextAttributes
+    let sizeText = "\(Int(displayedSize.width))\n\(Int(displayedSize.height))"
+    let attributes = coordinateTextAttributes
     let textSize: CGSize
     if sizeText == lastSizeIndicatorText {
       textSize = lastSizeIndicatorTextSize
     } else {
-      textSize = sizeText.size(withAttributes: attributes)
+      textSize = multiLineTextSize(sizeText, attributes: attributes)
       lastSizeIndicatorText = sizeText
       lastSizeIndicatorTextSize = textSize
     }
-    let padding: CGFloat = 6
-    var backgroundRect = CGRect(
-      x: rect.maxX - textSize.width - padding * 2 - 4,
-      y: rect.minY - textSize.height - padding - 8,
-      width: textSize.width + padding * 2,
-      height: textSize.height + padding
-    )
 
-    if backgroundRect.minY < bounds.minY {
-      backgroundRect.origin.y = rect.maxY + 4
-    }
-    if backgroundRect.maxY > bounds.maxY {
-      backgroundRect.origin.y = max(bounds.minY + 4, rect.minY - textSize.height - padding - 8)
-    }
-    if backgroundRect.maxX > bounds.maxX {
-      backgroundRect.origin.x = rect.minX
-    }
-
-    let edgeInset: CGFloat = 4
-    if backgroundRect.width <= bounds.width - edgeInset * 2 {
-      backgroundRect.origin.x = min(
-        max(backgroundRect.origin.x, bounds.minX + edgeInset),
-        bounds.maxX - backgroundRect.width - edgeInset
-      )
-    } else {
-      backgroundRect.origin.x = bounds.minX + edgeInset
-    }
-
-    updateTextLayerScales()
-    sizeIndicatorBackgroundLayer.frame = backgroundRect
-    sizeIndicatorBackgroundLayer.isHidden = false
-    sizeIndicatorTextLayer.string = sizeText
-    sizeIndicatorTextLayer.frame = CGRect(
-      x: backgroundRect.minX + padding,
-      y: backgroundRect.minY + padding / 2,
+    let point = currentMousePosition
+    let offset: CGFloat = 12
+    var textRect = CGRect(
+      x: point.x + offset,
+      y: point.y - textSize.height - 4,
       width: textSize.width,
       height: textSize.height
     )
+
+    if textRect.maxX > bounds.maxX {
+      textRect.origin.x = point.x - textSize.width - offset
+    }
+    if textRect.minY < bounds.minY {
+      textRect.origin.y = point.y + offset
+    }
+
+    updateTextLayerScales()
+    sizeIndicatorBackgroundLayer.frame = textRect.insetBy(dx: -4, dy: -2)
+    sizeIndicatorBackgroundLayer.isHidden = false
+
+    sizeIndicatorTextLayer.string = sizeText
+    sizeIndicatorTextLayer.frame = textRect
     sizeIndicatorTextLayer.isHidden = false
   }
 
@@ -2510,50 +2518,45 @@ final class AreaSelectionOverlayView: NSView {
       let screenPoint = window.convertPoint(toScreen: convert(point, to: nil))
       if let screen = window.screen {
         let flipY = Int(screen.frame.height - screenPoint.y)
-        text = "(\(Int(screenPoint.x)), \(flipY))"
+        text = "\(Int(screenPoint.x))\n\(flipY)"
       } else {
-        text = "(\(Int(screenPoint.x)), \(Int(screenPoint.y)))"
+        text = "\(Int(screenPoint.x))\n\(Int(screenPoint.y))"
       }
     } else {
-      text = "(\(Int(point.x)), \(Int(point.y)))"
+      text = "\(Int(point.x))\n\(Int(point.y))"
     }
 
-    let attributes = overlayTextAttributes
+    let attributes = coordinateTextAttributes
     let textSize: CGSize
     if text == lastSizeIndicatorText {
       textSize = lastSizeIndicatorTextSize
     } else {
-      textSize = text.size(withAttributes: attributes)
+      textSize = multiLineTextSize(text, attributes: attributes)
       lastSizeIndicatorText = text
       lastSizeIndicatorTextSize = textSize
     }
 
-    let padding: CGFloat = 6
-    var backgroundRect = CGRect(
-      x: point.x + 16,
-      y: point.y - textSize.height - padding - 8,
-      width: textSize.width + padding * 2,
-      height: textSize.height + padding
-    )
-
-    if backgroundRect.maxX > bounds.maxX {
-      backgroundRect.origin.x = point.x - backgroundRect.width - 8
-    }
-    if backgroundRect.minY < bounds.minY {
-      backgroundRect.origin.y = point.y + 16
-    }
-
-    updateTextLayerScales()
-    sizeIndicatorBackgroundLayer.frame = backgroundRect
-    sizeIndicatorBackgroundLayer.isHidden = false
-
-    sizeIndicatorTextLayer.string = text
-    sizeIndicatorTextLayer.frame = CGRect(
-      x: backgroundRect.minX + padding,
-      y: backgroundRect.minY + padding / 2,
+    let offset: CGFloat = 12
+    var textRect = CGRect(
+      x: point.x + offset,
+      y: point.y - textSize.height - 4,
       width: textSize.width,
       height: textSize.height
     )
+
+    if textRect.maxX > bounds.maxX {
+      textRect.origin.x = point.x - textSize.width - offset
+    }
+    if textRect.minY < bounds.minY {
+      textRect.origin.y = point.y + offset
+    }
+
+    updateTextLayerScales()
+    sizeIndicatorBackgroundLayer.frame = textRect.insetBy(dx: -4, dy: -2)
+    sizeIndicatorBackgroundLayer.isHidden = false
+
+    sizeIndicatorTextLayer.string = text
+    sizeIndicatorTextLayer.frame = textRect
     sizeIndicatorTextLayer.isHidden = false
   }
 
