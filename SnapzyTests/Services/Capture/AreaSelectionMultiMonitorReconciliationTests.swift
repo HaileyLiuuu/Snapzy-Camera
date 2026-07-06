@@ -180,6 +180,68 @@ final class AreaSelectionMultiMonitorReconciliationTests: AreaSelectionOverlayTe
     controller.cancelSelection()
   }
 
+  /// Verifies that mouse exit properly hides the coordinate indicator and magnifier layers.
+  func testMouseExited_hidesCoordinateIndicatorAndMagnifier() {
+    // 1. GIVEN: Manual region interaction mode with size indicator shown
+    let image = createSolidColorImage(color: .white, size: CGSize(width: 800, height: 600))
+    let backdrop = AreaSelectionBackdrop(displayID: 1, image: image, scaleFactor: 1.0)
+    overlayView.applyBackdrop(backdrop)
+    overlayView.setSelectionEnabled(true)
+    overlayView.setInteractionMode(.manualRegion, resetSelection: false)
+    overlayView.resetSelection()
+    
+    XCTAssertFalse(overlayView.testSizeIndicatorTextLayer.isHidden, "Size indicator should start visible")
+    XCTAssertFalse(overlayView.testSizeIndicatorBackgroundLayer.isHidden, "Background layer should start visible")
+    
+    // Set magnifier zoom and trigger magnifier update
+    overlayView.testMagnifierZoom = 2.0
+    overlayView.testUpdateMagnifier(at: CGPoint(x: 100, y: 100))
+    XCTAssertNotNil(overlayView.testMagnifierContainerLayer, "Magnifier container should be created")
+
+    // 2. WHEN: mouseExited is called
+    overlayView.mouseExited(with: NSEvent())
+
+    // 3. THEN: The layers should be hidden/removed
+    XCTAssertTrue(overlayView.testSizeIndicatorTextLayer.isHidden, "Size indicator should be hidden on mouse exit")
+    XCTAssertTrue(overlayView.testSizeIndicatorBackgroundLayer.isHidden, "Background layer should be hidden on mouse exit")
+    XCTAssertNil(overlayView.testMagnifierContainerLayer, "Magnifier container should be removed on mouse exit")
+  }
+
+  /// Verifies isMouseOver frame checks when a window is present
+  func testIsMouseOver_evaluatesFrameAndVisibility() {
+    let window = NSWindow(
+      contentRect: CGRect(x: 0, y: 0, width: 200, height: 200),
+      styleMask: .borderless,
+      backing: .buffered,
+      defer: false
+    )
+    window.contentView = overlayView
+    overlayView.setSelectionEnabled(true)
+    overlayView.setInteractionMode(.manualRegion, resetSelection: false)
+    
+    // GIVEN: window is not visible
+    window.setIsVisible(false)
+    overlayView.resetSelection() // calls updateCoordinateIndicator internally
+    XCTAssertTrue(overlayView.testSizeIndicatorTextLayer.isHidden, "Should be hidden when window is not visible")
+    
+    // GIVEN: window is visible, but positioned away from the mouse
+    window.setIsVisible(true)
+    let mouseLoc = NSEvent.mouseLocation
+    // Move window frame away from mouse location
+    window.setFrame(CGRect(x: mouseLoc.x + 500, y: mouseLoc.y + 500, width: 200, height: 200), display: false)
+    overlayView.resetSelection()
+    XCTAssertTrue(overlayView.testSizeIndicatorTextLayer.isHidden, "Should be hidden when window does not contain mouse")
+    
+    // GIVEN: window contains the mouse location
+    window.setFrame(CGRect(x: mouseLoc.x - 50, y: mouseLoc.y - 50, width: 200, height: 200), display: false)
+    overlayView.resetSelection()
+    XCTAssertFalse(overlayView.testSizeIndicatorTextLayer.isHidden, "Should be visible when window contains mouse")
+    
+    // Clean up
+    window.contentView = nil
+    window.close()
+  }
+
   /// Reads the private `pointerTrackingTimer` off `AreaSelectionController` via reflection.
   private func pointerTrackingTimer(of controller: AreaSelectionController) -> Timer? {
     let mirror = Mirror(reflecting: controller)
