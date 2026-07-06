@@ -84,6 +84,23 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 
 
+
+## [1.28.2] - 2026-07-06
+
+### Bug Fixes
+-  Enhance mouse exit behavior to hide coordinate indicator and magnifier layers (8b6928f)
+-  lock window movement and resizing for overlay panels (266467e)
+-  reorder uninstall steps and enhance TCC permissions reset logic (51b179a)
+
+### Chore
+- docs: Add reset permissions section to README files for TCC management (7c8eeb5)
+- chore: Add reset-permissions script to manage TCC permissions for Snapzy (d441cfc)
+- chore: update appcast, cask, and readme for v1.28.1 (8b5daf4)
+
+### Contributors
+- @duongductrong
+- @github-actions[bot]
+
 ## [1.28.1] - 2026-07-05
 
 ### Bug Fixes
