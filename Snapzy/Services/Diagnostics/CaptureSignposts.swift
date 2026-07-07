@@ -49,6 +49,13 @@ enum CaptureSignposts {
     _activationState = nil
   }
 
+  /// Discard an activation interval that will never reach the overlay (early return:
+  /// capture already active, save-dir permission missing). Prevents the abandoned
+  /// interval from being silently overwritten by the next hotkey press.
+  static func abandonActivation() {
+    _activationState = nil
+  }
+
   /// Point-in-time event within the activation interval.
   static func activationEvent(_ name: StaticString) {
     guard enabled else { return }

@@ -704,6 +704,9 @@ final class AreaSelectionController: NSObject {
   private func performDeferredFrozenActivationIfNeeded() {
     guard isFrozenSession, !hasPerformedFrozenActivation, isPresenting else { return }
     guard manualSelectionStartPoint == nil else { return }
+    // Never activate before at least one backdrop exists: activation deactivates the
+    // previous app, and a still-pending snapshot would capture its INACTIVE chrome.
+    guard !selectionBackdrops.isEmpty else { return }
     hasPerformedFrozenActivation = true
     stopPointerTracking()
     previouslyActiveApplication = NSWorkspace.shared.frontmostApplication
@@ -719,6 +722,9 @@ final class AreaSelectionController: NSObject {
   }
 
   func enableLiveFallbackSelection(for displayID: CGDirectDisplayID) {
+    // Intentionally does NOT trigger the deferred frozen activation: a live-fallback
+    // display has no frozen backdrop, so activating would dim the live windows being
+    // captured. The session stays live-style (pointer tracking on, app inactive).
     liveFallbackDisplayIDs.insert(displayID)
     guard let window = windowPool[displayID] else { return }
     window.overlayView.clearBackdrop()
@@ -1230,6 +1236,9 @@ final class AreaSelectionController: NSObject {
 
     guard let rect = manualSelectionRect, rect.width > 5, rect.height > 5 else {
       clearManualSelectionTracking(render: true)
+      // Frozen activation deferred because the backdrop landed mid-drag: retry now
+      // that the drag ended without completing the session.
+      performDeferredFrozenActivationIfNeeded()
       return
     }
 
@@ -1239,6 +1248,7 @@ final class AreaSelectionController: NSObject {
       ?? window(containing: rect.origin)
     guard let sourceWindow else {
       clearManualSelectionTracking(render: true)
+      performDeferredFrozenActivationIfNeeded()
       return
     }
 

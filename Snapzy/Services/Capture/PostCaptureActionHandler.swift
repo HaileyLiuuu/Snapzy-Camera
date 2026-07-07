@@ -287,7 +287,12 @@ final class PostCaptureActionHandler {
     pinToScreen: Bool = false
   ) async -> QuickAccessItem? {
     let scopedAccess = fileAccess.beginAccessingURL(url)
-    defer { scopedAccess.stop() }
+    // Close the capture-execute signpost no matter which actions are enabled or which
+    // early return is taken — a leaked interval corrupts the next capture's measurement.
+    defer {
+      CaptureSignposts.endExecute()
+      scopedAccess.stop()
+    }
 
     // Validate file exists before processing
     guard FileManager.default.fileExists(atPath: url.path) else {
@@ -329,7 +334,6 @@ final class PostCaptureActionHandler {
     if preferences.isActionEnabled(.copyFile, for: captureType) {
       copyToClipboard(url: url, isVideo: captureType == .recording)
       CaptureSignposts.executeEvent("clipboard-set")
-      CaptureSignposts.endExecute()
       let label = captureType == .screenshot ? "screenshot" : "recording"
       logger.debug("Clipboard copy executed for \(url.lastPathComponent)")
       DiagnosticLogger.shared.log(

@@ -551,6 +551,7 @@ final class ScreenCaptureViewModel: ObservableObject, KeyboardShortcutDelegate {
   private func startAreaCapture(initialInteractionMode: AreaSelectionInteractionMode) {
     // Prevent multiple area captures - only one at a time
     if isAreaSelectionActive {
+      CaptureSignposts.abandonActivation()
       DiagnosticLogger.shared.log(.debug, .capture, "captureArea blocked: already active")
       return
     }
@@ -560,6 +561,7 @@ final class ScreenCaptureViewModel: ObservableObject, KeyboardShortcutDelegate {
         promptMessage: L10n.Recording.chooseSaveLocationMessage
       )
     else {
+      CaptureSignposts.abandonActivation()
       lastCaptureResult = .failure(.saveFailed(L10n.ScreenCapture.saveLocationPermissionRequired))
       return
     }
@@ -933,6 +935,9 @@ final class ScreenCaptureViewModel: ObservableObject, KeyboardShortcutDelegate {
         excludeOwnApplication: excludeOwnApplication
       ),
       initialInteractionMode: initialInteractionMode,
+      // Legacy serial flow passes false here but non-empty backdrops — the controller
+      // still marks the session frozen via its `!backdrops.isEmpty` fallback. Both
+      // flows converge on the same `isFrozenSession` flag through different inputs.
       expectsFrozenBackdrops: hasPendingInitialBackdrop,
       onDisplayActivationRequested: { [weak self] displayID in
         self?.prepareLazyFrozenDisplay(
@@ -983,21 +988,39 @@ final class ScreenCaptureViewModel: ObservableObject, KeyboardShortcutDelegate {
         context
       }
 
+      // Transfer ownership of this session's in-flight snapshot tasks BEFORE any await.
+      // `isAreaSelectionActive` is released synchronously (pre-existing rapid-capture
+      // semantics), so a new session may start while the Task below awaits — it must not
+      // see, await, or cancel our tasks, and we must not call `cancelLazyAreaSnapshotTasks`
+      // after awaiting (it nils `activeAreaSelectionSessionID`, which would break the new
+      // session's sessionID guards).
+      let pendingSnapshotTasks = lazyAreaSnapshotTasks
+      lazyAreaSnapshotTasks = [:]
+
       Task { @MainActor in
         defer {
-          self.lazyAreaSnapshotFailedDisplayIDs.removeAll()
+          // Only touch shared per-session state if no newer session has taken over.
+          if self.activeAreaSelectionSessionID == sessionID {
+            self.activeAreaSelectionSessionID = nil
+            self.lazyAreaSnapshotFailedDisplayIDs.removeAll()
+          }
           hiddenWindowSession.restore()
         }
         self.isCapturing = true
         // Reordered frozen flow: the initial display's snapshot may still be in flight if the
-        // user finished extremely fast. Await the tasks this selection depends on, THEN cancel
-        // the rest — cancelling first would leave the crop without a source snapshot.
-        for displayID in selection.displayIDs.union([selection.displayID]) {
-          if let pendingSnapshotTask = self.lazyAreaSnapshotTasks[displayID] {
+        // user finished extremely fast. Await the tasks this selection depends on (from the
+        // transferred dict), then cancel the rest — cancelling first would leave the crop
+        // without a source snapshot.
+        let neededDisplayIDs = selection.displayIDs.union([selection.displayID])
+        for displayID in neededDisplayIDs {
+          if let pendingSnapshotTask = pendingSnapshotTasks[displayID] {
             await pendingSnapshotTask.value
           }
         }
-        self.cancelLazyAreaSnapshotTasks(clearFailures: false)
+        for (displayID, pendingSnapshotTask) in pendingSnapshotTasks
+        where !neededDisplayIDs.contains(displayID) {
+          pendingSnapshotTask.cancel()
+        }
         await Task.yield()
 
         let actualSaveDirectory = self.tempCaptureManager.resolveSaveDirectory(
@@ -1066,11 +1089,15 @@ final class ScreenCaptureViewModel: ObservableObject, KeyboardShortcutDelegate {
               self.lastCaptureResult = .failure(.captureFailed(error.localizedDescription))
               DiagnosticLogger.shared.log(.error, .capture, "Frozen area crop failed: \(error.localizedDescription)")
             }
-          } else if self.lazyAreaSnapshotFailedDisplayIDs.contains(selection.displayID) {
+          } else {
+            // No frozen snapshot for this display: either its snapshot failed (live
+            // fallback was enabled for it), or the selection landed on a display whose
+            // snapshot never arrived (reordered-flow fast-completion window). Capture
+            // live instead of failing — strictly better than erroring out.
             DiagnosticLogger.shared.log(
-              .info,
+              self.lazyAreaSnapshotFailedDisplayIDs.contains(selection.displayID) ? .info : .warning,
               .capture,
-              "Using live area capture fallback after lazy snapshot failure",
+              "Using live area capture fallback (no frozen snapshot for display)",
               context: ["displayID": "\(selection.displayID)"]
             )
             let result = await self.captureManager.captureArea(
@@ -1091,16 +1118,6 @@ final class ScreenCaptureViewModel: ObservableObject, KeyboardShortcutDelegate {
             if case .success = result {
               SoundManager.playScreenshotCapture()
             }
-          } else {
-            frozenSession.invalidate()
-            self.isCapturing = false
-            self.lastCaptureResult = .failure(.captureFailed(L10n.ScreenCapture.selectionOutsideDisplayBounds))
-            DiagnosticLogger.shared.log(
-              .error,
-              .capture,
-              "Area selection completed without a frozen snapshot",
-              context: ["displayID": "\(selection.displayID)"]
-            )
           }
         case .window(let target):
           DiagnosticLogger.shared.log(
