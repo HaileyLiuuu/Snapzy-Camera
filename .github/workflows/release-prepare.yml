@@ -11,6 +11,14 @@ on:
           - patch
           - minor
           - major
+      channel:
+        description: 'Release channel'
+        required: true
+        type: choice
+        default: stable
+        options:
+          - stable
+          - beta
 
   push:
     branches: [master]
@@ -25,6 +33,7 @@ jobs:
     outputs:
       should_release: ${{ steps.check.outputs.should_release }}
       version_type: ${{ steps.check.outputs.version_type }}
+      channel: ${{ steps.check.outputs.channel }}
     steps:
       - name: Determine if release should run
         id: check
@@ -34,14 +43,21 @@ jobs:
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
             echo "should_release=true" >> "$GITHUB_OUTPUT"
             echo "version_type=${{ inputs.version_type }}" >> "$GITHUB_OUTPUT"
+            echo "channel=${{ inputs.channel || 'stable' }}" >> "$GITHUB_OUTPUT"
           elif [ "${{ github.event_name }}" = "push" ]; then
-            if printf '%s\n' "$COMMIT_MSG" | grep -qE "^release\((patch|minor|major)\):"; then
-              TYPE=$(printf '%s\n' "$COMMIT_MSG" | sed -nE 's/^release\((patch|minor|major)\):.*/\1/p' | head -n 1)
+            if printf '%s\n' "$COMMIT_MSG" | grep -qE "^release\((patch|minor|major)(-beta)?\):"; then
+              TYPE=$(printf '%s\n' "$COMMIT_MSG" | sed -nE 's/^release\((patch|minor|major)(-beta)?\):.*/\1/p' | head -n 1)
+              CHANNEL=stable
+              if printf '%s\n' "$COMMIT_MSG" | grep -qE "^release\((patch|minor|major)-beta\):"; then
+                CHANNEL=beta
+              fi
               echo "should_release=true" >> "$GITHUB_OUTPUT"
               echo "version_type=$TYPE" >> "$GITHUB_OUTPUT"
+              echo "channel=$CHANNEL" >> "$GITHUB_OUTPUT"
             else
               echo "should_release=false" >> "$GITHUB_OUTPUT"
               echo "version_type=" >> "$GITHUB_OUTPUT"
+              echo "channel=" >> "$GITHUB_OUTPUT"
             fi
           fi
 
@@ -65,7 +81,7 @@ jobs:
         id: version
         run: |
           chmod +x scripts/bump-version.sh
-          OUTPUT=$(./scripts/bump-version.sh "${{ needs.check-release-trigger.outputs.version_type }}")
+          OUTPUT=$(./scripts/bump-version.sh "${{ needs.check-release-trigger.outputs.version_type }}" "${{ needs.check-release-trigger.outputs.channel || 'stable' }}")
           VERSION=$(echo "$OUTPUT" | grep "^version=" | cut -d= -f2)
           PREV_VERSION=$(echo "$OUTPUT" | grep "^previous_version=" | cut -d= -f2)
           BUILD=$(echo "$OUTPUT" | grep "^build_number=" | cut -d= -f2)
@@ -81,10 +97,20 @@ jobs:
         run: |
           chmod +x scripts/generate-changelog.sh
           mkdir -p build
-          PREV_TAG="v${{ steps.version.outputs.previous_version }}"
+          CHANNEL="${{ needs.check-release-trigger.outputs.channel || 'stable' }}"
+          if [ "$CHANNEL" = "stable" ]; then
+            # Stable (incl. beta promotion): span everything since the last STABLE tag,
+            # so commits already shipped in betas are included in the changelog
+            PREV_TAG=$(git describe --tags --abbrev=0 --exclude 'v*-beta*' 2>/dev/null || echo "")
+          else
+            # Beta: incremental since the previous release (stable or beta)
+            PREV_TAG="v${{ steps.version.outputs.previous_version }}"
+          fi
           # Check if previous tag exists
-          if git rev-parse "$PREV_TAG" >/dev/null 2>&1; then
+          if [ -n "$PREV_TAG" ] && git rev-parse "$PREV_TAG" >/dev/null 2>&1; then
             CHANGELOG=$(./scripts/generate-changelog.sh "$PREV_TAG")
+          elif [ "$CHANNEL" = "stable" ]; then
+            CHANGELOG=$(EXCLUDE_PRERELEASE=1 ./scripts/generate-changelog.sh)
           else
             CHANGELOG=$(./scripts/generate-changelog.sh)
           fi

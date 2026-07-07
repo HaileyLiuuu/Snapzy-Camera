@@ -7,8 +7,19 @@
 
 import Sparkle
 
+/// Sparkle update channel. Stable is the default; beta opts into pre-release builds.
+enum UpdateChannel: String, CaseIterable {
+  case stable
+  case beta
+}
+
 final class UpdaterManager: NSObject, SPUUpdaterDelegate {
   static let shared = UpdaterManager()
+
+  /// Current channel from UserDefaults; missing or invalid value resolves to stable.
+  static var channel: UpdateChannel {
+    UpdateChannel(rawValue: UserDefaults.standard.string(forKey: PreferencesKeys.updateChannel) ?? "") ?? .stable
+  }
 
   private(set) var controller: SPUStandardUpdaterController!
 
@@ -32,6 +43,12 @@ final class UpdaterManager: NSObject, SPUUpdaterDelegate {
   }
 
   // MARK: - SPUUpdaterDelegate
+
+  func allowedChannels(for updater: SPUUpdater) -> Set<String> {
+    let channel = Self.channel
+    DiagnosticLogger.shared.log(.info, .update, "Allowed channels: \(channel == .beta ? "[beta]" : "[] (stable)")")
+    return channel == .beta ? ["beta"] : []
+  }
 
   func updater(_ updater: SPUUpdater, didFinishLoading appcast: SUAppcast) {
     let count = appcast.items.count

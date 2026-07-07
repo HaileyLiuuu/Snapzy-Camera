@@ -116,6 +116,9 @@ enum SnapzyConfigurationImporter {
     collectBool(&reader, "updates", "download_automatically", mutations: &mutations) {
       UpdaterManager.shared.updater.automaticallyDownloadsUpdates = $0
     }
+    collectEnumString(&reader, "updates", "channel", allowed: UpdateChannel.allCases.map(\.rawValue), mutations: &mutations) {
+      defaults.set($0, forKey: PreferencesKeys.updateChannel)
+    }
     collectBool(&reader, "diagnostics", "enabled", mutations: &mutations) {
       defaults.set($0, forKey: PreferencesKeys.diagnosticsEnabled)
     }

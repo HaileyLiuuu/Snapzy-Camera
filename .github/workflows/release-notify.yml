@@ -17,6 +17,7 @@ jobs:
       release_url: ${{ steps.release.outputs.release_url }}
       download_url: ${{ steps.release.outputs.download_url }}
       body: ${{ steps.release.outputs.body }}
+      is_beta: ${{ steps.release.outputs.is_beta }}
     steps:
       - name: Fetch latest release
         id: release
@@ -25,12 +26,15 @@ jobs:
         run: |
           set -euo pipefail
 
-          # Get the latest release from GitHub API
-          RELEASE_JSON=$(gh api repos/${{ github.repository }}/releases/latest)
+          # Get the most recently created release, including prereleases
+          # (releases/latest skips prereleases and would announce the previous stable after a beta publish)
+          RELEASE_JSON=$(gh api "repos/${{ github.repository }}/releases?per_page=1" --jq '.[0]')
 
           VERSION=$(echo "$RELEASE_JSON" | jq -r '.tag_name' | sed 's/^v//')
           RELEASE_URL=$(echo "$RELEASE_JSON" | jq -r '.html_url')
           BODY=$(echo "$RELEASE_JSON" | jq -r '.body // "No release notes."')
+          IS_BETA=$(echo "$RELEASE_JSON" | jq -r '.prerelease')
+          echo "is_beta=$IS_BETA" >> "$GITHUB_OUTPUT"
 
           # Find the DMG asset download URL
           DOWNLOAD_URL=$(echo "$RELEASE_JSON" | jq -r '.assets[] | select(.name | endswith(".dmg")) | .browser_download_url' | head -1)
@@ -64,12 +68,18 @@ jobs:
           RELEASE_URL: ${{ needs.prepare.outputs.release_url }}
           DOWNLOAD_URL: ${{ needs.prepare.outputs.download_url }}
           BODY: ${{ needs.prepare.outputs.body }}
+          IS_BETA: ${{ needs.prepare.outputs.is_beta }}
         run: |
           set -euo pipefail
 
           if [ -z "${DISCORD_WEBHOOK_URL:-}" ]; then
             echo "DISCORD_WEBHOOK_URL not configured, skipping."
             exit 0
+          fi
+
+          TITLE_PREFIX=""
+          if [ "${IS_BETA:-false}" = "true" ]; then
+            TITLE_PREFIX="[Beta] "
           fi
 
           # Escape body for JSON embedding
@@ -83,7 +93,7 @@ jobs:
           PAYLOAD=$(cat <<DISCORD_EOF
           {
             "embeds": [{
-              "title": "🚀 Snapzy v${VERSION} Released",
+              "title": "🚀 ${TITLE_PREFIX}Snapzy v${VERSION} Released",
               "url": "${RELEASE_URL}",
               "description": "${ESCAPED_BODY}",
               "color": 5814783,

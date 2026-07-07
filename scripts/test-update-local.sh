@@ -36,6 +36,8 @@ V1_VERSION="99.0.0"
 V1_BUILD="990"
 V2_VERSION="99.0.1"
 V2_BUILD="991"
+V3_VERSION="99.0.2-beta.1"
+V3_BUILD="992"
 
 BUNDLE_ID="com.duongductrong.Snapzy"
 FEED_URL="http://localhost:${SERVER_PORT}/appcast.xml"
@@ -243,16 +245,18 @@ install_v1() {
 }
 
 create_dmg() {
-  local dmg_path="$TEST_DIR/server/Snapzy-test.dmg"
+  local label="${1:-v2}"
+  local dmg_name="${2:-Snapzy-test.dmg}"
+  local dmg_path="$TEST_DIR/server/$dmg_name"
 
   echo ""
-  echo "=== Creating DMG from v2 ==="
+  echo "=== Creating DMG from $label ==="
   mkdir -p "$TEST_DIR/server"
   rm -f "$dmg_path"
 
   hdiutil create \
     -volname "Snapzy" \
-    -srcfolder "$TEST_DIR/v2/Snapzy.app" \
+    -srcfolder "$TEST_DIR/$label/Snapzy.app" \
     -ov -format UDZO \
     "$dmg_path" \
     > /dev/null 2>&1
@@ -261,7 +265,8 @@ create_dmg() {
 }
 
 sign_dmg_eddsa() {
-  local dmg_path="$TEST_DIR/server/Snapzy-test.dmg"
+  local dmg_name="${1:-Snapzy-test.dmg}"
+  local dmg_path="$TEST_DIR/server/$dmg_name"
 
   echo ""
   echo "=== Signing DMG with Sparkle EdDSA ==="
@@ -318,6 +323,60 @@ EOF
 
   echo "  ✅ Appcast written to $appcast_path"
   echo "  → v${V2_VERSION} (build ${V2_BUILD}), size ${file_size} bytes"
+}
+
+generate_channel_appcast() {
+  local stable_sig="$1"
+  local beta_sig="$2"
+  local appcast_path="$TEST_DIR/server/appcast.xml"
+
+  echo ""
+  echo "=== Generating local appcast.xml (stable + beta items) ==="
+
+  local stable_size beta_size pub_date
+  stable_size=$(stat -f%z "$TEST_DIR/server/Snapzy-test.dmg")
+  beta_size=$(stat -f%z "$TEST_DIR/server/Snapzy-test-beta.dmg")
+  pub_date=$(date -u '+%a, %d %b %Y %H:%M:%S +0000')
+
+  cat > "$appcast_path" <<EOF
+<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0" xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <title>Snapzy Test Updates</title>
+    <link>http://localhost:${SERVER_PORT}</link>
+    <description>Local test appcast</description>
+    <language>en</language>
+    <item>
+      <title>Version ${V3_VERSION}</title>
+      <sparkle:channel>beta</sparkle:channel>
+      <sparkle:version>${V3_BUILD}</sparkle:version>
+      <sparkle:shortVersionString>${V3_VERSION}</sparkle:shortVersionString>
+      <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+      <pubDate>${pub_date}</pubDate>
+      <enclosure
+        url="http://localhost:${SERVER_PORT}/Snapzy-test-beta.dmg"
+        sparkle:edSignature="${beta_sig}"
+        length="${beta_size}"
+        type="application/octet-stream"/>
+    </item>
+    <item>
+      <title>Version ${V2_VERSION}</title>
+      <sparkle:version>${V2_BUILD}</sparkle:version>
+      <sparkle:shortVersionString>${V2_VERSION}</sparkle:shortVersionString>
+      <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+      <pubDate>${pub_date}</pubDate>
+      <enclosure
+        url="http://localhost:${SERVER_PORT}/Snapzy-test.dmg"
+        sparkle:edSignature="${stable_sig}"
+        length="${stable_size}"
+        type="application/octet-stream"/>
+    </item>
+  </channel>
+</rss>
+EOF
+
+  echo "  ✅ Appcast written to $appcast_path"
+  echo "  → stable: v${V2_VERSION} (build ${V2_BUILD}) | beta: v${V3_VERSION} (build ${V3_BUILD})"
 }
 
 start_server() {
@@ -408,6 +467,63 @@ run_test() {
   wait $SERVER_PID 2>/dev/null || true
 }
 
+run_channel_test() {
+  echo ""
+  echo "╔══════════════════════════════════════════════════════════╗"
+  echo "║  Sparkle Update Channel Test — stable vs beta            ║"
+  echo "╚══════════════════════════════════════════════════════════╝"
+
+  check_prereqs
+  build_archive
+
+  prepare_version "v1" "$V1_VERSION" "$V1_BUILD" "hybrid"
+  prepare_version "v2" "$V2_VERSION" "$V2_BUILD" "hybrid"
+  prepare_version "v3" "$V3_VERSION" "$V3_BUILD" "hybrid"
+
+  install_v1
+
+  create_dmg "v2" "Snapzy-test.dmg"
+  sign_dmg_eddsa "Snapzy-test.dmg"
+  local stable_sig="$ED_SIGNATURE"
+
+  create_dmg "v3" "Snapzy-test-beta.dmg"
+  sign_dmg_eddsa "Snapzy-test-beta.dmg"
+  local beta_sig="$ED_SIGNATURE"
+
+  generate_channel_appcast "$stable_sig" "$beta_sig"
+  start_server
+
+  echo ""
+  echo "╔══════════════════════════════════════════════════════════╗"
+  echo "║  ✅ Ready for channel testing!                           ║"
+  echo "╠══════════════════════════════════════════════════════════╣"
+  echo "║                                                          ║"
+  echo "║  Installed: v$V1_VERSION (build $V1_BUILD)"
+  echo "║  Stable item: v$V2_VERSION (build $V2_BUILD)"
+  echo "║  Beta item:   v$V3_VERSION (build $V3_BUILD, <sparkle:channel>beta)"
+  echo "║                                                          ║"
+  echo "║  Scenario A — stable channel (default):                  ║"
+  echo "║    defaults delete $BUNDLE_ID updates.channel            ║"
+  echo "║    Open Snapzy → About → Check for Updates               ║"
+  echo "║    Expected: offered v$V2_VERSION, NEVER v$V3_VERSION"
+  echo "║                                                          ║"
+  echo "║  Scenario B — beta channel:                              ║"
+  echo "║    In About tab set Update Channel = Beta, or:           ║"
+  echo "║    defaults write $BUNDLE_ID updates.channel -string beta║"
+  echo "║    Check for Updates                                     ║"
+  echo "║    Expected: offered v$V3_VERSION"
+  echo "║    Diagnostics log shows: Allowed channels: [beta]       ║"
+  echo "║                                                          ║"
+  echo "║  Teardown: defaults delete $BUNDLE_ID updates.channel    ║"
+  echo "║  Press Ctrl+C to stop the server when done.              ║"
+  echo "╚══════════════════════════════════════════════════════════╝"
+  echo ""
+
+  # Keep server running until Ctrl+C
+  trap 'echo ""; echo "→ Stopping server..."; stop_server; echo "✅ Done"; exit 0' INT TERM
+  wait $SERVER_PID 2>/dev/null || true
+}
+
 # ─── Main ───────────────────────────────────────────────────────────
 
 cmd="${1:-help}"
@@ -421,12 +537,17 @@ case "$cmd" in
     run_test "hybrid"
     ;;
 
+  test-channel)
+    run_channel_test
+    ;;
+
   clean)
     echo "Cleaning test artifacts..."
     stop_server
     killall Snapzy 2>/dev/null || true
     rm -rf "$TEST_DIR"
-    echo "✅ Cleaned $TEST_DIR"
+    defaults delete "$BUNDLE_ID" updates.channel 2>/dev/null || true
+    echo "✅ Cleaned $TEST_DIR (and reset updates.channel pref)"
     echo ""
     echo "Note: /Applications/Snapzy.app was NOT removed."
     echo "Re-install from DMG or run test-tcc-local.sh to restore."
@@ -441,7 +562,8 @@ case "$cmd" in
     echo "Commands:"
     echo "  test-current   Sign everything with self-signed cert (expect error 4005)"
     echo "  test-hybrid    Sparkle helpers ad-hoc + main app self-signed (expect success)"
-    echo "  clean          Remove test artifacts and stop server"
+    echo "  test-channel   Stable + beta appcast items; verify channel filtering"
+    echo "  clean          Remove test artifacts, stop server, reset channel pref"
     echo ""
     echo "Test flow:"
     echo "  1. export SPARKLE_PRIVATE_KEY_FILE=~/path/to/key"

@@ -1,21 +1,23 @@
 #!/bin/bash
 # update-appcast.sh - Prepends a new <item> to appcast.xml for Sparkle updates
-# Usage: ./scripts/update-appcast.sh <version> <build_number> <dmg_path> [appcast_file] [ed_signature] [release_notes_html]
+# Usage: ./scripts/update-appcast.sh <version> <build_number> <dmg_path> [appcast_file] [ed_signature] [release_notes_html] [channel]
 #
 # Example:
-#   ./scripts/update-appcast.sh "1.2.3" "42" "build/Snapzy-v1.2.3.dmg" "appcast.xml" "abc123..." "<h3>Features</h3><ul><li>New feature</li></ul>"
+#   ./scripts/update-appcast.sh "1.2.3" "42" "build/Snapzy-v1.2.3.dmg" "appcast.xml" "abc123..." "<h3>Features</h3><ul><li>New feature</li></ul>" "beta"
 #
 # The release_notes_html argument should contain the inner HTML for the release notes
 # (everything inside the <body> tag). A default style block is automatically prepended.
+# channel: optional Sparkle channel name (e.g. "beta"). Empty = default (stable) channel.
 
 set -euo pipefail
 
-VERSION="${1:?Usage: update-appcast.sh <version> <build_number> <dmg_path> [appcast_file] [ed_signature] [release_notes_html]}"
-BUILD_NUMBER="${2:?Usage: update-appcast.sh <version> <build_number> <dmg_path> [appcast_file] [ed_signature] [release_notes_html]}"
-DMG_PATH="${3:?Usage: update-appcast.sh <version> <build_number> <dmg_path> [appcast_file] [ed_signature] [release_notes_html]}"
+VERSION="${1:?Usage: update-appcast.sh <version> <build_number> <dmg_path> [appcast_file] [ed_signature] [release_notes_html] [channel]}"
+BUILD_NUMBER="${2:?Usage: update-appcast.sh <version> <build_number> <dmg_path> [appcast_file] [ed_signature] [release_notes_html] [channel]}"
+DMG_PATH="${3:?Usage: update-appcast.sh <version> <build_number> <dmg_path> [appcast_file] [ed_signature] [release_notes_html] [channel]}"
 APPCAST_FILE="${4:-appcast.xml}"
 ED_SIGNATURE="${5:-}"
 RELEASE_NOTES_HTML="${6:-}"
+CHANNEL="${7:-}"
 
 if [ ! -f "$DMG_PATH" ]; then
   echo "::error::DMG file not found: $DMG_PATH"
@@ -94,7 +96,7 @@ STYLE_BLOCK='<style>:root { color-scheme: light dark; } body { font-family: -app
 
 # Build the new <item> block into a temp file
 ITEM_FILE="${APPCAST_FILE}.item.tmp"
-trap 'rm -f "$ITEM_FILE" "${APPCAST_FILE}.tmp"' EXIT
+trap 'rm -f "$ITEM_FILE" "${ITEM_FILE}.awk" "${APPCAST_FILE}.tmp"' EXIT
 cat > "$ITEM_FILE" << EOF
     <item>
       <title>Version ${VERSION}</title>
@@ -113,6 +115,11 @@ cat > "$ITEM_FILE" << EOF
         type="application/octet-stream"/>
     </item>
 EOF
+
+# Tag the item with a Sparkle channel (stable items stay untagged = default channel)
+if [ -n "$CHANNEL" ]; then
+  awk -v ch="$CHANNEL" '{print} /<title>/ && !done {print "      <sparkle:channel>" ch "</sparkle:channel>"; done=1}' "$ITEM_FILE" > "${ITEM_FILE}.awk" && mv "${ITEM_FILE}.awk" "$ITEM_FILE"
+fi
 
 # Insert new item after the <language> line (before existing items)
 # Find the line number of <language> and insert after it

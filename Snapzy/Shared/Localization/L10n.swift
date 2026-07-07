@@ -3250,6 +3250,31 @@ enum L10n {
       defaultValue: "Donate",
       comment: "PayPal action button label"
     )
+    static let updateChannelTitle = string(
+      "preferences-about.update-channel-title",
+      defaultValue: "Update Channel",
+      comment: "About screen update channel row title"
+    )
+    static let updateChannelDescription = string(
+      "preferences-about.update-channel-description",
+      defaultValue: "Choose which releases you receive",
+      comment: "About screen update channel row description"
+    )
+    static let updateChannelStable = string(
+      "preferences-about.update-channel-stable",
+      defaultValue: "Stable",
+      comment: "Update channel picker option for stable releases"
+    )
+    static let updateChannelBeta = string(
+      "preferences-about.update-channel-beta",
+      defaultValue: "Beta",
+      comment: "Update channel picker option for beta releases"
+    )
+    static let updateChannelBetaWarning = string(
+      "preferences-about.update-channel-beta-warning",
+      defaultValue: "Beta builds are early previews and may contain bugs or unfinished features. If you switch back to Stable, this beta stays installed until the next stable release is newer than it.",
+      comment: "Warning shown when the beta update channel is selected"
+    )
   }
 
   enum PreferencesCloudHistory {

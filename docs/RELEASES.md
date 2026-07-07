@@ -86,6 +86,65 @@ git commit -m "chore: update appcast for vX.Y.Z"
 git push
 ```
 
+## Beta Channel
+
+Snapzy ships two Sparkle update channels from a single `appcast.xml`:
+
+- **Stable** (default): items with no channel tag. All users receive these.
+- **Beta**: items tagged `<sparkle:channel>beta</sparkle:channel>`. Only users who opt in via **Settings → About → Update Channel → Beta** receive them (beta users also receive stable items).
+
+The channel preference is stored in `updates.channel` (UserDefaults) and exported to `config.toml` under `[updates] channel`. `UpdaterManager.allowedChannels(for:)` returns `["beta"]` only when opted in.
+
+### Versioning Scheme
+
+| Release | Marketing version | Git tag | Build number (`sparkle:version`) |
+|---------|------------------|---------|-------------------------------|
+| Stable | `1.29.0` | `v1.29.0` | global counter +1 |
+| Beta | `1.29.0-beta.1`, `-beta.2`, … | `v1.29.0-beta.N` | global counter +1 (same counter) |
+
+Sparkle compares the numeric build number only — the `-beta.N` suffix is cosmetic. The single monotonic counter guarantees a promoted stable always outranks its betas.
+
+### Releasing a Beta
+
+Either:
+
+- **Actions → Release Prepare** → run with `channel = beta` and a bump type (`patch`/`minor`/`major`). The bump type applies to the base version when starting a new beta line; subsequent betas keep the base and increment `N` (derived from existing `vX.Y.Z-beta.*` tags).
+- Or push a commit to master titled `release(minor-beta): ...` (also `patch-beta`, `major-beta`).
+
+Then merge the generated `release/vX.Y.Z-beta.N` PR. The publish pipeline will:
+
+- Build, sign, and notarize the DMG exactly like stable
+- Create the GitHub Release with **prerelease = true** (the "latest" pointer stays on stable)
+- Add a `<sparkle:channel>beta</sparkle:channel>` item to `appcast.xml`
+- **Skip** the Homebrew cask and README install-URL updates
+- Send the Discord notification prefixed with `[Beta]`
+
+> **Note:** merge or close a beta release PR before dispatching the next one — two open prepare runs bump from the same pbxproj state and would collide.
+
+### Promoting a Beta to Stable
+
+Promotion is an ordinary stable release — a full rebuild from master HEAD (the version string is baked into the signed binary, so beta artifacts cannot be re-tagged):
+
+1. Ensure master HEAD is exactly what you want to ship (last beta merged, no unwanted commits).
+2. **Actions → Release Prepare** → run with `channel = stable`. When the current version is a beta, the `-beta.N` suffix is stripped (bump type is ignored) → version `X.Y.Z`.
+3. Review the `release/vX.Y.Z` PR — the changelog spans everything since the **last stable tag**, so all beta-tested commits are included. Merge.
+4. The publish pipeline runs the full stable path: `prerelease = false`, untagged appcast item, cask + README updated, Discord notify without `[Beta]`.
+5. Verify a beta-channel install is offered `X.Y.Z` (its build number is higher than every beta).
+
+### Switching Back from Beta (Downgrade Policy)
+
+Sparkle never offers a lower build than the one installed, so switching the channel back to Stable does **not** downgrade:
+
+- **Supported path (default):** the beta build stays installed until the next stable release ships with a higher build number — the promotion flow guarantees this. The About-tab warning communicates it.
+- **Manual immediate downgrade:** quit Snapzy, download the latest stable DMG from [GitHub Releases](https://github.com/duongductrong/Snapzy/releases), and replace the app in `/Applications`. Caveat: beta builds may have migrated preferences/data formats; going backwards is unsupported. Recommend exporting the TOML config before joining the beta.
+- **Rejected:** republishing a stable with an artificially inflated build number — it breaks the monotonic counter and confuses appcast history.
+
+### Prerequisites & Process Notes
+
+- The first beta must not ship before the app release containing the channel picker (users need the UI to opt in).
+- Don't leave a beta line dangling: promote or supersede betas promptly so beta users converge back onto stable.
+- Abandoned beta lines (e.g. `1.29.0` never promoted, jump to `1.30.0`) are fine — items stay as prereleases; optionally clean them from `appcast.xml` later.
+
 ## Key Management
 
 ### Backup Private Key

@@ -35,6 +35,9 @@ enum PreferencesKeys {
   /// Appearance
   static let appearanceMode = "appearanceMode"
 
+  // Updates
+  static let updateChannel = "updates.channel"
+
   // Shortcuts
   static let shortcutsEnabled = "shortcutsEnabled"
   static let fullscreenShortcut = "fullscreenShortcut"

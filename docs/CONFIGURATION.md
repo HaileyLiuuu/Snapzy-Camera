@@ -46,6 +46,7 @@ step and grant access later from Settings -> Advanced.
 The TOML file covers portable app preferences:
 
 - General settings: language, appearance, sounds, URL scheme integration, show menu bar icon, login item, export folder path.
+- Updates: automatic check/download and the Sparkle update channel (`stable` or `beta`).
 - Capture settings: naming templates, screenshot format, cursor/app inclusion, freeze area, show selection area overlay, reverse magnifier zoom direction, scrolling hints, OCR notification, object cutout auto-crop.
 - After-capture actions for screenshot and recording.
 - Recording settings: format, quality, FPS, audio, microphone device id, cursor, click highlights, keystroke overlay, live annotation shortcuts, video editor zoom transition duration.
@@ -106,6 +107,11 @@ url_scheme_enabled = true
 show_menu_bar_icon = true
 start_at_login = false
 export_location = "~/Desktop"
+
+[updates]
+check_automatically = true
+download_automatically = false
+channel = "stable" # "stable" | "beta" — invalid values are rejected on import
 
 [capture]
 hide_desktop_icons = false

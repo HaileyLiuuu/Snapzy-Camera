@@ -1,6 +1,8 @@
 #!/bin/bash
 # generate-changelog.sh - Generates changelog from conventional commits between tags
 # Usage: ./scripts/generate-changelog.sh [previous_tag]
+# Env: EXCLUDE_PRERELEASE=1 — when no tag argument is given, skip v*-beta* tags
+#      so the range starts at the last stable tag.
 
 set -euo pipefail
 
@@ -8,7 +10,11 @@ PREVIOUS_TAG="${1:-}"
 
 # Find the previous tag if not provided
 if [ -z "$PREVIOUS_TAG" ]; then
-  PREVIOUS_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+  if [ "${EXCLUDE_PRERELEASE:-0}" = "1" ]; then
+    PREVIOUS_TAG=$(git describe --tags --abbrev=0 --exclude 'v*-beta*' 2>/dev/null || echo "")
+  else
+    PREVIOUS_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+  fi
 fi
 
 # Build git log range

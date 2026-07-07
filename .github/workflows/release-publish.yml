@@ -34,6 +34,11 @@ jobs:
           BRANCH="${{ github.event.pull_request.head.ref }}"
           VERSION="${BRANCH#release/v}"
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          if [[ "$VERSION" == *-* ]]; then
+            echo "is_beta=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "is_beta=false" >> "$GITHUB_OUTPUT"
+          fi
           echo "Release version: v${VERSION}"
 
       - name: Checkout
@@ -431,7 +436,7 @@ jobs:
           name: v${{ steps.version.outputs.version }}
           body_path: ${{ steps.changelog.outputs.changelog_path }}
           draft: false
-          prerelease: false
+          prerelease: ${{ steps.version.outputs.is_beta == 'true' }}
           files: ${{ env.dmg_path }}
           generate_release_notes: false
         env:
@@ -581,6 +586,7 @@ jobs:
           BUILD_NUMBER: ${{ steps.build.outputs.number }}
           ED_SIGNATURE: ${{ steps.sparkle_sign.outputs.signature }}
           RELEASE_NOTES_PATH: ${{ steps.release_notes.outputs.release_notes_path }}
+          CHANNEL: ${{ steps.version.outputs.is_beta == 'true' && 'beta' || '' }}
         run: |
           set -euo pipefail
           DMG_PATH="${dmg_path:?dmg_path is not set}"
@@ -592,9 +598,12 @@ jobs:
             "$DMG_PATH" \
             "appcast.xml" \
             "$ED_SIGNATURE" \
-            "$RELEASE_NOTES_HTML"
+            "$RELEASE_NOTES_HTML" \
+            "$CHANNEL"
 
+      # Homebrew cask and README track stable releases only — skipped for beta
       - name: Update Homebrew cask
+        if: steps.version.outputs.is_beta != 'true'
         run: |
           VERSION="${{ steps.version.outputs.version }}"
           SHA="${{ steps.sha256.outputs.sha256 }}"
@@ -602,6 +611,7 @@ jobs:
           sed -i '' "s/sha256 \".*\"/sha256 \"${SHA}\"/" Casks/snapzy.rb
 
       - name: Update README install version
+        if: steps.version.outputs.is_beta != 'true'
         run: |
           VERSION="${{ steps.version.outputs.version }}"
           sed -i '' "s|/Snapzy/v[0-9][0-9.]*\/install.sh|/Snapzy/v${VERSION}/install.sh|g" README.md
@@ -611,5 +621,13 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add appcast.xml Casks/snapzy.rb README.md
-          git commit -m "chore: update appcast, cask, and readme for v${{ steps.version.outputs.version }}"
+          if git diff --cached --quiet; then
+            echo "No appcast/cask/readme changes to commit"
+            exit 0
+          fi
+          if [ "${{ steps.version.outputs.is_beta }}" = "true" ]; then
+            git commit -m "chore: update appcast for v${{ steps.version.outputs.version }}"
+          else
+            git commit -m "chore: update appcast, cask, and readme for v${{ steps.version.outputs.version }}"
+          fi
           git push origin master

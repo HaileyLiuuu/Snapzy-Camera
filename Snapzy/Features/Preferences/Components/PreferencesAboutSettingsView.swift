@@ -21,12 +21,18 @@ struct AboutSettingsView: View {
   }
 
   var body: some View {
-    VStack {
-      Spacer()
-      heroSection
-      Spacer()
+    // Scroll when content exceeds the window (e.g. beta warning + long locales),
+    // stay vertically centered when it fits
+    GeometryReader { proxy in
+      ScrollView {
+        VStack(spacing: 0) {
+          Spacer(minLength: 0)
+          heroSection
+          Spacer(minLength: 0)
+        }
+        .frame(maxWidth: .infinity, minHeight: proxy.size.height)
+      }
     }
-    .frame(maxWidth: .infinity, maxHeight: .infinity)
   }
 
   private var heroSection: some View {
@@ -86,6 +92,8 @@ struct AboutSettingsView: View {
         .buttonStyle(.bordered)
         .controlSize(.regular)
       }
+
+      UpdateChannelSectionView()
 
       sponsorSection
 

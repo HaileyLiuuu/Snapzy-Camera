@@ -42,6 +42,7 @@ enum SnapzyConfigurationExporter {
     let updater = UpdaterManager.shared.updater
     writer.value("check_automatically", updater.automaticallyChecksForUpdates)
     writer.value("download_automatically", updater.automaticallyDownloadsUpdates)
+    writer.value("channel", UpdaterManager.channel.rawValue)
 
     writer.section("diagnostics")
     writer.value("enabled", defaults.object(forKey: PreferencesKeys.diagnosticsEnabled) as? Bool ?? true)
