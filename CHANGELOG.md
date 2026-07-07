@@ -85,6 +85,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 
 
+
+## [1.28.3] - 2026-07-07
+
+### Bug Fixes
+-  Improve quarantine handling for applications outside standard folders (d72751a)
+
+### Chore
+- chore: update appcast, cask, and readme for v1.28.2 (f8ea345)
+
+### Contributors
+- @duongductrong
+- @github-actions[bot]
+
 ## [1.28.2] - 2026-07-06
 
 ### Bug Fixes
