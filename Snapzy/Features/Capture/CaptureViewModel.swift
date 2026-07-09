@@ -1122,6 +1122,24 @@ final class ScreenCaptureViewModel: ObservableObject, KeyboardShortcutDelegate {
         context
       }
 
+      // Frame lock: synchronously snapshot every display the `.rect` selection touches at
+      // the instant of mouse-up (~5-20ms per display via the existing CGDisplayCreateImage
+      // fast path), BEFORE any async hop — every await/Task suspension widens the window in
+      // which a post-release Cmd+Tab could recomposite the screen and change the captured
+      // pixels. Empty when the fast path can't honor the capture options; the capture task
+      // then falls back to captureArea() (status quo).
+      let mouseUpSnapshots: [FrozenDisplaySnapshot]
+      if case .rect = selection.target {
+        mouseUpSnapshots = self.captureLiveMouseUpSnapshots(
+          selection: selection,
+          showCursor: showCursor,
+          excludeDesktopIcons: excludeDesktopIcons,
+          excludeDesktopWidgets: excludeDesktopWidgets
+        )
+      } else {
+        mouseUpSnapshots = []
+      }
+
       Task { @MainActor in
         defer { hiddenWindowSession.restore() }
         self.isCapturing = true
@@ -1135,22 +1153,16 @@ final class ScreenCaptureViewModel: ObservableObject, KeyboardShortcutDelegate {
         let result: CaptureResult
         switch selection.target {
         case .rect:
-          DiagnosticLogger.shared.log(
-            .info,
-            .capture,
-            "Area captured live",
-            context: ["rect": "\(Int(selection.rect.width))x\(Int(selection.rect.height))"]
-          )
-          result = await self.captureManager.captureArea(
-            rect: selection.rect,
+          result = await self.captureLiveRectFromSnapshots(
+            selection: selection,
+            snapshots: mouseUpSnapshots,
             saveDirectory: actualSaveDirectory,
-            format: self.resolvedFormat,
             showCursor: showCursor,
             excludeDesktopIcons: excludeDesktopIcons,
             excludeDesktopWidgets: excludeDesktopWidgets,
             excludeOwnApplication: excludeOwnApplication,
             prefetchedContentTask: prefetchedContentTask,
-            context: selectionContext
+            selectionContext: selectionContext
           )
         case .window(let target):
           result = await self.captureManager.captureWindow(
@@ -1175,6 +1187,183 @@ final class ScreenCaptureViewModel: ObservableObject, KeyboardShortcutDelegate {
     }
   }
 
+  /// Synchronously snapshot each display the live `.rect` selection touches, at the instant
+  /// of mouse-up, via the existing CGDisplayCreateImage fast path (~5-20ms per display, no
+  /// SCStream, no recording indicator). The area-selection overlay never bakes in: its
+  /// windows are `sharingType = .none`, which CGDisplayCreateImage respects — the same
+  /// mechanism frozen-mode lazy snapshots rely on while overlays are visible.
+  ///
+  /// Own-app exclusion does NOT disqualify the fast path here: live sessions hide own
+  /// normal windows for their whole duration (`hideVisibleNormalWindowsIfNeeded`), so at
+  /// mouse-up no own window is visible — the same reasoning as the fullscreen fast path's
+  /// `allowFastPathWhenOwnApplicationHidden`.
+  ///
+  /// Returns `[]` when the fast path can't honor the capture options (cursor shown /
+  /// desktop-icon / widget exclusion — CGDisplayCreateImage can't filter those) or when any
+  /// touched display fails to snapshot (mixed-source composites are worse than a uniform
+  /// fallback). The caller then falls back to `captureArea()` (status quo).
+  private func captureLiveMouseUpSnapshots(
+    selection: AreaSelectionResult,
+    showCursor: Bool,
+    excludeDesktopIcons: Bool,
+    excludeDesktopWidgets: Bool
+  ) -> [FrozenDisplaySnapshot] {
+    let grabStartedAt = Date()
+    let neededDisplayIDs = selection.spansMultipleDisplays ? selection.displayIDs : [selection.displayID]
+    let snapshots = Self.gatherLiveMouseUpSnapshots(
+      displayIDs: neededDisplayIDs,
+      showCursor: showCursor,
+      excludeDesktopIcons: excludeDesktopIcons,
+      excludeDesktopWidgets: excludeDesktopWidgets
+    ) { displayID in
+      let snapshot = captureManager.captureFastDisplaySnapshot(
+        displayID: displayID,
+        showCursor: false,
+        excludeDesktopIcons: false,
+        excludeDesktopWidgets: false,
+        excludeOwnApplication: false
+      )
+      if snapshot == nil {
+        DiagnosticLogger.shared.log(
+          .info, .capture,
+          "Mouse-up fast snapshot unavailable; falling back to captureArea",
+          context: ["displayID": "\(displayID)"]
+        )
+      }
+      return snapshot
+    }
+    if !snapshots.isEmpty {
+      DiagnosticLogger.shared.log(
+        .info, .capture,
+        "Mouse-up fast snapshots grabbed",
+        context: [
+          "displays": "\(snapshots.count)",
+          "grabMs": "\(Int(Date().timeIntervalSince(grabStartedAt) * 1000))"
+        ]
+      )
+    }
+    return snapshots
+  }
+
+  /// Testable core of `captureLiveMouseUpSnapshots`: fast-path gating plus the
+  /// all-or-nothing per-display gather. Returns `[]` when the requested options can't be
+  /// honored by the CG fast path or when ANY display's grab fails — a partial result would
+  /// produce a mixed-source composite, which is worse than a uniform fallback.
+  /// `snapshotProvider` is `captureFastDisplaySnapshot` in production; injected so this
+  /// logic is unit-testable without displays or Screen Recording permission.
+  static func gatherLiveMouseUpSnapshots(
+    displayIDs: Set<CGDirectDisplayID>,
+    showCursor: Bool,
+    excludeDesktopIcons: Bool,
+    excludeDesktopWidgets: Bool,
+    snapshotProvider: (CGDirectDisplayID) -> FrozenDisplaySnapshot?
+  ) -> [FrozenDisplaySnapshot] {
+    guard !showCursor, !excludeDesktopIcons, !excludeDesktopWidgets else { return [] }
+
+    var snapshots: [FrozenDisplaySnapshot] = []
+    for displayID in displayIDs {
+      guard let snapshot = snapshotProvider(displayID) else { return [] }
+      snapshots.append(snapshot)
+    }
+    return snapshots
+  }
+
+  /// Crop the live `.rect` selection from the snapshots grabbed synchronously at mouse-up
+  /// and save it. The snapshots were read ~5-20ms after release — before any human-initiated
+  /// app switch can recomposite the screen — so the captured pixels match what was on screen
+  /// at release. If no snapshots are available (fast path gated off or a display grab
+  /// failed), fall back to today's `captureArea()` (status quo). Mirrors the frozen
+  /// completion's crop+save path (DRY via the shared `FrozenAreaCaptureSession.cropImage` /
+  /// `cropCompositeImage`).
+  private func captureLiveRectFromSnapshots(
+    selection: AreaSelectionResult,
+    snapshots: [FrozenDisplaySnapshot],
+    saveDirectory: URL,
+    showCursor: Bool,
+    excludeDesktopIcons: Bool,
+    excludeDesktopWidgets: Bool,
+    excludeOwnApplication: Bool,
+    prefetchedContentTask: ShareableContentPrefetchTask?,
+    selectionContext: CaptureContext
+  ) async -> CaptureResult {
+    let mouseUpStartedAt = Date()
+
+    guard !snapshots.isEmpty else {
+      DiagnosticLogger.shared.log(
+        .info, .capture,
+        "Area captured live",
+        context: ["rect": "\(Int(selection.rect.width))x\(Int(selection.rect.height))"]
+      )
+      return await captureManager.captureArea(
+        rect: selection.rect,
+        saveDirectory: saveDirectory,
+        format: resolvedFormat,
+        showCursor: showCursor,
+        excludeDesktopIcons: excludeDesktopIcons,
+        excludeDesktopWidgets: excludeDesktopWidgets,
+        excludeOwnApplication: excludeOwnApplication,
+        prefetchedContentTask: prefetchedContentTask,
+        context: selectionContext
+      )
+    }
+
+    let frozenSession = FrozenAreaCaptureSession.fromSnapshots(snapshots)
+
+    do {
+      let outputScaleFactor = preferredScreenshotOutputScaleFactor
+      let cropResult: FrozenAreaCropResult
+      if selection.spansMultipleDisplays {
+        cropResult = try frozenSession.cropCompositeImage(
+          for: selection,
+          minimumOutputScaleFactor: outputScaleFactor
+        )
+      } else {
+        cropResult = try frozenSession.cropImage(
+          for: selection,
+          minimumOutputScaleFactor: outputScaleFactor
+        )
+      }
+      let result = await captureManager.saveProcessedImage(
+        cropResult.image,
+        to: saveDirectory,
+        format: resolvedFormat,
+        scaleFactor: cropResult.scaleFactor,
+        context: selectionContext
+      )
+      let durationMs = Int(Date().timeIntervalSince(mouseUpStartedAt) * 1000)
+      DiagnosticLogger.shared.log(
+        .info, .capture,
+        "Area captured from mouse-up fast snapshot",
+        context: [
+          "rect": "\(Int(selection.rect.width))x\(Int(selection.rect.height))",
+          "spanMultiple": "\(selection.spansMultipleDisplays)",
+          "cropSaveMs": "\(durationMs)"
+        ]
+      )
+      return result
+    } catch {
+      DiagnosticLogger.shared.log(
+        .error, .capture,
+        "Mouse-up snapshot crop failed; falling back to captureArea: \(error.localizedDescription)"
+      )
+      DiagnosticLogger.shared.log(
+        .info, .capture,
+        "Area captured live",
+        context: ["rect": "\(Int(selection.rect.width))x\(Int(selection.rect.height))"]
+      )
+      return await captureManager.captureArea(
+        rect: selection.rect,
+        saveDirectory: saveDirectory,
+        format: resolvedFormat,
+        showCursor: showCursor,
+        excludeDesktopIcons: excludeDesktopIcons,
+        excludeDesktopWidgets: excludeDesktopWidgets,
+        excludeOwnApplication: excludeOwnApplication,
+        prefetchedContentTask: prefetchedContentTask,
+        context: selectionContext
+      )
+    }
+  }
 
   private func ensureFrozenSnapshots(
     for displayIDs: Set<CGDirectDisplayID>,

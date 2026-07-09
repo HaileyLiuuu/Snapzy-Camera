@@ -7,6 +7,8 @@ sparkle_private_key.pem
 .build
 /build
 
+/tmp/
+
 # Secrets - never commit
 Snapzy/Config/Secrets.xcconfig
 *.xcuserstate
