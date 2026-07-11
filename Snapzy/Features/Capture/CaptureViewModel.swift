@@ -1093,6 +1093,7 @@ final class ScreenCaptureViewModel: ObservableObject, KeyboardShortcutDelegate {
   ) {
     activeAreaSelectionSessionID = UUID()
 
+    AreaSelectionController.shared.setDismissesAfterSelection(false)
     AreaSelectionController.shared.startSelection(
       mode: .screenshot,
       backdrops: [:],
@@ -1139,6 +1140,9 @@ final class ScreenCaptureViewModel: ObservableObject, KeyboardShortcutDelegate {
       } else {
         mouseUpSnapshots = []
       }
+
+      // Secure pixels first: immediately after the snapshot is taken, we dismiss the overlay
+      AreaSelectionController.shared.cancelSelection()
 
       Task { @MainActor in
         defer { hiddenWindowSession.restore() }
