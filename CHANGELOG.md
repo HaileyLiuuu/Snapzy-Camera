@@ -87,6 +87,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 
 
+
+## [1.29.1-beta.2] - 2026-07-11
+
+### Bug Fixes
+-  Prevent area selection dismissal after capturing a screenshot (#352) (8b7a8f3)
+
+### Chore
+- chore: update appcast for v1.29.1-beta.1 (fac1a62)
+
+### Contributors
+- @duongductrong
+- @github-actions[bot]
+
 ## [1.29.1-beta.1] - 2026-07-09
 
 ### Features
