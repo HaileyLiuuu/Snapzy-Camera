@@ -221,7 +221,7 @@ Real-world screenshots can score lower, especially with emoji, low-contrast foot
 
 ## Security
 
-Snapzy runs inside the macOS App Sandbox with minimal entitlements. Network requests are limited to Sparkle update checks and user-initiated cloud uploads to **your own** S3/R2 bucket — no data is ever sent to third-party servers. Cloud credentials are stored exclusively in the macOS Keychain, can be further protected with an optional password (SHA-256 hashed, never stored in plaintext), and can only be transferred via a manual encrypted export/import flow protected by a user-supplied archive passphrase. Snapzy collects no telemetry.
+Snapzy runs inside the macOS App Sandbox with minimal entitlements. Network requests are limited to Sparkle update checks, local loopback OAuth callback redirection, and user-initiated cloud uploads to **your own** cloud storage (AWS S3, Cloudflare R2, or Google Drive) — no data is ever sent to third-party servers. Cloud credentials and OAuth tokens are stored exclusively in the macOS Keychain, can be further protected with an optional password (SHA-256 hashed, never stored in plaintext), and can only be transferred via a manual encrypted export/import flow protected by a user-supplied archive passphrase. Snapzy collects no telemetry.
 
 To report a vulnerability, please use a [GitHub Security Advisory](https://github.com/duongductrong/Snapzy/security/advisories/new) or contact the maintainer privately. See [SECURITY.md](SECURITY.md) for full details.
 

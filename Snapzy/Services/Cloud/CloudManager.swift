@@ -72,7 +72,8 @@ final class CloudManager: ObservableObject {
   func saveConfiguration(
     _ config: CloudConfiguration,
     accessKey: String,
-    secretKey: String
+    secretKey: String,
+    googleRefreshToken: String? = nil
   ) throws {
     DiagnosticLogger.shared.log(
       .info,
@@ -80,16 +81,28 @@ final class CloudManager: ObservableObject {
       "Cloud configuration save started",
       context: cloudContext(for: config)
     )
-    let accessKeySnapshot = snapshotCredential(item: .accessKey, context: "saveConfiguration.snapshot.accessKey")
-    let secretKeySnapshot = snapshotCredential(item: .secretKey, context: "saveConfiguration.snapshot.secretKey")
+
+    let isGoogle = config.providerType == .googleDrive
+    let accessItem: CloudKeychainItem = isGoogle ? .googleClientId : .accessKey
+    let secretItem: CloudKeychainItem = isGoogle ? .googleClientSecret : .secretKey
+
+    let accessKeySnapshot = snapshotCredential(item: accessItem, context: "saveConfiguration.snapshot.accessKey")
+    let secretKeySnapshot = snapshotCredential(item: secretItem, context: "saveConfiguration.snapshot.secretKey")
+    let googleRefreshTokenSnapshot = isGoogle ? snapshotCredential(item: .googleRefreshToken, context: "saveConfiguration.snapshot.googleRefreshToken") : nil
 
     do {
-      try saveToKeychain(item: .accessKey, value: accessKey)
-      try saveToKeychain(item: .secretKey, value: secretKey)
+      try saveToKeychain(item: accessItem, value: accessKey)
+      try saveToKeychain(item: secretItem, value: secretKey)
+      if isGoogle, let refreshToken = googleRefreshToken {
+        try saveToKeychain(item: .googleRefreshToken, value: refreshToken)
+      }
     } catch {
       rollbackCredentialWrite(
+        accessItem: accessItem,
+        secretItem: secretItem,
         accessKeySnapshot: accessKeySnapshot,
-        secretKeySnapshot: secretKeySnapshot
+        secretKeySnapshot: secretKeySnapshot,
+        googleRefreshTokenSnapshot: googleRefreshTokenSnapshot
       )
       DiagnosticLogger.shared.logError(
         .cloud,
@@ -102,17 +115,28 @@ final class CloudManager: ObservableObject {
 
     let defaults = UserDefaults.standard
     defaults.set(config.providerType.rawValue, forKey: PreferencesKeys.cloudProviderType)
+    let finalExpireTime = isGoogle ? CloudExpireTime.permanent : config.expireTime
+    
     defaults.set(config.bucket, forKey: PreferencesKeys.cloudBucket)
-    defaults.set(config.region, forKey: PreferencesKeys.cloudRegion)
-    defaults.set(config.endpoint ?? "", forKey: PreferencesKeys.cloudEndpoint)
-    defaults.set(config.customDomain ?? "", forKey: PreferencesKeys.cloudCustomDomain)
-    defaults.set(config.expireTime.rawValue, forKey: PreferencesKeys.cloudExpireTime)
+    defaults.set(isGoogle ? "" : config.region, forKey: PreferencesKeys.cloudRegion)
+    defaults.set(isGoogle ? "" : (config.endpoint ?? ""), forKey: PreferencesKeys.cloudEndpoint)
+    defaults.set(isGoogle ? "" : (config.customDomain ?? ""), forKey: PreferencesKeys.cloudCustomDomain)
+    defaults.set(finalExpireTime.rawValue, forKey: PreferencesKeys.cloudExpireTime)
     defaults.set(true, forKey: PreferencesKeys.cloudConfigured)
 
     // Update state
     isConfigured = true
     providerType = config.providerType
-    cachedConfiguration = config
+    
+    let finalConfig = CloudConfiguration(
+      providerType: config.providerType,
+      bucket: config.bucket,
+      region: isGoogle ? "" : config.region,
+      endpoint: isGoogle ? nil : config.endpoint,
+      customDomain: isGoogle ? nil : config.customDomain,
+      expireTime: finalExpireTime
+    )
+    cachedConfiguration = finalConfig
     cachedMaskedAccessKey = accessKeySummary(for: accessKey)
     CloudUsageService.shared.invalidateCache()
 
@@ -121,7 +145,7 @@ final class CloudManager: ObservableObject {
       .info,
       .cloud,
       "Cloud configuration saved",
-      context: cloudContext(for: config)
+      context: cloudContext(for: finalConfig)
     )
   }
 
@@ -268,6 +292,26 @@ final class CloudManager: ObservableObject {
     loadFromKeychain(item: .secretKey, context: "loadSecretKey") ?? ""
   }
 
+  /// Load the Google Drive refresh token
+  func loadGoogleRefreshToken() -> String? {
+    loadFromKeychain(item: .googleRefreshToken, context: "loadGoogleRefreshToken")
+  }
+
+  /// Save the Google Drive refresh token
+  func saveGoogleRefreshToken(_ token: String) throws {
+    try saveToKeychain(item: .googleRefreshToken, value: token)
+  }
+
+  /// Load the Google Drive Client ID
+  func loadGoogleClientId() -> String {
+    loadFromKeychain(item: .googleClientId, context: "loadGoogleClientId") ?? ""
+  }
+
+  /// Load the Google Drive Client Secret
+  func loadGoogleClientSecret() -> String {
+    loadFromKeychain(item: .googleClientSecret, context: "loadGoogleClientSecret") ?? ""
+  }
+
   /// Create an in-memory snapshot of the current cloud configuration for transfer export.
   func exportTransferPayload() throws -> CloudCredentialTransferPayload {
     guard let configuration = loadConfiguration(),
@@ -283,10 +327,19 @@ final class CloudManager: ObservableObject {
       "Cloud credential export payload prepared",
       context: cloudContext(for: configuration)
     )
+
+    let isGoogle = configuration.providerType == .googleDrive
+    let googleClientId = isGoogle ? credentials.accessKey : nil
+    let googleClientSecret = isGoogle ? credentials.secretKey : nil
+    let googleRefreshToken = isGoogle ? loadGoogleRefreshToken() : nil
+
     return CloudCredentialTransferPayload(
       configuration: configuration,
       accessKey: credentials.accessKey,
-      secretKey: credentials.secretKey
+      secretKey: credentials.secretKey,
+      googleClientId: googleClientId,
+      googleClientSecret: googleClientSecret,
+      googleRefreshToken: googleRefreshToken
     )
   }
 
@@ -294,6 +347,9 @@ final class CloudManager: ObservableObject {
   func clearConfiguration() {
     deleteFromKeychain(item: .accessKey)
     deleteFromKeychain(item: .secretKey)
+    deleteFromKeychain(item: .googleClientId)
+    deleteFromKeychain(item: .googleClientSecret)
+    deleteFromKeychain(item: .googleRefreshToken)
 
     CloudPasswordService.shared.removePassword()
 
@@ -346,21 +402,36 @@ final class CloudManager: ObservableObject {
   private func createProvider(
     config: CloudConfiguration,
     accessKey: String,
-    secretKey: String
+    secretKey: String,
+    googleRefreshToken: String? = nil
   ) -> CloudProvider {
     switch config.providerType {
     case .awsS3:
       return S3CloudProvider(config: config, accessKey: accessKey, secretKey: secretKey)
     case .cloudflareR2:
       return R2CloudProvider(config: config, accessKey: accessKey, secretKey: secretKey)
+    case .googleDrive:
+      let refreshToken = googleRefreshToken ?? loadGoogleRefreshToken() ?? ""
+      return GoogleDriveCloudProvider(
+        clientId: accessKey,
+        clientSecret: secretKey,
+        refreshToken: refreshToken,
+        folderName: config.bucket
+      )
     }
   }
 
   private func loadCredentialPair(context: String) -> (accessKey: String, secretKey: String)? {
+    let providerRaw = UserDefaults.standard.string(forKey: PreferencesKeys.cloudProviderType)
+    let isGoogle = providerRaw == CloudProviderType.googleDrive.rawValue
+
+    let accessItem: CloudKeychainItem = isGoogle ? .googleClientId : .accessKey
+    let secretItem: CloudKeychainItem = isGoogle ? .googleClientSecret : .secretKey
+
     let accessContext = "\(context).accessKey"
     let secretContext = "\(context).secretKey"
-    let accessOutcome = CloudKeychainStore.read(item: .accessKey, context: accessContext)
-    let secretOutcome = CloudKeychainStore.read(item: .secretKey, context: secretContext)
+    let accessOutcome = CloudKeychainStore.read(item: accessItem, context: accessContext)
+    let secretOutcome = CloudKeychainStore.read(item: secretItem, context: secretContext)
 
     if case .itemNotFound = accessOutcome,
       case .itemNotFound = secretOutcome,
@@ -429,11 +500,17 @@ final class CloudManager: ObservableObject {
   }
 
   private func rollbackCredentialWrite(
+    accessItem: CloudKeychainItem,
+    secretItem: CloudKeychainItem,
     accessKeySnapshot: CredentialSnapshotState,
-    secretKeySnapshot: CredentialSnapshotState
+    secretKeySnapshot: CredentialSnapshotState,
+    googleRefreshTokenSnapshot: CredentialSnapshotState?
   ) {
-    restoreCredential(item: .accessKey, snapshot: accessKeySnapshot, context: "saveConfiguration.rollback.accessKey")
-    restoreCredential(item: .secretKey, snapshot: secretKeySnapshot, context: "saveConfiguration.rollback.secretKey")
+    restoreCredential(item: accessItem, snapshot: accessKeySnapshot, context: "saveConfiguration.rollback.accessKey")
+    restoreCredential(item: secretItem, snapshot: secretKeySnapshot, context: "saveConfiguration.rollback.secretKey")
+    if let googleRefreshTokenSnapshot = googleRefreshTokenSnapshot {
+      restoreCredential(item: .googleRefreshToken, snapshot: googleRefreshTokenSnapshot, context: "saveConfiguration.rollback.googleRefreshToken")
+    }
   }
 
   private func restoreCredential(
@@ -473,9 +550,15 @@ final class CloudManager: ObservableObject {
   func validateCredentials(
     config: CloudConfiguration,
     accessKey: String,
-    secretKey: String
+    secretKey: String,
+    googleRefreshToken: String? = nil
   ) async throws {
-    let provider = createProvider(config: config, accessKey: accessKey, secretKey: secretKey)
+    let provider = createProvider(
+      config: config,
+      accessKey: accessKey,
+      secretKey: secretKey,
+      googleRefreshToken: googleRefreshToken
+    )
     DiagnosticLogger.shared.log(
       .info,
       .cloud,
@@ -912,6 +995,12 @@ final class CloudManager: ObservableObject {
       return "secretKey"
     case .passwordHash:
       return "passwordHash"
+    case .googleRefreshToken:
+      return "googleRefreshToken"
+    case .googleClientId:
+      return "googleClientId"
+    case .googleClientSecret:
+      return "googleClientSecret"
     }
   }
 }

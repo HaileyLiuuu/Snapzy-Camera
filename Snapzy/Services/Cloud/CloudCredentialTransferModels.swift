@@ -11,6 +11,9 @@ struct CloudCredentialTransferPayload: Codable, Equatable {
   let configuration: CloudConfiguration
   let accessKey: String
   let secretKey: String
+  var googleClientId: String? = nil
+  var googleClientSecret: String? = nil
+  var googleRefreshToken: String? = nil
 
   var providerDisplayName: String {
     configuration.providerType.displayName

@@ -3676,6 +3676,11 @@ enum L10n {
       defaultValue: "Cloudflare R2",
       comment: "Cloud provider display name"
     )
+    static let googleDrive = string(
+      "cloud-provider.google-drive",
+      defaultValue: "Google Drive",
+      comment: "Cloud provider display name"
+    )
   }
 
   enum CloudExpire {
@@ -4033,6 +4038,69 @@ enum L10n {
       "cloud-settings.custom-domain",
       defaultValue: "Custom Domain",
       comment: "Cloud settings label for custom domain"
+    )
+    static let googleCredentialsSection = string(
+      "cloud-settings.google-credentials-section",
+      defaultValue: "Google Drive Credentials",
+      comment: "Section title for Google Drive client credentials"
+    )
+    static let googleClientId = string(
+      "cloud-settings.google-client-id",
+      defaultValue: "Client ID",
+      comment: "Google Drive Client ID field label"
+    )
+    static let googleClientSecret = string(
+      "cloud-settings.google-client-secret",
+      defaultValue: "Client Secret",
+      comment: "Google Drive Client Secret field label"
+    )
+    static let googleSetupGuide = string(
+      "cloud-settings.google-setup-guide",
+      defaultValue: "Bring your own credentials to protect privacy. Create a Desktop App OAuth Client ID in your Google Cloud Console.",
+      comment: "Google Drive client setup guide text"
+    )
+    static let googleAuthSection = string(
+      "cloud-settings.google-auth-section",
+      defaultValue: "Google Authorization",
+      comment: "Section title for Google Drive OAuth authorization"
+    )
+    static let googleAuthorize = string(
+      "cloud-settings.google-authorize",
+      defaultValue: "Authorize with Google",
+      comment: "Button text to authorize Google Drive"
+    )
+    static let googleAuthorizing = string(
+      "cloud-settings.google-authorizing",
+      defaultValue: "Authorizing…",
+      comment: "Button text when Google Drive authorization is in progress"
+    )
+    static let googleAuthorized = string(
+      "cloud-settings.google-authorized",
+      defaultValue: "Authorized",
+      comment: "Status text when Google Drive authorization is successful"
+    )
+    static func googleConnectedAs(_ email: String) -> String {
+      format(
+        "cloud-settings.google-connected-as",
+        defaultValue: "Connected as: %@",
+        comment: "Label showing the authorized Google account email",
+        email
+      )
+    }
+    static let googleFolderSection = string(
+      "cloud-settings.google-folder-section",
+      defaultValue: "Google Drive Folder",
+      comment: "Section title for Google Drive folder settings"
+    )
+    static let googleFolderName = string(
+      "cloud-settings.google-folder-name",
+      defaultValue: "Folder Name",
+      comment: "Google Drive Folder Name field label"
+    )
+    static let googleFolderDescription = string(
+      "cloud-settings.google-folder-description",
+      defaultValue: "Screenshots and videos will be saved under this folder in your Google Drive (default: Snapzy).",
+      comment: "Google Drive Folder Name description"
     )
     static let uploadsWindowSection = string(
       "cloud-settings.uploads-window-section",

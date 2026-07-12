@@ -86,9 +86,17 @@ struct CloudConfiguration: Codable, Equatable {
 
   /// Validate that required fields are present
   var isValid: Bool {
-    !bucket.trimmingCharacters(in: .whitespaces).isEmpty
-      && (providerType == .cloudflareR2
-        ? !(endpoint ?? "").trimmingCharacters(in: .whitespaces).isEmpty
-        : !region.trimmingCharacters(in: .whitespaces).isEmpty)
+    switch providerType {
+    case .awsS3:
+      return !bucket.trimmingCharacters(in: .whitespaces).isEmpty
+        && !region.trimmingCharacters(in: .whitespaces).isEmpty
+    case .cloudflareR2:
+      return !bucket.trimmingCharacters(in: .whitespaces).isEmpty
+        && !(endpoint ?? "").trimmingCharacters(in: .whitespaces).isEmpty
+    case .googleDrive:
+      // googleDrive doesn't require bucket/region/endpoint fields to be validated here,
+      // and default folder name "Snapzy" is used if bucket is empty.
+      return true
+    }
   }
 }

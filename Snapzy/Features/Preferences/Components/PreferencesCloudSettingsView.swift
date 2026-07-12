@@ -172,61 +172,81 @@ struct CloudSettingsView: View {
   private var configuredView: some View {
     Group {
       // Cloud stats at the very top
-      cloudStatsSection
+      if cloudManager.cachedConfiguration?.providerType != .googleDrive {
+        cloudStatsSection
+      }
 
       Section(L10n.CloudSettings.providerSection) {
         if let config = cloudManager.cachedConfiguration {
-          SettingRow(
-            icon: "cloud.fill",
-            title: config.providerType.displayName,
-            description: L10n.CloudSettings.bucketDescription(config.bucket)
-          ) {
-            EmptyView()
-          }
-
-          SettingRow(
-            icon: "key.fill",
-            title: L10n.CloudSettings.accessKey,
-            description: cloudManager.cachedMaskedAccessKey
-          ) {
-            EmptyView()
-          }
-
-          if !config.region.isEmpty && config.providerType == .awsS3 {
+          if config.providerType == .googleDrive {
             SettingRow(
-              icon: "globe",
-              title: L10n.CloudSettings.region,
-              description: config.region
+              icon: "cloud.fill",
+              title: config.providerType.displayName,
+              description: config.bucket.isEmpty ? "Snapzy" : config.bucket
             ) {
               EmptyView()
             }
-          }
 
-          if let endpoint = config.endpoint, !endpoint.isEmpty {
             SettingRow(
-              icon: "server.rack",
-              title: L10n.CloudSettings.endpoint,
-              description: cloudManager.maskedEndpoint()
+              icon: "checkmark.seal.fill",
+              title: L10n.CloudSettings.googleAuthorized,
+              description: L10n.CloudSettings.storedSecurelyInKeychain
             ) {
               EmptyView()
             }
-          }
-
-          SettingRow(
-            icon: "clock",
-            title: L10n.CloudSettings.expireTime,
-            description: config.expireTime.displayName
-          ) {
-            EmptyView()
-          }
-
-          if let domain = config.customDomain, !domain.isEmpty {
+          } else {
             SettingRow(
-              icon: "link",
-              title: L10n.CloudSettings.customDomain,
-              description: domain
+              icon: "cloud.fill",
+              title: config.providerType.displayName,
+              description: L10n.CloudSettings.bucketDescription(config.bucket)
             ) {
               EmptyView()
+            }
+
+            SettingRow(
+              icon: "key.fill",
+              title: L10n.CloudSettings.accessKey,
+              description: cloudManager.cachedMaskedAccessKey
+            ) {
+              EmptyView()
+            }
+
+            if !config.region.isEmpty && config.providerType == .awsS3 {
+              SettingRow(
+                icon: "globe",
+                title: L10n.CloudSettings.region,
+                description: config.region
+              ) {
+                EmptyView()
+              }
+            }
+
+            if let endpoint = config.endpoint, !endpoint.isEmpty {
+              SettingRow(
+                icon: "server.rack",
+                title: L10n.CloudSettings.endpoint,
+                description: cloudManager.maskedEndpoint()
+              ) {
+                EmptyView()
+              }
+            }
+
+            SettingRow(
+              icon: "clock",
+              title: L10n.CloudSettings.expireTime,
+              description: config.expireTime.displayName
+            ) {
+              EmptyView()
+            }
+
+            if let domain = config.customDomain, !domain.isEmpty {
+              SettingRow(
+                icon: "link",
+                title: L10n.CloudSettings.customDomain,
+                description: domain
+              ) {
+                EmptyView()
+              }
             }
           }
         }
@@ -772,6 +792,15 @@ private struct CloudCredentialFormView: View {
   @State private var expireTime: CloudExpireTime = .day7
   @State private var showSecretKey = false
 
+  // Google Drive specific fields
+  @State private var googleClientId = ""
+  @State private var googleClientSecret = ""
+  @State private var googleFolderName = "Snapzy"
+  @State private var isAuthorizing = false
+  @State private var authorizationSuccess = false
+  @State private var googleRefreshToken = ""
+  @State private var googleUserEmail = ""
+
   // Password fields
   @State private var protectionPassword = ""
   @State private var confirmProtectionPassword = ""
@@ -830,136 +859,221 @@ private struct CloudCredentialFormView: View {
         }
       }
 
-      Section(L10n.CloudSettings.credentialsSection) {
-        SettingRow(
-          icon: "key",
-          title: L10n.CloudSettings.accessKeyID,
-          description: nil,
-          tooltip: L10n.CloudSettings.accessKeyTooltip
-        ) {
-          TextField("", text: $accessKey)
-            .textFieldStyle(.roundedBorder)
-            .frame(width: 240)
-        }
+      if providerType == .googleDrive {
+        Section(L10n.CloudSettings.googleCredentialsSection) {
+          SettingRow(
+            icon: "person.badge.key",
+            title: L10n.CloudSettings.googleClientId,
+            description: nil,
+            tooltip: nil
+          ) {
+            TextField("", text: $googleClientId)
+              .textFieldStyle(.roundedBorder)
+              .frame(width: 240)
+          }
 
-        SettingRow(
-          icon: "lock",
-          title: L10n.CloudSettings.secretAccessKey,
-          description: nil,
-          tooltip: L10n.CloudSettings.secretKeyTooltip
-        ) {
-          HStack(spacing: 6) {
-            if showSecretKey {
-              TextField("", text: $secretKey)
-                .textFieldStyle(.roundedBorder)
-                .frame(width: 210)
-            } else {
-              SecureField("", text: $secretKey)
-                .textFieldStyle(.roundedBorder)
-                .frame(width: 210)
+          SettingRow(
+            icon: "lock",
+            title: L10n.CloudSettings.googleClientSecret,
+            description: nil,
+            tooltip: nil
+          ) {
+            HStack(spacing: 6) {
+              if showSecretKey {
+                TextField("", text: $googleClientSecret)
+                  .textFieldStyle(.roundedBorder)
+                  .frame(width: 210)
+              } else {
+                SecureField("", text: $googleClientSecret)
+                  .textFieldStyle(.roundedBorder)
+                  .frame(width: 210)
+              }
+              Button(action: { showSecretKey.toggle() }) {
+                Image(systemName: showSecretKey ? "eye.slash" : "eye")
+                  .font(.system(size: 12))
+                  .foregroundColor(.secondary)
+              }
+              .buttonStyle(.plain)
             }
-            Button(action: { showSecretKey.toggle() }) {
-              Image(systemName: showSecretKey ? "eye.slash" : "eye")
-                .font(.system(size: 12))
-                .foregroundColor(.secondary)
-            }
-            .buttonStyle(.plain)
-          }
-        }
-      }
-
-      Section(L10n.CloudSettings.storageSection) {
-        SettingRow(
-          icon: "externaldrive",
-          title: L10n.CloudSettings.bucketName,
-          description: nil,
-          tooltip: L10n.CloudSettings.bucketTooltip
-        ) {
-          TextField("", text: $bucket)
-            .textFieldStyle(.roundedBorder)
-            .frame(width: 240)
-        }
-
-        if providerType == .awsS3 {
-          SettingRow(
-            icon: "globe",
-            title: L10n.CloudSettings.region,
-            description: nil,
-            tooltip: L10n.CloudSettings.regionTooltip
-          ) {
-            TextField("", text: $region)
-              .textFieldStyle(.roundedBorder)
-              .frame(width: 240)
           }
 
-          SettingRow(
-            icon: "server.rack",
-            title: L10n.CloudSettings.endpoint,
-            description: nil,
-            tooltip: L10n.CloudSettings.endpointTooltipS3
-          ) {
-            TextField("", text: $endpoint)
-              .textFieldStyle(.roundedBorder)
-              .frame(width: 240)
-          }
-        }
-
-        if providerType == .cloudflareR2 {
-          SettingRow(
-            icon: "server.rack",
-            title: L10n.CloudSettings.endpoint,
-            description: nil,
-            tooltip: L10n.CloudSettings.endpointTooltipR2
-          ) {
-            TextField("", text: $endpoint)
-              .textFieldStyle(.roundedBorder)
-              .frame(width: 240)
-          }
-        }
-
-        SettingRow(
-          icon: "link",
-          title: L10n.CloudSettings.customDomain,
-          description: nil,
-          tooltip: L10n.CloudSettings.customDomainTooltip
-        ) {
-          TextField("", text: $customDomain)
-            .textFieldStyle(.roundedBorder)
-            .frame(width: 240)
-        }
-      }
-
-      Section(L10n.CloudSettings.fileExpirationSection) {
-        Picker(L10n.CloudSettings.expireTime, selection: $expireTime) {
-          ForEach(CloudExpireTime.allCases, id: \.self) { time in
-            Text(time.displayName).tag(time)
-          }
-        }
-
-        if expireTime.isPermanent {
-          HStack(alignment: .top, spacing: 6) {
-            Image(systemName: "exclamationmark.triangle.fill")
-              .foregroundColor(.orange)
-              .font(.system(size: 12))
-              .padding(.top, 1)
-            Text(L10n.CloudSettings.noLifecycleRuleWarning)
-            .font(.system(size: 11))
-            .foregroundColor(.orange)
-            .fixedSize(horizontal: false, vertical: true)
-          }
-          .padding(.vertical, 4)
-        } else {
-          HStack(alignment: .top, spacing: 6) {
-            Image(systemName: "info.circle")
-              .foregroundColor(.secondary)
-              .font(.system(size: 12))
-              .padding(.top, 1)
-            Text(L10n.CloudSettings.lifecycleRuleInfo)
+          Text(L10n.CloudSettings.googleSetupGuide)
             .font(.system(size: 11))
             .foregroundColor(.secondary)
-            .fixedSize(horizontal: false, vertical: true)
+            .padding(.vertical, 4)
+        }
+
+        Section(L10n.CloudSettings.googleAuthSection) {
+          HStack(spacing: 12) {
+            Button(action: startGoogleAuthorization) {
+              HStack(spacing: 6) {
+                if isAuthorizing {
+                  ProgressView().controlSize(.small)
+                } else if authorizationSuccess {
+                  Image(systemName: "checkmark.circle.fill").foregroundColor(.green)
+                }
+                Text(isAuthorizing ? L10n.CloudSettings.googleAuthorizing : (authorizationSuccess ? L10n.CloudSettings.googleAuthorized : L10n.CloudSettings.googleAuthorize))
+              }
+            }
+            .disabled(googleClientId.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || googleClientSecret.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || isAuthorizing)
+
+            if !googleUserEmail.isEmpty {
+              Text(L10n.CloudSettings.googleConnectedAs(googleUserEmail))
+                .font(.system(size: 11))
+                .foregroundColor(.secondary)
+            }
           }
-          .padding(.vertical, 4)
+        }
+
+        Section(L10n.CloudSettings.googleFolderSection) {
+          SettingRow(
+            icon: "folder",
+            title: L10n.CloudSettings.googleFolderName,
+            description: nil,
+            tooltip: nil
+          ) {
+            TextField("Snapzy", text: $googleFolderName)
+              .textFieldStyle(.roundedBorder)
+              .frame(width: 240)
+          }
+
+          Text(L10n.CloudSettings.googleFolderDescription)
+            .font(.system(size: 11))
+            .foregroundColor(.secondary)
+            .padding(.vertical, 4)
+        }
+      } else {
+        Section(L10n.CloudSettings.credentialsSection) {
+          SettingRow(
+            icon: "key",
+            title: L10n.CloudSettings.accessKeyID,
+            description: nil,
+            tooltip: L10n.CloudSettings.accessKeyTooltip
+          ) {
+            TextField("", text: $accessKey)
+              .textFieldStyle(.roundedBorder)
+              .frame(width: 240)
+          }
+
+          SettingRow(
+            icon: "lock",
+            title: L10n.CloudSettings.secretAccessKey,
+            description: nil,
+            tooltip: L10n.CloudSettings.secretKeyTooltip
+          ) {
+            HStack(spacing: 6) {
+              if showSecretKey {
+                TextField("", text: $secretKey)
+                  .textFieldStyle(.roundedBorder)
+                  .frame(width: 210)
+              } else {
+                SecureField("", text: $secretKey)
+                  .textFieldStyle(.roundedBorder)
+                  .frame(width: 210)
+              }
+              Button(action: { showSecretKey.toggle() }) {
+                Image(systemName: showSecretKey ? "eye.slash" : "eye")
+                  .font(.system(size: 12))
+                  .foregroundColor(.secondary)
+              }
+              .buttonStyle(.plain)
+            }
+          }
+        }
+
+        Section(L10n.CloudSettings.storageSection) {
+          SettingRow(
+            icon: "externaldrive",
+            title: L10n.CloudSettings.bucketName,
+            description: nil,
+            tooltip: L10n.CloudSettings.bucketTooltip
+          ) {
+            TextField("", text: $bucket)
+              .textFieldStyle(.roundedBorder)
+              .frame(width: 240)
+          }
+
+          if providerType == .awsS3 {
+            SettingRow(
+              icon: "globe",
+              title: L10n.CloudSettings.region,
+              description: nil,
+              tooltip: L10n.CloudSettings.regionTooltip
+            ) {
+              TextField("", text: $region)
+                .textFieldStyle(.roundedBorder)
+                .frame(width: 240)
+            }
+
+            SettingRow(
+              icon: "server.rack",
+              title: L10n.CloudSettings.endpoint,
+              description: nil,
+              tooltip: L10n.CloudSettings.endpointTooltipS3
+            ) {
+              TextField("", text: $endpoint)
+                .textFieldStyle(.roundedBorder)
+                .frame(width: 240)
+            }
+          }
+
+          if providerType == .cloudflareR2 {
+            SettingRow(
+              icon: "server.rack",
+              title: L10n.CloudSettings.endpoint,
+              description: nil,
+              tooltip: L10n.CloudSettings.endpointTooltipR2
+            ) {
+              TextField("", text: $endpoint)
+                .textFieldStyle(.roundedBorder)
+                .frame(width: 240)
+            }
+          }
+
+          SettingRow(
+            icon: "link",
+            title: L10n.CloudSettings.customDomain,
+            description: nil,
+            tooltip: L10n.CloudSettings.customDomainTooltip
+          ) {
+            TextField("", text: $customDomain)
+              .textFieldStyle(.roundedBorder)
+              .frame(width: 240)
+          }
+        }
+
+        Section(L10n.CloudSettings.fileExpirationSection) {
+          Picker(L10n.CloudSettings.expireTime, selection: $expireTime) {
+            ForEach(CloudExpireTime.allCases, id: \.self) { time in
+              Text(time.displayName).tag(time)
+            }
+          }
+
+          if expireTime.isPermanent {
+            HStack(alignment: .top, spacing: 6) {
+              Image(systemName: "exclamationmark.triangle.fill")
+                .foregroundColor(.orange)
+                .font(.system(size: 12))
+                .padding(.top, 1)
+              Text(L10n.CloudSettings.noLifecycleRuleWarning)
+              .font(.system(size: 11))
+              .foregroundColor(.orange)
+              .fixedSize(horizontal: false, vertical: true)
+            }
+            .padding(.vertical, 4)
+          } else {
+            HStack(alignment: .top, spacing: 6) {
+              Image(systemName: "info.circle")
+                .foregroundColor(.secondary)
+                .font(.system(size: 12))
+                .padding(.top, 1)
+              Text(L10n.CloudSettings.lifecycleRuleInfo)
+              .font(.system(size: 11))
+              .foregroundColor(.secondary)
+              .fixedSize(horizontal: false, vertical: true)
+            }
+            .padding(.vertical, 4)
+          }
         }
       }
 
@@ -1085,7 +1199,12 @@ private struct CloudCredentialFormView: View {
   // MARK: - Validation
 
   private var isFormValid: Bool {
-    !accessKey.trimmingCharacters(in: .whitespaces).isEmpty
+    if providerType == .googleDrive {
+      return !googleClientId.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        && !googleClientSecret.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        && authorizationSuccess
+    }
+    return !accessKey.trimmingCharacters(in: .whitespaces).isEmpty
       && !secretKey.trimmingCharacters(in: .whitespaces).isEmpty
       && !bucket.trimmingCharacters(in: .whitespaces).isEmpty
       && (providerType == .awsS3
@@ -1098,6 +1217,27 @@ private struct CloudCredentialFormView: View {
     if protectionPassword.isEmpty { return true }
     // If entered, must match and be >= 4 chars
     return protectionPassword == confirmProtectionPassword && protectionPassword.count >= 4
+  }
+
+  private func startGoogleAuthorization() {
+    validationError = nil
+    isAuthorizing = true
+    authorizationSuccess = false
+
+    Task {
+      do {
+        let tokens = try await GoogleDriveOAuthService.shared.startAuthorization(
+          clientId: googleClientId.trimmingCharacters(in: .whitespacesAndNewlines),
+          clientSecret: googleClientSecret.trimmingCharacters(in: .whitespacesAndNewlines)
+        )
+        googleRefreshToken = tokens.refreshToken
+        googleUserEmail = try await GoogleDriveOAuthService.shared.fetchUserEmail(accessToken: tokens.accessToken)
+        authorizationSuccess = true
+      } catch {
+        validationError = error.localizedDescription
+      }
+      isAuthorizing = false
+    }
   }
 
   private func handleSave() {
@@ -1130,50 +1270,53 @@ private struct CloudCredentialFormView: View {
     showLimitedPermissionWarning = false
     isValidating = true
 
+    let isGoogle = providerType == .googleDrive
+
     let config = CloudConfiguration(
       providerType: providerType,
-      bucket: bucket.trimmingCharacters(in: .whitespaces),
-      region: region.trimmingCharacters(in: .whitespaces),
-      endpoint: endpoint.trimmingCharacters(in: .whitespaces).isEmpty
-        ? nil : endpoint.trimmingCharacters(in: .whitespaces),
-      customDomain: customDomain.trimmingCharacters(in: .whitespaces).isEmpty
-        ? nil : customDomain.trimmingCharacters(in: .whitespaces),
-      expireTime: expireTime
+      bucket: isGoogle ? googleFolderName.trimmingCharacters(in: .whitespaces) : bucket.trimmingCharacters(in: .whitespaces),
+      region: isGoogle ? "" : region.trimmingCharacters(in: .whitespaces),
+      endpoint: isGoogle ? nil : (endpoint.trimmingCharacters(in: .whitespaces).isEmpty ? nil : endpoint.trimmingCharacters(in: .whitespaces)),
+      customDomain: isGoogle ? nil : (customDomain.trimmingCharacters(in: .whitespaces).isEmpty ? nil : customDomain.trimmingCharacters(in: .whitespaces)),
+      expireTime: isGoogle ? .permanent : expireTime
     )
 
     Task {
-      let trimmedAccessKey = accessKey.trimmingCharacters(in: .whitespacesAndNewlines)
-      let trimmedSecretKey = secretKey.trimmingCharacters(in: .whitespacesAndNewlines)
+      let trimmedAccessKey = isGoogle ? googleClientId.trimmingCharacters(in: .whitespacesAndNewlines) : accessKey.trimmingCharacters(in: .whitespacesAndNewlines)
+      let trimmedSecretKey = isGoogle ? googleClientSecret.trimmingCharacters(in: .whitespacesAndNewlines) : secretKey.trimmingCharacters(in: .whitespacesAndNewlines)
+      let refreshToken = isGoogle ? googleRefreshToken : nil
 
       do {
         try await cloudManager.validateCredentials(
           config: config,
           accessKey: trimmedAccessKey,
-          secretKey: trimmedSecretKey
+          secretKey: trimmedSecretKey,
+          googleRefreshToken: refreshToken
         )
 
-        do {
-          try await cloudManager.applyLifecycleRule(
-            config: config,
-            accessKey: trimmedAccessKey,
-            secretKey: trimmedSecretKey
-          )
-        } catch {
-          // Lifecycle rules are optional; allow setup to succeed even if
-          // the account lacks lifecycle-management permissions.
-          showLimitedPermissionWarning = true
-          DiagnosticLogger.shared.log(
-            .warning,
-            .cloud,
-            "Cloud lifecycle rule update failed during setup; continuing without it",
-            context: ["error": error.localizedDescription]
-          )
+        if !isGoogle {
+          do {
+            try await cloudManager.applyLifecycleRule(
+              config: config,
+              accessKey: trimmedAccessKey,
+              secretKey: trimmedSecretKey
+            )
+          } catch {
+            showLimitedPermissionWarning = true
+            DiagnosticLogger.shared.log(
+              .warning,
+              .cloud,
+              "Cloud lifecycle rule update failed during setup; continuing without it",
+              context: ["error": error.localizedDescription]
+            )
+          }
         }
 
         try cloudManager.saveConfiguration(
           config,
           accessKey: trimmedAccessKey,
-          secretKey: trimmedSecretKey
+          secretKey: trimmedSecretKey,
+          googleRefreshToken: refreshToken
         )
 
         if !protectionPassword.isEmpty {
@@ -1214,6 +1357,16 @@ private struct CloudCredentialFormView: View {
     expireTime = config.expireTime
     accessKey = cloudManager.loadAccessKey()
     secretKey = cloudManager.loadSecretKey()
+
+    if config.providerType == .googleDrive {
+      googleClientId = accessKey
+      googleClientSecret = secretKey
+      googleFolderName = bucket
+      if let token = cloudManager.loadGoogleRefreshToken(), !token.isEmpty {
+        googleRefreshToken = token
+        authorizationSuccess = true
+      }
+    }
   }
 
   private func refreshPasswordState() {
@@ -1237,6 +1390,15 @@ private struct CloudCredentialFormView: View {
     expireTime = payload.configuration.expireTime
     accessKey = payload.accessKey
     secretKey = payload.secretKey
+
+    if payload.configuration.providerType == .googleDrive {
+      googleClientId = payload.googleClientId ?? payload.accessKey
+      googleClientSecret = payload.googleClientSecret ?? payload.secretKey
+      googleFolderName = payload.configuration.bucket
+      googleRefreshToken = payload.googleRefreshToken ?? ""
+      authorizationSuccess = !googleRefreshToken.isEmpty
+    }
+
     validationError = nil
     validationSuccess = false
   }

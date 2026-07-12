@@ -169,12 +169,18 @@ enum SnapzyConfigurationExporter {
 
   private static func writeCloud(_ writer: inout SimpleTOMLWriter, defaults: UserDefaults) {
     writer.section("cloud")
-    writer.value("provider", defaults.string(forKey: PreferencesKeys.cloudProviderType) ?? CloudProviderType.awsS3.rawValue)
-    writer.value("bucket", defaults.string(forKey: PreferencesKeys.cloudBucket) ?? "")
-    writer.value("region", defaults.string(forKey: PreferencesKeys.cloudRegion) ?? "us-east-1")
-    writer.value("endpoint", defaults.string(forKey: PreferencesKeys.cloudEndpoint) ?? "")
-    writer.value("custom_domain", defaults.string(forKey: PreferencesKeys.cloudCustomDomain) ?? "")
-    writer.value("expire_time", defaults.string(forKey: PreferencesKeys.cloudExpireTime) ?? CloudExpireTime.day7.rawValue)
+    let providerRaw = defaults.string(forKey: PreferencesKeys.cloudProviderType) ?? CloudProviderType.awsS3.rawValue
+    writer.value("provider", providerRaw)
+
+    if providerRaw == CloudProviderType.googleDrive.rawValue {
+      writer.value("folder_name", defaults.string(forKey: PreferencesKeys.cloudBucket) ?? "Snapzy")
+    } else {
+      writer.value("bucket", defaults.string(forKey: PreferencesKeys.cloudBucket) ?? "")
+      writer.value("region", defaults.string(forKey: PreferencesKeys.cloudRegion) ?? "us-east-1")
+      writer.value("endpoint", defaults.string(forKey: PreferencesKeys.cloudEndpoint) ?? "")
+      writer.value("custom_domain", defaults.string(forKey: PreferencesKeys.cloudCustomDomain) ?? "")
+      writer.value("expire_time", defaults.string(forKey: PreferencesKeys.cloudExpireTime) ?? CloudExpireTime.day7.rawValue)
+    }
     writer.value("uploads_window_position", CloudUploadFloatingPosition.stored(userDefaults: defaults).rawValue)
   }
 

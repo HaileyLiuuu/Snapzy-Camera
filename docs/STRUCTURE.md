@@ -231,7 +231,7 @@ SnapzyUITests/
 | `Services/Capture/` | ScreenCaptureKit capture engine, area selection overlay/controller, OCR scanning overlay, window-target resolution, Smart Element query helpers, recording engine, temp storage, post-capture routing |
 | `Services/Capture/SmartElement/` | Standalone Smart Element overlay controller, per-screen live panels, window-owner resolution, capture performer, and protocol seams |
 | `Services/Capture/ScrollingCapture/` | Long screenshot session model, live preview, stitcher, HUD, metrics |
-| `Services/Cloud/` | S3/R2 providers, upload orchestration, GRDB history, Keychain credentials, encrypted transfer |
+| `Services/Cloud/` | S3/R2/Google Drive providers, upload orchestration, GRDB history, Keychain credentials, encrypted transfer, OAuth service |
 | `Services/Configuration/` | TOML export/import facade, focused TOML parser/writer, schema validation, preference mutation helpers, debounced config.toml sync coordinator |
 | `Services/FileAccess/` | Sandbox-scoped save-folder permissions and bookmarks |
 | `Services/Media/` | OCR, QR payload detection, foreground cutout, GIF conversion helpers, WebP encode |

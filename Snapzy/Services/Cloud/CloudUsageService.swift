@@ -168,6 +168,8 @@ private actor CloudUsageWorker {
     case .awsS3:
       let configuredRegion = config.region.trimmingCharacters(in: .whitespacesAndNewlines)
       region = configuredRegion.isEmpty ? "us-east-1" : configuredRegion
+    case .googleDrive:
+      region = ""
     }
 
     let endpoint: String
@@ -278,6 +280,12 @@ final class CloudUsageService: ObservableObject {
       usageInfo = nil
       error = L10n.CloudUsage.notConfigured
       DiagnosticLogger.shared.log(.warning, .cloud, "Cloud usage fetch skipped; configuration missing")
+      return
+    }
+
+    if config.providerType == .googleDrive {
+      usageInfo = nil
+      error = nil
       return
     }
     guard let credentials = loadCredentials() else {
@@ -537,6 +545,8 @@ final class CloudUsageService: ObservableObject {
     case .awsS3:
       let configuredRegion = config.region.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
       region = configuredRegion.isEmpty ? "us-east-1" : configuredRegion
+    case .googleDrive:
+      region = ""
     }
     let endpoint = (config.endpoint ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
       .lowercased()

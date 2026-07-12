@@ -13,11 +13,13 @@ import Foundation
 enum CloudProviderType: String, Codable, CaseIterable {
   case awsS3 = "aws_s3"
   case cloudflareR2 = "cloudflare_r2"
+  case googleDrive = "google_drive"
 
   var displayName: String {
     switch self {
     case .awsS3: return L10n.CloudProvider.awsS3
     case .cloudflareR2: return L10n.CloudProvider.cloudflareR2
+    case .googleDrive: return L10n.CloudProvider.googleDrive
     }
   }
 }

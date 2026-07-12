@@ -408,6 +408,9 @@ enum SnapzyConfigurationImporter {
     collectString(&reader, "cloud", "bucket", mutations: &mutations) {
       defaults.set($0, forKey: PreferencesKeys.cloudBucket)
     }
+    collectString(&reader, "cloud", "folder_name", mutations: &mutations) {
+      defaults.set($0, forKey: PreferencesKeys.cloudBucket)
+    }
     collectString(&reader, "cloud", "region", mutations: &mutations) {
       defaults.set($0, forKey: PreferencesKeys.cloudRegion)
     }
