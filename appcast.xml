@@ -6,6 +6,22 @@
     <description>Snapzy application updates</description>
     <language>en</language>
     <item>
+      <title>Version 1.29.1</title>
+      <sparkle:version>136</sparkle:version>
+      <sparkle:shortVersionString>1.29.1</sparkle:shortVersionString>
+      <sparkle:minimumSystemVersion>13.0</sparkle:minimumSystemVersion>
+      <pubDate>Sun, 12 Jul 2026 08:11:12 +0000</pubDate>
+      <description><![CDATA[
+        <style>:root { color-scheme: light dark; } body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; font-size: 13px; line-height: 1.5; padding: 8px 16px; } h3 { font-size: 14px; margin: 12px 0 6px; } ul { padding-left: 20px; margin: 4px 0; } li { margin: 3px 0; }</style>
+        <h3>✨ Features</h3><ul><li>Implement live area capture with mouse-up snapshots and add unit tests</li></ul><h3>🐛 Bug Fixes</h3><ul><li>Prevent area selection dismissal after capturing a screenshot</li><li>Update Russian localization strings in Menubar</li></ul>
+      ]]></description>
+      <enclosure
+        url="https://github.com/duongductrong/Snapzy/releases/download/v1.29.1/Snapzy-v1.29.1.dmg"
+        sparkle:edSignature="UgV+HBP33/3J9y3TchGQ2s/gG4RHw+TjjBAFrgXjiK7VsSCvMVk4EbJrB5EfqqLDy3RsJdsSwFJONu3mSjlmCA=="
+        length="46435047"
+        type="application/octet-stream"/>
+    </item>
+    <item>
       <title>Version 1.29.1-beta.2</title>
       <sparkle:channel>beta</sparkle:channel>
       <sparkle:version>135</sparkle:version>
