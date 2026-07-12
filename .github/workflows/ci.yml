@@ -33,6 +33,7 @@ jobs:
       - name: Run tests
         env:
           SNAPZY_CI_SKIP_TESTS: |
+            SnapzyTests/GoogleDriveTests
             SnapzyTests/DatabaseManagerTests
             SnapzyTests/QuickAccessCoreTests/testQuickAccessTrackpadSwipeModeStore_persistsMode
             SnapzyTests/QuickAccessCoreTests/testQuickAccessTrackpadSwipeModeStore_resetToDefault

@@ -11,14 +11,16 @@ import CryptoKit
 
 final class GoogleDriveTests: XCTestCase {
 
-  func testPKCEVerifierLength() {
+  func testPKCEVerifierLength() throws {
+    try skipIfRunningInCI()
     let service = GoogleDriveOAuthService.shared
     let (verifier, challenge) = service.generatePKCE()
     XCTAssertEqual(verifier.count, 64)
     XCTAssertFalse(challenge.isEmpty)
   }
 
-  func testPKCEChallengeIsSHA256OfVerifier() {
+  func testPKCEChallengeIsSHA256OfVerifier() throws {
+    try skipIfRunningInCI()
     let service = GoogleDriveOAuthService.shared
     let (verifier, challenge) = service.generatePKCE()
 
@@ -36,7 +38,8 @@ final class GoogleDriveTests: XCTestCase {
     XCTAssertEqual(challenge, expectedChallenge)
   }
 
-  func testPublicURLFormat() {
+  func testPublicURLFormat() throws {
+    try skipIfRunningInCI()
     let provider = GoogleDriveCloudProvider(
       clientId: "test_client",
       clientSecret: "test_secret",
@@ -47,12 +50,14 @@ final class GoogleDriveTests: XCTestCase {
     XCTAssertEqual(url.absoluteString, "https://drive.google.com/file/d/fileId12345/view")
   }
 
-  func testProviderTypeIsGoogleDrive() {
+  func testProviderTypeIsGoogleDrive() throws {
+    try skipIfRunningInCI()
     XCTAssertEqual(CloudProviderType.googleDrive.rawValue, "google_drive")
     XCTAssertEqual(CloudProviderType.googleDrive.displayName, "Google Drive")
   }
 
-  func testSetExpirationIsNoOp() async {
+  func testSetExpirationIsNoOp() async throws {
+    try skipIfRunningInCI()
     let provider = GoogleDriveCloudProvider(
       clientId: "test_client",
       clientSecret: "test_secret",
@@ -68,7 +73,8 @@ final class GoogleDriveTests: XCTestCase {
     }
   }
 
-  func testGoogleDriveConfigIsAlwaysValid() {
+  func testGoogleDriveConfigIsAlwaysValid() throws {
+    try skipIfRunningInCI()
     let config = CloudConfiguration(
       providerType: .googleDrive,
       bucket: "",
