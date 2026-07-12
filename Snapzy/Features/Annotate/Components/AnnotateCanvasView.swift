@@ -14,6 +14,50 @@ private struct AnnotateViewportMetrics: Equatable {
   let fitScale: CGFloat
 }
 
+struct AnnotateDroppedImage {
+  let image: NSImage
+  let data: Data?
+}
+
+enum AnnotateImageDropLoader {
+  @discardableResult
+  static func load(
+    from provider: NSItemProvider,
+    completion: @escaping (AnnotateDroppedImage?) -> Void
+  ) -> Bool {
+    if provider.canLoadObject(ofClass: NSImage.self) {
+      provider.loadObject(ofClass: NSImage.self) { object, _ in
+        guard let image = object as? NSImage else {
+          completion(nil)
+          return
+        }
+        completion(AnnotateDroppedImage(image: image, data: image.tiffRepresentation))
+      }
+      return true
+    }
+
+    guard provider.hasItemConformingToTypeIdentifier(UTType.image.identifier) else {
+      return false
+    }
+
+    provider.loadFileRepresentation(forTypeIdentifier: UTType.image.identifier) { url, error in
+      guard error == nil, let url else {
+        completion(nil)
+        return
+      }
+
+      defer { try? FileManager.default.removeItem(at: url) }
+      guard let data = try? Data(contentsOf: url),
+            let image = NSImage(data: data) else {
+        completion(nil)
+        return
+      }
+      completion(AnnotateDroppedImage(image: image, data: data))
+    }
+    return true
+  }
+}
+
 /// Canvas view for displaying and annotating the image
 struct AnnotateCanvasView: View {
   @ObservedObject var state: AnnotateState
@@ -188,10 +232,13 @@ struct AnnotateCanvasView: View {
     let alignmentSpace: CGFloat = state.imageAlignment != .center ? 40 : 0
 
     let imageBounds = state.sourceImageBounds
+    let combineBounds = state.effectiveContentBounds
     let cropBounds = state.cropRect?.standardized
 
     let fitBounds: CGRect
-    if let cropBounds, !state.isCropActive {
+    if state.isCombineMode {
+      fitBounds = combineBounds
+    } else if let cropBounds, !state.isCropActive {
       fitBounds = cropBounds
     } else {
       fitBounds = imageBounds
@@ -199,18 +246,22 @@ struct AnnotateCanvasView: View {
 
     // Scale is tied to the currently fitted image/crop, not to the live crop rect.
     // This keeps crop dimensions predictable while users drag handles outward.
-    let fitLogicalCanvasSize = state.aspectRatio.canvasSize(
-      for: fitBounds.size,
-      padding: currentPadding,
-      alignmentSpace: alignmentSpace,
-      orientation: state.aspectRatioOrientation
-    )
+    let fitLogicalCanvasSize = state.isCombineMode
+      ? CGSize(width: fitBounds.width + currentPadding * 2, height: fitBounds.height + currentPadding * 2)
+      : state.aspectRatio.canvasSize(
+        for: fitBounds.size,
+        padding: currentPadding,
+        alignmentSpace: alignmentSpace,
+        orientation: state.aspectRatioOrientation
+      )
     let scaleX = availableWidth / fitLogicalCanvasSize.width
     let scaleY = availableHeight / fitLogicalCanvasSize.height
     let scale = min(scaleX, scaleY, 1.0)
 
     let foregroundBounds: CGRect
-    if let cropBounds {
+    if state.isCombineMode {
+      foregroundBounds = combineBounds
+    } else if let cropBounds {
       if state.isCropActive {
         foregroundBounds = cropWorkspaceBounds(
           for: imageBounds,
@@ -224,12 +275,14 @@ struct AnnotateCanvasView: View {
       foregroundBounds = imageBounds
     }
 
-    let logicalCanvasSize = state.aspectRatio.canvasSize(
-      for: foregroundBounds.size,
-      padding: currentPadding,
-      alignmentSpace: alignmentSpace,
-      orientation: state.aspectRatioOrientation
-    )
+    let logicalCanvasSize = state.isCombineMode
+      ? CGSize(width: foregroundBounds.width + currentPadding * 2, height: foregroundBounds.height + currentPadding * 2)
+      : state.aspectRatio.canvasSize(
+        for: foregroundBounds.size,
+        padding: currentPadding,
+        alignmentSpace: alignmentSpace,
+        orientation: state.aspectRatioOrientation
+      )
 
     // Background = logical canvas * scale (includes padding + alignment space)
     let bgWidth = logicalCanvasSize.width * scale
@@ -243,7 +296,7 @@ struct AnnotateCanvasView: View {
     let foregroundWidth = foregroundBounds.width * scale
     let foregroundHeight = foregroundBounds.height * scale
     let foregroundDisplaySize = CGSize(width: foregroundWidth, height: foregroundHeight)
-    let offset = state.imageOffset(
+    let offset = state.isCombineMode ? .zero : state.imageOffset(
       for: CGSize(width: bgWidth, height: bgHeight),
       imageDisplaySize: foregroundDisplaySize,
       displayPadding: currentPadding * scale
@@ -288,6 +341,10 @@ struct AnnotateCanvasView: View {
           .offset(x: offset.x, y: offset.y)
         }
       }
+      .modifier(CombineCanvasClipModifier(
+        isEnabled: state.isCombineMode,
+        cornerRadius: state.effectiveCornerRadius * scale
+      ))
       .scaleEffect(state.zoomLevel)
       .offset(x: state.panOffset.width, y: state.panOffset.height)
     }
@@ -516,56 +573,26 @@ struct AnnotateCanvasView: View {
   /// Handle dropped image files
   private func handleDrop(providers: [NSItemProvider]) -> Bool {
     for provider in providers {
-      // Try file URL first
-      if provider.hasItemConformingToTypeIdentifier(UTType.fileURL.identifier) {
-        provider.loadItem(forTypeIdentifier: UTType.fileURL.identifier) { item, error in
-          guard error == nil,
-                let data = item as? Data,
-                let url = URL(dataRepresentation: data, relativeTo: nil) else {
-            Task { @MainActor in
-              showError("Failed to load file")
-            }
-            return
-          }
-
-          // Validate file type
-          guard Self.isValidImageFile(url: url) else {
-            Task { @MainActor in
-              showError("Unsupported format. Use PNG, JPG, GIF, TIFF, BMP, or HEIC")
-            }
-            return
-          }
-
+      let didAccept = AnnotateImageDropLoader.load(from: provider) { droppedImage in
+        guard let droppedImage else {
           Task { @MainActor in
-            if !state.importImage(from: url) {
-              showError("Failed to import image")
-            }
+            showError("Failed to load image data")
+          }
+          return
+        }
+
+        Task { @MainActor in
+          if !state.importImage(
+            droppedImage.image,
+            sourceURL: nil,
+            sourceData: droppedImage.data
+          ) {
+            showError("Failed to import image")
           }
         }
-        return true
+        return
       }
-
-      // Try loading image data directly
-      for imageType in Self.supportedImageTypes {
-        if provider.hasItemConformingToTypeIdentifier(imageType.identifier) {
-          provider.loadDataRepresentation(forTypeIdentifier: imageType.identifier) { data, error in
-            guard let data = data,
-                  let image = NSImage(data: data) else {
-              Task { @MainActor in
-                showError("Failed to load image data")
-              }
-              return
-            }
-
-            Task { @MainActor in
-              if !state.importImage(image, sourceURL: nil, sourceData: data) {
-                showError("Failed to import image")
-              }
-            }
-          }
-          return true
-        }
-      }
+      if didAccept { return true }
     }
 
     // No valid provider found
@@ -579,6 +606,20 @@ struct AnnotateCanvasView: View {
       return false
     }
     return supportedImageTypes.contains { type.conforms(to: $0) }
+  }
+}
+
+private struct CombineCanvasClipModifier: ViewModifier {
+  let isEnabled: Bool
+  let cornerRadius: CGFloat
+
+  @ViewBuilder
+  func body(content: Content) -> some View {
+    if isEnabled {
+      content.clipShape(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
+    } else {
+      content
+    }
   }
 }
 
