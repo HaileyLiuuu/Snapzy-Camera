@@ -20,7 +20,7 @@ final class GoogleDriveOAuthService: @unchecked Sendable {
   private init() {}
 
   private var listener: NWListener?
-  private var activeConnection: NWConnection?
+  private var activeConnections: [NWConnection] = []
   private let queue = DispatchQueue(label: "com.trongduong.snapzy.oauth")
   private var continuation: SafeContinuation<String, Error>?
 
@@ -106,7 +106,10 @@ final class GoogleDriveOAuthService: @unchecked Sendable {
       throw error
     }
 
-    stopListener()
+    // Delay stopListener() to allow the HTTP server to finish sending the response to the browser
+    queue.asyncAfter(deadline: .now() + 1.0) { [weak self] in
+      self?.stopListener()
+    }
 
     // 4. Exchange code for tokens
     return try await exchangeCodeForTokens(
@@ -227,36 +230,45 @@ final class GoogleDriveOAuthService: @unchecked Sendable {
     continuation = nil
     listener?.cancel()
     listener = nil
-    activeConnection?.cancel()
-    activeConnection = nil
+    for connection in activeConnections {
+      connection.cancel()
+    }
+    activeConnections.removeAll()
   }
 
   private func handleNewConnection(_ connection: NWConnection) {
-    activeConnection?.cancel()
-    activeConnection = connection
+    activeConnections.append(connection)
     connection.start(queue: queue)
     receive(on: connection)
   }
 
   private func receive(on connection: NWConnection) {
     connection.receive(minimumIncompleteLength: 1, maximumLength: 8192) { [weak self] content, _, isComplete, error in
+      guard let self = self else { return }
       guard error == nil, let content = content, !content.isEmpty else {
-        connection.cancel()
+        self.closeConnection(connection)
         return
       }
 
       if let requestString = String(data: content, encoding: .utf8) {
-        self?.parseHTTPRequest(requestString, connection: connection)
+        self.parseHTTPRequest(requestString, connection: connection)
       } else {
-        connection.cancel()
+        self.closeConnection(connection)
       }
+    }
+  }
+
+  private func closeConnection(_ connection: NWConnection) {
+    connection.cancel()
+    queue.async { [weak self] in
+      self?.activeConnections.removeAll(where: { $0 === connection })
     }
   }
 
   private func parseHTTPRequest(_ request: String, connection: NWConnection) {
     let lines = request.components(separatedBy: "\r\n")
     guard let firstLine = lines.first else {
-      connection.cancel()
+      closeConnection(connection)
       return
     }
 
@@ -337,17 +349,48 @@ final class GoogleDriveOAuthService: @unchecked Sendable {
           line-height: 1.5;
           margin: 0;
         }
+        .action-btn-container {
+          margin-top: 24px;
+        }
+        .btn {
+          display: inline-block;
+          background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+          color: #ffffff;
+          text-decoration: none;
+          padding: 12px 24px;
+          border-radius: 8px;
+          font-weight: 600;
+          font-size: 14px;
+          transition: all 0.2s ease;
+          box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+        }
+        .btn:hover {
+          transform: translateY(-1px);
+          box-shadow: 0 6px 16px rgba(79, 70, 229, 0.4);
+        }
+        .btn:active {
+          transform: translateY(1px);
+        }
         @keyframes scaleIn {
           0% { transform: scale(0.5); opacity: 0; }
           100% { transform: scale(1); opacity: 1; }
         }
       </style>
+      <script>
+        // Automatically attempt to redirect back to Snapzy
+        setTimeout(function() {
+          window.location.href = "snapzy://settings/cloud";
+        }, 1000);
+      </script>
     </head>
     <body>
       <div class="container">
         <div class="icon">✓</div>
         <h1>Snapzy Authorized!</h1>
         <p>Google Drive authorization was successful. You can close this browser window and return to Snapzy to complete your setup.</p>
+        <div class="action-btn-container">
+          <a href="snapzy://settings/cloud" class="btn">Return to Snapzy</a>
+        </div>
       </div>
     </body>
     </html>
@@ -402,13 +445,48 @@ final class GoogleDriveOAuthService: @unchecked Sendable {
           line-height: 1.5;
           margin: 0;
         }
+        .action-btn-container {
+          margin-top: 24px;
+        }
+        .btn {
+          display: inline-block;
+          background: rgba(255, 255, 255, 0.08);
+          border: 1px solid rgba(255, 255, 255, 0.15);
+          color: #f3f4f6;
+          text-decoration: none;
+          padding: 12px 24px;
+          border-radius: 8px;
+          font-weight: 600;
+          font-size: 14px;
+          transition: all 0.2s ease;
+        }
+        .btn:hover {
+          background: rgba(255, 255, 255, 0.12);
+          transform: translateY(-1px);
+        }
+        .btn:active {
+          transform: translateY(1px);
+        }
+        @keyframes scaleIn {
+          0% { transform: scale(0.5); opacity: 0; }
+          100% { transform: scale(1); opacity: 1; }
+        }
       </style>
+      <script>
+        // Automatically attempt to redirect back to Snapzy
+        setTimeout(function() {
+          window.location.href = "snapzy://settings/cloud";
+        }, 1500);
+      </script>
     </head>
     <body>
       <div class="container">
         <div class="icon">✕</div>
         <h1>Authorization Failed</h1>
         <p>Google Drive authorization failed with error: <strong>\(error)</strong>. Please return to Snapzy and try again.</p>
+        <div class="action-btn-container">
+          <a href="snapzy://settings/cloud" class="btn">Return to Snapzy</a>
+        </div>
       </div>
     </body>
     </html>
@@ -427,7 +505,7 @@ final class GoogleDriveOAuthService: @unchecked Sendable {
     """
 
     guard let responseHeaderData = responseHeader.data(using: .utf8) else {
-      connection.cancel()
+      closeConnection(connection)
       return
     }
 
@@ -435,8 +513,14 @@ final class GoogleDriveOAuthService: @unchecked Sendable {
     fullData.append(responseHeaderData)
     fullData.append(responseBody)
 
-    connection.send(content: fullData, completion: .contentProcessed({ _ in
-      connection.cancel()
+    connection.send(content: fullData, completion: .contentProcessed({ [weak self] error in
+      if let error = error {
+        logger.error("Failed to send HTTP response: \(error.localizedDescription)")
+      }
+      // Delay closing/cancelling the connection by 0.5s to ensure the client fully reads it
+      self?.queue.asyncAfter(deadline: .now() + 0.5) { [weak self] in
+        self?.closeConnection(connection)
+      }
     }))
   }
 

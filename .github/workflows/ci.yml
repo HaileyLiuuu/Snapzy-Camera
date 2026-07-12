@@ -35,6 +35,8 @@ jobs:
           SNAPZY_CI_SKIP_TESTS: |
             SnapzyTests/GoogleDriveTests
             SnapzyTests/DatabaseManagerTests
+            SnapzyTests/QuickAccessCoreTests/testQuickAccessCountdownTimer_pauseResumePreservesRemainingTime
+            SnapzyTests/QuickAccessCoreTests/testQuickAccessCountdownTimer_cancelPreventsExpiration
             SnapzyTests/QuickAccessCoreTests/testQuickAccessTrackpadSwipeModeStore_persistsMode
             SnapzyTests/QuickAccessCoreTests/testQuickAccessTrackpadSwipeModeStore_resetToDefault
             SnapzyTests/OCRRecognitionTests

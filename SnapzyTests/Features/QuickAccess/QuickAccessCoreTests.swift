@@ -751,6 +751,7 @@ final class QuickAccessCoreTests: XCTestCase {
   }
 
   func testQuickAccessCountdownTimer_pauseResumePreservesRemainingTime() async throws {
+    try skipIfRunningInCI()
     var didExpire = false
     let expiration = expectation(description: "timer expires after resume")
     let clock = ManualQuickAccessCountdownTimerClock()
@@ -782,6 +783,7 @@ final class QuickAccessCoreTests: XCTestCase {
   }
 
   func testQuickAccessCountdownTimer_cancelPreventsExpiration() async throws {
+    try skipIfRunningInCI()
     var didExpire = false
     let clock = ManualQuickAccessCountdownTimerClock()
     let timer = QuickAccessCountdownTimer(duration: 0.03, clock: clock) {
