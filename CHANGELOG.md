@@ -89,6 +89,24 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 
 
+
+## [1.30.0-beta.1] - 2026-07-13
+
+### Features
+-  Enable cloud upload for Video/GIF in Video Editor (#360) (2dbb53d)
+-  Detect hyperlinks in OCR captured text and offer to open them (#347) (7103bed)
+-  Implement combine session persistence and save behavior (d0edfef)
+-  Add Google Drive Cloud service and configuration support (#358) (e96a20e)
+
+### Chore
+- chore: update appcast, cask, and readme for v1.29.1 (74fcc44)
+
+### Contributors
+- @duongductrong
+- @github-actions[bot]
+- @menmer0859
+- @omarshahine
+
 ## [1.29.1] - 2026-07-12
 
 ### Features
