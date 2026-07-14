@@ -90,6 +90,23 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 
 
+
+## [1.30.0-beta.2] - 2026-07-14
+
+### Features
+-  Add configurable recording controls and menu bar indicators (#369) (d5cbc30)
+
+### Bug Fixes
+- : polish Chinese localization (#367) (1ec80af)
+
+### Chore
+- chore: update appcast for v1.30.0-beta.1 (abb2850)
+
+### Contributors
+- @duongductrong
+- @github-actions[bot]
+- @menmer0859
+
 ## [1.30.0-beta.1] - 2026-07-13
 
 ### Features
