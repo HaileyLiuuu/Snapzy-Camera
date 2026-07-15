@@ -1711,6 +1711,14 @@ private struct InlineAreaPropertiesBar: View {
               label: \.displayName
             )
 
+            InlineAreaSegmentedPicker(
+              title: L10n.Common.display,
+              items: ArrowType.allCases,
+              selection: state.quickArrowTypeBinding,
+              icon: \.icon,
+              label: \.displayName
+            )
+
             if state.quickPropertiesSupportsArrowBendDirection {
               InlineAreaArrowBendControl(
                 bendDirection: state.quickArrowBendDirectionBinding

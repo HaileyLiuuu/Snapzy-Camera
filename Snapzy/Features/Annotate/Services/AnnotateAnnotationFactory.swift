@@ -13,6 +13,7 @@ enum AnnotationFactory {
   struct CreationContext {
     var properties: AnnotationProperties
     var arrowStyle: ArrowStyle
+    var arrowType: ArrowType = .tapered
     var arrowBendDirection: ArrowBendDirection = .primary
     var blurType: BlurType
     var counterValue: Int
@@ -35,6 +36,7 @@ enum AnnotationFactory {
       context: CreationContext(
         properties: state.annotationCreationProperties(for: tool),
         arrowStyle: state.arrowStyle,
+        arrowType: state.arrowType,
         arrowBendDirection: state.arrowBendDirection,
         blurType: state.blurType,
         counterValue: state.nextCounterValue(),
@@ -85,7 +87,8 @@ enum AnnotationFactory {
         start: start,
         end: end,
         style: resolvedStyle,
-        bendDirection: resolvedDirection
+        bendDirection: resolvedDirection,
+        arrowType: context.arrowType
       ))
 
     case .line:

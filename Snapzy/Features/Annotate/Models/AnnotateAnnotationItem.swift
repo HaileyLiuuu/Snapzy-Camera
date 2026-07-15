@@ -165,22 +165,49 @@ enum ArrowBendDirection: String, CaseIterable, Identifiable, Equatable {
   }
 }
 
+enum ArrowType: String, Codable, CaseIterable, Identifiable {
+  case classic
+  case tapered
+  case outlined
+
+  var id: String { rawValue }
+
+  var displayName: String {
+    switch self {
+    case .classic: return L10n.AnnotateUI.arrowTypeClassic
+    case .tapered: return L10n.AnnotateUI.arrowTypeTapered
+    case .outlined: return L10n.AnnotateUI.arrowTypeOutlined
+    }
+  }
+
+  var icon: String {
+    switch self {
+    case .classic: return "arrow.up.right"
+    case .tapered: return "arrowshape.turn.up.right"
+    case .outlined: return "arrowshape.turn.up.right.fill"
+    }
+  }
+}
+
 struct ArrowGeometry: Equatable {
   var start: CGPoint
   var end: CGPoint
   var style: ArrowStyle
   var controlPoint: CGPoint?
+  var arrowType: ArrowType
 
   init(
     start: CGPoint,
     end: CGPoint,
     style: ArrowStyle,
     bendDirection: ArrowBendDirection = .primary,
-    controlPoint: CGPoint? = nil
+    controlPoint: CGPoint? = nil,
+    arrowType: ArrowType = .tapered
   ) {
     self.start = start
     self.end = end
     self.style = style
+    self.arrowType = arrowType
     
     // Calculate resolvedDirection for normalizedControlPoint:
     let resolvedDirection: ArrowBendDirection = (style == .curvedLeft) ? .primary : .alternate
@@ -460,7 +487,8 @@ struct ArrowGeometry: Equatable {
       start: CGPoint(x: start.x + dx, y: start.y + dy),
       end: CGPoint(x: end.x + dx, y: end.y + dy),
       style: style,
-      controlPoint: resolvedControlPoint.map { CGPoint(x: $0.x + dx, y: $0.y + dy) }
+      controlPoint: resolvedControlPoint.map { CGPoint(x: $0.x + dx, y: $0.y + dy) },
+      arrowType: arrowType
     )
   }
 
@@ -469,12 +497,35 @@ struct ArrowGeometry: Equatable {
       start: Self.remap(point: start, from: oldBounds, to: newBounds),
       end: Self.remap(point: end, from: oldBounds, to: newBounds),
       style: style,
-      controlPoint: resolvedControlPoint.map { Self.remap(point: $0, from: oldBounds, to: newBounds) }
+      controlPoint: resolvedControlPoint.map { Self.remap(point: $0, from: oldBounds, to: newBounds) },
+      arrowType: arrowType
     )
   }
 
   func withStyle(_ newStyle: ArrowStyle) -> ArrowGeometry {
-    ArrowGeometry(start: start, end: end, style: newStyle, bendDirection: bendDirection)
+    if newStyle == style {
+      return self
+    }
+    
+    let newControlPoint: CGPoint?
+    if newStyle == .straight {
+      newControlPoint = nil
+    } else if style == .straight {
+      let resolvedDirection: ArrowBendDirection = (newStyle == .curvedLeft) ? .primary : .alternate
+      newControlPoint = Self.defaultCurveControlPoint(start: start, end: end, bendDirection: resolvedDirection)
+    } else {
+      newControlPoint = resolvedControlPoint.map { Self.mirroredControlPoint($0, start: start, end: end) }
+    }
+    
+    let resolvedDirection: ArrowBendDirection = (newStyle == .curvedLeft) ? .primary : .alternate
+    return ArrowGeometry(
+      start: start,
+      end: end,
+      style: newStyle,
+      bendDirection: resolvedDirection,
+      controlPoint: newControlPoint,
+      arrowType: arrowType
+    )
   }
 
   func withBendDirection(_ newDirection: ArrowBendDirection) -> ArrowGeometry {
@@ -493,7 +544,11 @@ struct ArrowGeometry: Equatable {
     let newControlPoint = resolvedControlPoint
       .map { Self.mirroredControlPoint($0, start: start, end: end) }
       ?? Self.defaultCurveControlPoint(start: start, end: end, bendDirection: resolvedDirection)
-    return ArrowGeometry(start: start, end: end, style: newStyle, bendDirection: resolvedDirection, controlPoint: newControlPoint)
+    return ArrowGeometry(start: start, end: end, style: newStyle, bendDirection: resolvedDirection, controlPoint: newControlPoint, arrowType: arrowType)
+  }
+
+  func withArrowType(_ newType: ArrowType) -> ArrowGeometry {
+    ArrowGeometry(start: start, end: end, style: style, bendDirection: bendDirection, controlPoint: controlPoint, arrowType: newType)
   }
 
   private static func normalizedControlPoint(

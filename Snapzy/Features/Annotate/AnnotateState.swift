@@ -187,6 +187,7 @@ final class AnnotateState: ObservableObject {
   @Published var rectangleCornerRadius: CGFloat = 0
   @Published var blurType: BlurType = .pixelated
   @Published var arrowStyle: ArrowStyle = .straight
+  @Published var arrowType: ArrowType = .tapered
   @Published var arrowBendDirection: ArrowBendDirection = .primary
   @Published var watermarkText: String = "Snapzy"
   @Published var spotlightOpacity: CGFloat = 0.5
@@ -2838,6 +2839,18 @@ final class AnnotateState: ObservableObject {
     hasUnsavedChanges = true
   }
 
+  func updateArrowType(id: UUID, arrowType: ArrowType) {
+    guard let index = annotations.firstIndex(where: { $0.id == id }),
+          case .arrow(let geometry) = annotations[index].type else { return }
+
+    let updated = geometry.withArrowType(arrowType)
+    guard updated != geometry else { return }
+
+    annotations[index].type = .arrow(updated)
+    annotations[index].bounds = updated.bounds()
+    hasUnsavedChanges = true
+  }
+
   func updateArrowBendDirection(id: UUID, bendDirection: ArrowBendDirection) {
     guard let index = annotations.firstIndex(where: { $0.id == id }),
           case .arrow(let geometry) = annotations[index].type,
@@ -3143,6 +3156,29 @@ final class AnnotateState: ObservableObject {
       arrowAnnotations.forEach { updateArrowStyle(id: $0.id, style: style) }
     } else {
       arrowStyle = style
+    }
+  }
+
+  var activeArrowType: ArrowType {
+    if let annotation = selectedArrowAnnotations.first,
+       case .arrow(let geometry) = annotation.type {
+      return geometry.arrowType
+    }
+    return arrowType
+  }
+
+  func setActiveArrowType(_ type: ArrowType) {
+    let arrowAnnotations = selectedArrowAnnotations
+    if !arrowAnnotations.isEmpty {
+      if arrowAnnotations.contains(where: {
+        guard case .arrow(let geometry) = $0.type else { return false }
+        return geometry.arrowType != type
+      }) {
+        saveState()
+      }
+      arrowAnnotations.forEach { updateArrowType(id: $0.id, arrowType: type) }
+    } else {
+      arrowType = type
     }
   }
 
@@ -3828,6 +3864,17 @@ final class AnnotateState: ObservableObject {
       },
       set: { [weak self] newStyle in
         self?.setActiveArrowStyle(newStyle)
+      }
+    )
+  }
+
+  var quickArrowTypeBinding: Binding<ArrowType> {
+    Binding(
+      get: { [weak self] in
+        self?.activeArrowType ?? .tapered
+      },
+      set: { [weak self] newType in
+        self?.setActiveArrowType(newType)
       }
     )
   }

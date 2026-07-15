@@ -14,12 +14,14 @@ struct PersistedArrowGeometry: Codable, Equatable {
   var end: CGPoint
   var style: String
   var controlPoint: CGPoint?
+  var arrowType: String?
 
   init(geometry: ArrowGeometry) {
     start = geometry.start
     end = geometry.end
     style = geometry.style.rawValue
     controlPoint = geometry.resolvedControlPoint
+    arrowType = geometry.arrowType.rawValue
   }
 
   var arrowGeometry: ArrowGeometry {
@@ -27,7 +29,8 @@ struct PersistedArrowGeometry: Codable, Equatable {
       start: start,
       end: end,
       style: ArrowStyle(rawValue: style) ?? .straight,
-      controlPoint: controlPoint
+      controlPoint: controlPoint,
+      arrowType: arrowType.flatMap(ArrowType.init(rawValue:)) ?? .outlined
     )
   }
 }

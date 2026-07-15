@@ -800,6 +800,11 @@ enum L10n {
       defaultValue: "On",
       comment: "Label shown when a shortcut or feature is turned on"
     )
+    static let display = string(
+      "common.display",
+      defaultValue: "Display",
+      comment: "Generic label for display settings or options"
+    )
     static let cancel = string(
       "common.cancel",
       defaultValue: "Cancel",
@@ -5149,6 +5154,21 @@ enum L10n {
       "annotate.flip-arrow-bend",
       defaultValue: "Flip bend",
       comment: "Tooltip and accessibility label for flipping arrow bend direction"
+    )
+    static let arrowTypeClassic = string(
+      "annotate.arrow-type-classic",
+      defaultValue: "Classic",
+      comment: "Label for the classic line-based arrow type"
+    )
+    static let arrowTypeTapered = string(
+      "annotate.arrow-type-tapered",
+      defaultValue: "Tapered",
+      comment: "Label for the tapered arrow type"
+    )
+    static let arrowTypeOutlined = string(
+      "annotate.arrow-type-outlined",
+      defaultValue: "Outlined",
+      comment: "Label for the outlined tapered arrow type"
     )
     static let xAxis = string(
       "annotate.x-axis",

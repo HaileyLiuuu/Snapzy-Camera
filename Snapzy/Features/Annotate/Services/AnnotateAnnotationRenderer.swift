@@ -123,6 +123,7 @@ struct AnnotationRenderer {
     strokeWidth: CGFloat,
     fillColor: Color = .clear,
     arrowStyle: ArrowStyle = .straight,
+    arrowType: ArrowType = .tapered,
     arrowBendDirection: ArrowBendDirection = .primary,
     rectangleCornerRadius: CGFloat = 0,
     watermarkText: String = "Snapzy",
@@ -196,7 +197,8 @@ struct AnnotationRenderer {
           start: start,
           end: currentPoint,
           style: resolvedStyle,
-          bendDirection: resolvedDirection
+          bendDirection: resolvedDirection,
+          arrowType: arrowType
         ),
         strokeWidth: strokeWidth,
         strokeColor: strokeColor
@@ -259,25 +261,72 @@ struct AnnotationRenderer {
   private func drawArrow(_ geometry: ArrowGeometry, strokeWidth: CGFloat, strokeColor: Color) {
     guard geometry.isRenderable else { return }
 
-    let arrowPath = geometry.taperedArrowPath(strokeWidth: strokeWidth)
+    switch geometry.arrowType {
+    case .classic:
+      context.saveGState()
+      context.setShadow(
+        offset: CGSize(width: 0, height: -1.0),
+        blur: 2.0,
+        color: NSColor.black.withAlphaComponent(0.20).cgColor
+      )
+      context.setStrokeColor(NSColor(strokeColor).cgColor)
+      context.setLineWidth(strokeWidth)
+      context.setLineJoin(.round)
+      context.setLineCap(.round)
+      
+      context.addPath(geometry.path())
+      context.strokePath()
+      
+      let angle = geometry.tangentAngleAtEnd()
+      let arrowLength = min(max(strokeWidth * 3.5, 12), 24)
+      let arrowAngle: CGFloat = .pi / 6
+      let end = geometry.end
 
-    context.saveGState()
+      let point1 = CGPoint(
+        x: end.x - arrowLength * cos(angle - arrowAngle),
+        y: end.y - arrowLength * sin(angle - arrowAngle)
+      )
+      let point2 = CGPoint(
+        x: end.x - arrowLength * cos(angle + arrowAngle),
+        y: end.y - arrowLength * sin(angle + arrowAngle)
+      )
 
-    // 1. Set up a subtle drop shadow
-    context.setShadow(
-      offset: CGSize(width: 0, height: -2.0), // negative height because of macOS coordinate system (Y goes up, so shadow Y offset negative goes down)
-      blur: 4.5,
-      color: NSColor.black.withAlphaComponent(0.30).cgColor
-    )
+      context.move(to: end)
+      context.addLine(to: point1)
+      context.move(to: end)
+      context.addLine(to: point2)
+      context.strokePath()
+      context.restoreGState()
 
+    case .tapered, .outlined:
+      let arrowPath = geometry.taperedArrowPath(strokeWidth: strokeWidth)
 
+      context.saveGState()
 
-    // 3. Draw the solid body filled with the arrow's main color
-    context.addPath(arrowPath)
-    context.setFillColor(NSColor(strokeColor).cgColor)
-    context.fillPath()
+      // 1. Set up a subtle drop shadow
+      context.setShadow(
+        offset: CGSize(width: 0, height: -2.0),
+        blur: 4.5,
+        color: NSColor.black.withAlphaComponent(0.30).cgColor
+      )
 
-    context.restoreGState()
+      if geometry.arrowType == .outlined {
+        // 2. Draw the white outline
+        context.addPath(arrowPath)
+        context.setStrokeColor(NSColor.white.cgColor)
+        context.setLineWidth(1.8 + strokeWidth * 0.3)
+        context.setLineJoin(.round)
+        context.setLineCap(.round)
+        context.strokePath()
+      }
+
+      // 3. Draw the solid body filled with the arrow's main color
+      context.addPath(arrowPath)
+      context.setFillColor(NSColor(strokeColor).cgColor)
+      context.fillPath()
+
+      context.restoreGState()
+    }
   }
 
   private func drawCounter(value: Int, in bounds: CGRect, properties: AnnotationProperties) {

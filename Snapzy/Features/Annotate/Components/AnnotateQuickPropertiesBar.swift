@@ -119,8 +119,8 @@ private enum QuickPropertiesDensity {
 
   var arrowControlWidth: CGFloat {
     switch self {
-    case .regular: return 178
-    case .compact: return 150
+    case .regular: return 318
+    case .compact: return 265
     }
   }
 
@@ -431,6 +431,7 @@ struct AnnotateQuickPropertiesBar: View {
       ) {
         QuickArrowStyleControl(
           selectedStyle: state.quickArrowStyleBinding,
+          selectedType: state.quickArrowTypeBinding,
           bendDirection: state.quickArrowBendDirectionBinding,
           showsBendDirection: state.quickPropertiesSupportsArrowBendDirection,
           buttonWidth: density.controlButtonWidth,
@@ -1651,66 +1652,102 @@ private struct QuickAutoRedactControl: View {
 
 private struct QuickArrowStyleControl: View {
   @Binding var selectedStyle: ArrowStyle
+  @Binding var selectedType: ArrowType
   @Binding var bendDirection: ArrowBendDirection
   let showsBendDirection: Bool
   let buttonWidth: CGFloat
   let groupSpacing: CGFloat
 
   var body: some View {
-    QuickPropertiesGroup(title: L10n.Common.style, spacing: groupSpacing) {
-      HStack(spacing: 5) {
-        ForEach(ArrowStyle.allCases) { style in
-          Button {
-            selectedStyle = style
-          } label: {
-            Image(systemName: style.icon)
-              .font(.system(size: 12, weight: .semibold))
-              .foregroundColor(selectedStyle == style ? .accentColor : .secondary)
-              .frame(width: buttonWidth, height: 24)
-              .background(
-                RoundedRectangle(cornerRadius: 7)
-                  .fill(selectedStyle == style ? Color.accentColor.opacity(0.16) : SidebarColors.itemDefault)
-              )
-              .overlay(
-                RoundedRectangle(cornerRadius: 7)
-                  .stroke(
-                    selectedStyle == style ? Color.accentColor.opacity(0.45) : Color.secondary.opacity(0.14),
-                    lineWidth: 1
-                  )
-              )
+    HStack(spacing: groupSpacing) {
+      QuickPropertiesGroup(title: L10n.Common.style, spacing: groupSpacing) {
+        HStack(spacing: 5) {
+          ForEach(ArrowStyle.allCases) { style in
+            Button {
+              selectedStyle = style
+            } label: {
+              Image(systemName: style.icon)
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundColor(selectedStyle == style ? .accentColor : .secondary)
+                .frame(width: buttonWidth, height: 24)
+                .background(
+                  RoundedRectangle(cornerRadius: 7)
+                    .fill(selectedStyle == style ? Color.accentColor.opacity(0.16) : SidebarColors.itemDefault)
+                )
+                .overlay(
+                  RoundedRectangle(cornerRadius: 7)
+                    .stroke(
+                      selectedStyle == style ? Color.accentColor.opacity(0.45) : Color.secondary.opacity(0.14),
+                      lineWidth: 1
+                    )
+                )
+            }
+            .buttonStyle(.plain)
+            .help(style.displayName)
           }
-          .buttonStyle(.plain)
-          .help(style.displayName)
+
+          if showsBendDirection {
+            Rectangle()
+              .fill(Color(nsColor: .separatorColor))
+              .frame(width: 1, height: 18)
+              .padding(.horizontal, 1)
+
+            Button {
+              bendDirection = bendDirection.toggled
+            } label: {
+              Image(systemName: bendDirection.icon)
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundColor(bendDirection == .alternate ? .accentColor : .secondary)
+                .frame(width: buttonWidth, height: 24)
+                .background(
+                  RoundedRectangle(cornerRadius: 7)
+                    .fill(bendDirection == .alternate ? Color.accentColor.opacity(0.16) : SidebarColors.itemDefault)
+                )
+                .overlay(
+                  RoundedRectangle(cornerRadius: 7)
+                    .stroke(
+                      bendDirection == .alternate ? Color.accentColor.opacity(0.45) : Color.secondary.opacity(0.14),
+                      lineWidth: 1
+                    )
+                )
+            }
+            .buttonStyle(.plain)
+            .help("\(L10n.AnnotateUI.flipArrowBend): \(bendDirection.displayName)")
+            .accessibilityLabel(L10n.AnnotateUI.flipArrowBend)
+          }
         }
+      }
 
-        if showsBendDirection {
-          Rectangle()
-            .fill(Color(nsColor: .separatorColor))
-            .frame(width: 1, height: 18)
-            .padding(.horizontal, 1)
+      Rectangle()
+        .fill(Color(nsColor: .separatorColor))
+        .frame(width: 1, height: 22)
+        .padding(.horizontal, 2)
 
-          Button {
-            bendDirection = bendDirection.toggled
-          } label: {
-            Image(systemName: bendDirection.icon)
-              .font(.system(size: 12, weight: .semibold))
-              .foregroundColor(bendDirection == .alternate ? .accentColor : .secondary)
-              .frame(width: buttonWidth, height: 24)
-              .background(
-                RoundedRectangle(cornerRadius: 7)
-                  .fill(bendDirection == .alternate ? Color.accentColor.opacity(0.16) : SidebarColors.itemDefault)
-              )
-              .overlay(
-                RoundedRectangle(cornerRadius: 7)
-                  .stroke(
-                    bendDirection == .alternate ? Color.accentColor.opacity(0.45) : Color.secondary.opacity(0.14),
-                    lineWidth: 1
-                  )
-              )
+      QuickPropertiesGroup(title: L10n.Common.display, spacing: groupSpacing) {
+        HStack(spacing: 5) {
+          ForEach(ArrowType.allCases) { type in
+            Button {
+              selectedType = type
+            } label: {
+              Image(systemName: type.icon)
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundColor(selectedType == type ? .accentColor : .secondary)
+                .frame(width: buttonWidth, height: 24)
+                .background(
+                  RoundedRectangle(cornerRadius: 7)
+                    .fill(selectedType == type ? Color.accentColor.opacity(0.16) : SidebarColors.itemDefault)
+                )
+                .overlay(
+                  RoundedRectangle(cornerRadius: 7)
+                    .stroke(
+                      selectedType == type ? Color.accentColor.opacity(0.45) : Color.secondary.opacity(0.14),
+                      lineWidth: 1
+                    )
+                )
+            }
+            .buttonStyle(.plain)
+            .help(type.displayName)
           }
-          .buttonStyle(.plain)
-          .help("\(L10n.AnnotateUI.flipArrowBend): \(bendDirection.displayName)")
-          .accessibilityLabel(L10n.AnnotateUI.flipArrowBend)
         }
       }
     }

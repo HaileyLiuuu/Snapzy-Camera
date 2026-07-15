@@ -172,4 +172,82 @@ final class ArrowGeometryTests: XCTestCase {
     let lengthSquared = max(dx * dx + dy * dy, 0.0001)
     return ((point.x - start.x) * dx + (point.y - start.y) * dy) / lengthSquared
   }
+
+  // MARK: - arrowType & backwards compatibility
+
+  func testArrowType_defaultsToTapered() {
+    let geo = ArrowGeometry(start: CGPoint(x: 0, y: 0), end: CGPoint(x: 100, y: 100), style: .straight)
+    XCTAssertEqual(geo.arrowType, .tapered)
+  }
+
+  func testArrowType_withArrowType() {
+    let geo = ArrowGeometry(start: CGPoint(x: 0, y: 0), end: CGPoint(x: 100, y: 100), style: .straight)
+    let classic = geo.withArrowType(.classic)
+    XCTAssertEqual(classic.arrowType, .classic)
+    XCTAssertEqual(classic.start, geo.start)
+    XCTAssertEqual(classic.end, geo.end)
+    XCTAssertEqual(classic.style, geo.style)
+
+    let outlined = geo.withArrowType(.outlined)
+    XCTAssertEqual(outlined.arrowType, .outlined)
+  }
+
+  func testArrowType_translatedBy_preservesArrowType() {
+    let geo = ArrowGeometry(start: CGPoint(x: 0, y: 0), end: CGPoint(x: 100, y: 100), style: .straight, arrowType: .classic)
+    let translated = geo.translatedBy(dx: 10, dy: 10)
+    XCTAssertEqual(translated.arrowType, .classic)
+  }
+
+  func testArrowType_remapped_preservesArrowType() {
+    let geo = ArrowGeometry(start: CGPoint(x: 0, y: 0), end: CGPoint(x: 100, y: 100), style: .straight, arrowType: .classic)
+    let remapped = geo.remapped(from: CGRect(x: 0, y: 0, width: 100, height: 100), to: CGRect(x: 0, y: 0, width: 200, height: 200))
+    XCTAssertEqual(remapped.arrowType, .classic)
+  }
+
+  func testArrowType_persistence_roundtrips() {
+    let geo = ArrowGeometry(start: CGPoint(x: 0, y: 0), end: CGPoint(x: 100, y: 100), style: .straight, arrowType: .classic)
+    let persisted = PersistedArrowGeometry(geometry: geo)
+    XCTAssertEqual(persisted.arrowType, "classic")
+    
+    let restored = persisted.arrowGeometry
+    XCTAssertEqual(restored.arrowType, .classic)
+  }
+
+  func testArrowType_persistence_backwardCompatibility() {
+    // A persisted geometry without arrowType (from older versions of the app)
+    let persisted = PersistedArrowGeometry(geometry: ArrowGeometry(start: .zero, end: .zero, style: .straight))
+    // Simulate older save where arrowType field is missing/nil
+    var dictionaryRepresentation = try! JSONSerialization.jsonObject(with: JSONEncoder().encode(persisted), options: []) as! [String: Any]
+    dictionaryRepresentation.removeValue(forKey: "arrowType")
+    
+    let serializedData = try! JSONSerialization.data(withJSONObject: dictionaryRepresentation, options: [])
+    let decoded = try! JSONDecoder().decode(PersistedArrowGeometry.self, from: serializedData)
+    
+    XCTAssertNil(decoded.arrowType)
+    XCTAssertEqual(decoded.arrowGeometry.arrowType, .outlined) // Backwards compatible default
+  }
+
+  func testWithStyle_mirrorsControlPointBetweenCurvedStyles() {
+    let geo = ArrowGeometry(
+      start: CGPoint(x: 0, y: 0),
+      end: CGPoint(x: 100, y: 0),
+      style: .curvedLeft,
+      controlPoint: CGPoint(x: 30, y: 50)
+    )
+    let curvedRight = geo.withStyle(.curvedRight)
+    XCTAssertEqual(curvedRight.style, .curvedRight)
+    XCTAssertEqual(curvedRight.bendDirection, .alternate)
+    
+    let control = curvedRight.resolvedControlPoint!
+    // The control point should be mirrored across the baseline (y = 0)
+    XCTAssertEqual(control.x, 30, accuracy: 0.001)
+    XCTAssertEqual(control.y, -50, accuracy: 0.001)
+  }
+
+  func testWithStyle_straightToCurved_computesDefaultControlPoint() {
+    let geo = ArrowGeometry(start: CGPoint(x: 0, y: 0), end: CGPoint(x: 100, y: 0), style: .straight)
+    let curved = geo.withStyle(.curvedRight)
+    XCTAssertEqual(curved.style, .curvedRight)
+    XCTAssertNotNil(curved.resolvedControlPoint)
+  }
 }
