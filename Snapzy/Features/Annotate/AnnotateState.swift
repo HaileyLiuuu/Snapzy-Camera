@@ -66,6 +66,8 @@ final class AnnotateState: ObservableObject {
     var arrowStyle: String?
     var arrowType: String?
     var arrowBendDirection: String?
+    var arrowStartHead: String?
+    var arrowEndHead: String?
   }
 
   private struct PersistedAnnotationProperties: Codable {
@@ -192,6 +194,8 @@ final class AnnotateState: ObservableObject {
   @Published var arrowStyle: ArrowStyle = .straight
   @Published var arrowType: ArrowType = .tapered
   @Published var arrowBendDirection: ArrowBendDirection = .primary
+  @Published var arrowStartHead: ArrowEndpointStyle = .none
+  @Published var arrowEndHead: ArrowEndpointStyle = .arrow
   @Published var watermarkText: String = "Snapzy"
   @Published var spotlightOpacity: CGFloat = 0.5
   @Published private var annotationToolProperties: [AnnotationToolType: AnnotationProperties] = [:]
@@ -2427,7 +2431,15 @@ final class AnnotateState: ObservableObject {
       let newControl = geometry.resolvedControlPoint.map {
         AnnotateImageRotation.rotatePoint($0, oldSize: oldSize, clockwise: clockwise)
       }
-      let newGeometry = ArrowGeometry(start: newStart, end: newEnd, style: geometry.style, controlPoint: newControl)
+      let newGeometry = ArrowGeometry(
+        start: newStart,
+        end: newEnd,
+        style: geometry.style,
+        controlPoint: newControl,
+        arrowType: geometry.arrowType,
+        startHead: geometry.startHead,
+        endHead: geometry.endHead
+      )
       rotated.type = .arrow(newGeometry)
       rotated.bounds = newGeometry.bounds()
 
@@ -2867,6 +2879,30 @@ final class AnnotateState: ObservableObject {
     hasUnsavedChanges = true
   }
 
+  func updateArrowStartHead(id: UUID, head: ArrowEndpointStyle) {
+    guard let index = annotations.firstIndex(where: { $0.id == id }),
+          case .arrow(let geometry) = annotations[index].type else { return }
+
+    let updated = geometry.withStartHead(head)
+    guard updated != geometry else { return }
+
+    annotations[index].type = .arrow(updated)
+    annotations[index].bounds = updated.bounds()
+    hasUnsavedChanges = true
+  }
+
+  func updateArrowEndHead(id: UUID, head: ArrowEndpointStyle) {
+    guard let index = annotations.firstIndex(where: { $0.id == id }),
+          case .arrow(let geometry) = annotations[index].type else { return }
+
+    let updated = geometry.withEndHead(head)
+    guard updated != geometry else { return }
+
+    annotations[index].type = .arrow(updated)
+    annotations[index].bounds = updated.bounds()
+    hasUnsavedChanges = true
+  }
+
   func updateBlurType(id: UUID, blurType: BlurType) {
     guard let index = annotations.firstIndex(where: { $0.id == id }),
           case .blur = annotations[index].type else { return }
@@ -3215,6 +3251,56 @@ final class AnnotateState: ObservableObject {
     }
   }
 
+  var activeArrowStartHead: ArrowEndpointStyle {
+    if let annotation = selectedArrowAnnotations.first,
+       case .arrow(let geometry) = annotation.type {
+      return geometry.startHead
+    }
+    return arrowStartHead
+  }
+
+  func setActiveArrowStartHead(_ head: ArrowEndpointStyle) {
+    arrowStartHead = head
+    sharedAnnotationParameterDefaults.arrowStartHead = head.rawValue
+    persistSharedAnnotationParameterDefaults()
+
+    let arrowAnnotations = selectedArrowAnnotations
+    if !arrowAnnotations.isEmpty {
+      if arrowAnnotations.contains(where: {
+        guard case .arrow(let geometry) = $0.type else { return false }
+        return geometry.startHead != head
+      }) {
+        saveState()
+      }
+      arrowAnnotations.forEach { updateArrowStartHead(id: $0.id, head: head) }
+    }
+  }
+
+  var activeArrowEndHead: ArrowEndpointStyle {
+    if let annotation = selectedArrowAnnotations.first,
+       case .arrow(let geometry) = annotation.type {
+      return geometry.endHead
+    }
+    return arrowEndHead
+  }
+
+  func setActiveArrowEndHead(_ head: ArrowEndpointStyle) {
+    arrowEndHead = head
+    sharedAnnotationParameterDefaults.arrowEndHead = head.rawValue
+    persistSharedAnnotationParameterDefaults()
+
+    let arrowAnnotations = selectedArrowAnnotations
+    if !arrowAnnotations.isEmpty {
+      if arrowAnnotations.contains(where: {
+        guard case .arrow(let geometry) = $0.type else { return false }
+        return geometry.endHead != head
+      }) {
+        saveState()
+      }
+      arrowAnnotations.forEach { updateArrowEndHead(id: $0.id, head: head) }
+    }
+  }
+
 
   var activeBlurType: BlurType {
     if let annotation = selectedBlurAnnotations.first,
@@ -3297,6 +3383,14 @@ final class AnnotateState: ObservableObject {
        let savedBend = ArrowBendDirection(rawValue: savedBendRaw) {
       arrowBendDirection = savedBend
     }
+    if let savedStartHeadRaw = sharedAnnotationParameterDefaults.arrowStartHead,
+       let savedStartHead = ArrowEndpointStyle(rawValue: savedStartHeadRaw) {
+      arrowStartHead = savedStartHead
+    }
+    if let savedEndHeadRaw = sharedAnnotationParameterDefaults.arrowEndHead,
+       let savedEndHead = ArrowEndpointStyle(rawValue: savedEndHeadRaw) {
+      arrowEndHead = savedEndHead
+    }
   }
 
   private func persistSharedAnnotationParameterDefaults() {
@@ -3316,7 +3410,9 @@ final class AnnotateState: ObservableObject {
       spotlightCornerRadius: defaults.spotlightCornerRadius.map { max(0, $0) },
       arrowStyle: defaults.arrowStyle,
       arrowType: defaults.arrowType,
-      arrowBendDirection: defaults.arrowBendDirection
+      arrowBendDirection: defaults.arrowBendDirection,
+      arrowStartHead: defaults.arrowStartHead,
+      arrowEndHead: defaults.arrowEndHead
     )
   }
 
@@ -3882,6 +3978,23 @@ final class AnnotateState: ObservableObject {
     return quickPropertiesTool == .arrow && activeArrowStyle.supportsBendDirection
   }
 
+  /// Per-endpoint head styles apply to the classic (stroked line) display type.
+  var quickPropertiesSupportsArrowEndpoints: Bool {
+    guard quickPropertiesSupportsArrowStyle else {
+      return false
+    }
+
+    let selected = quickPropertiesSelectionAnnotations
+    if !selected.isEmpty {
+      return selected.contains {
+        guard case .arrow(let geometry) = $0.type else { return false }
+        return geometry.arrowType == .classic
+      }
+    }
+
+    return quickPropertiesTool == .arrow && activeArrowType == .classic
+  }
+
   var quickArrowStyleBinding: Binding<ArrowStyle> {
     Binding(
       get: { [weak self] in
@@ -3911,6 +4024,28 @@ final class AnnotateState: ObservableObject {
       },
       set: { [weak self] newDirection in
         self?.setActiveArrowBendDirection(newDirection)
+      }
+    )
+  }
+
+  var quickArrowStartHeadBinding: Binding<ArrowEndpointStyle> {
+    Binding(
+      get: { [weak self] in
+        self?.activeArrowStartHead ?? .none
+      },
+      set: { [weak self] newHead in
+        self?.setActiveArrowStartHead(newHead)
+      }
+    )
+  }
+
+  var quickArrowEndHeadBinding: Binding<ArrowEndpointStyle> {
+    Binding(
+      get: { [weak self] in
+        self?.activeArrowEndHead ?? .arrow
+      },
+      set: { [weak self] newHead in
+        self?.setActiveArrowEndHead(newHead)
       }
     )
   }
