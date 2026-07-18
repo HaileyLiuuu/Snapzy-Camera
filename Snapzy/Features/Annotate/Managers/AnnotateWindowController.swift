@@ -566,22 +566,63 @@ final class AnnotateWindowController: NSWindowController, NSWindowDelegate {
   }
 
   private func executeSaveAndClose() {
+    let returnInterval = PerfSignpost.beginInterval("AnnotateReturn")
     if state.sourceURL != nil {
-      // Render once, update thumbnail instantly, close, save in background
       let sourceURL = state.sourceURL
       let sessionSnapshot = makeSessionSnapshot()
       state.markAsSaved()
       saveSessionCache(sessionSnapshot)
-      let renderedImage = AnnotateExporter.renderFinalImage(state: state)
-      if let renderedImage = renderedImage, let itemId = quickAccessItemId {
-        QuickAccessManager.shared.updateItemThumbnail(id: itemId, image: renderedImage)
-        QuickAccessManager.shared.markCloudStale(id: itemId)
+      
+      // Capture instant visual thumbnail from canvas view to avoid stale/blank flash
+      var instantThumbnail: NSImage? = nil
+      if let contentView = self.window?.contentView {
+        let bounds = contentView.bounds
+        if let imageRep = contentView.bitmapImageRepForCachingDisplay(in: bounds) {
+          contentView.cacheDisplay(in: bounds, to: imageRep)
+          let img = NSImage(size: bounds.size)
+          img.addRepresentation(imageRep)
+          instantThumbnail = QuickAccessManager.shared.cgScaleThumbnail(img, maxSize: 200)
+        }
       }
+      
+      let itemId = quickAccessItemId
+      if let instantThumbnail = instantThumbnail, let itemId = itemId {
+        QuickAccessManager.shared.updateItemThumbnail(id: itemId, thumbnail: instantThumbnail, fullResImage: instantThumbnail)
+      }
+      
+      // Pre-cache source image on main thread before background task
+      if let sourceImage = state.effectiveSourceImage {
+        _ = sourceImage.cgImage(forProposedRect: nil, context: nil, hints: nil)
+      }
+      
       let capturedState = state
-      forceClose()
+      forceClose(perfInterval: returnInterval)
+      
       Task.detached(priority: .userInitiated) {
+        // Off-main full-res render
+        let renderedImage = PerfSignpost.measure("render") {
+          AnnotateExporter.renderFinalImage(state: capturedState)
+        }
+        
+        guard let renderedImage = renderedImage else { return }
+        
+        // Off-main downscale
+        let finalThumbnail = PerfSignpost.measure("thumbnailScale") {
+          QuickAccessManager.shared.cgScaleThumbnail(renderedImage, maxSize: 200)
+        }
+        
+        // Main-actor push of authoritative thumbnail & pinned window update
+        if let itemId = itemId {
+          await MainActor.run {
+            QuickAccessManager.shared.updateItemThumbnail(id: itemId, thumbnail: finalThumbnail, fullResImage: renderedImage)
+            QuickAccessManager.shared.markCloudStale(id: itemId)
+          }
+        }
+        
+        // Save to file
         guard await AnnotateExporter.saveToFile(image: renderedImage, state: capturedState),
               let sourceURL else { return }
+              
         await Self.persistCommittedSession(sessionSnapshot, for: sourceURL)
         await PostCaptureActionHandler.shared.copyEditedCaptureToClipboardIfEnabled(
           for: .screenshot,
@@ -590,14 +631,18 @@ final class AnnotateWindowController: NSWindowController, NSWindowDelegate {
       }
     } else {
       AnnotateExporter.saveAs(state: state, closeWindow: true)
+      PerfSignpost.endInterval(returnInterval)
     }
   }
 
 
 
-  private func forceClose() {
+  private func forceClose(perfInterval: Any? = nil) {
     state.hasUnsavedChanges = false
-    guard let window = self.window else { return }
+    guard let window = self.window else {
+      PerfSignpost.endInterval(perfInterval)
+      return
+    }
     
     // Hide window instantly
     window.alphaValue = 0
@@ -606,7 +651,15 @@ final class AnnotateWindowController: NSWindowController, NSWindowDelegate {
       QuickAccessManager.shared.setWindowOpen(id: itemId, isOpen: false)
     }
     
-    window.close()
+    PerfSignpost.measure("windowClose") {
+      window.close()
+    }
+
+    if let perfInterval = perfInterval {
+      DispatchQueue.main.async {
+        PerfSignpost.endInterval(perfInterval)
+      }
+    }
   }
 
   // MARK: - Keyboard Shortcuts

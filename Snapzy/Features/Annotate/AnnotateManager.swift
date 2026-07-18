@@ -89,9 +89,12 @@ final class AnnotateManager {
 
   /// Switch back to accessory mode (menu bar only) if no windows open
   private func becomeAccessoryAppIfNeeded() {
-    guard windowControllers.isEmpty && manualWindowControllers.isEmpty else { return }
-    guard !VideoEditorManager.shared.hasOpenWindows else { return }
-    NSApp.revertActivationPolicyToAccessoryIfNeeded()
+    DispatchQueue.main.async { [weak self] in
+      guard let self = self else { return }
+      guard self.windowControllers.isEmpty && self.manualWindowControllers.isEmpty else { return }
+      guard !VideoEditorManager.shared.hasOpenWindows else { return }
+      NSApp.revertActivationPolicyToAccessoryIfNeeded()
+    }
   }
 
   /// Check if any annotate windows are open
