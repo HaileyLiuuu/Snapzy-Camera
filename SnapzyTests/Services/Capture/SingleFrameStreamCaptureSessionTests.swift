@@ -8,6 +8,11 @@
 //  forever. Tests drive the session's state machine directly so no Screen
 //  Recording permission is required.
 //
+//  Note: `arm` and `finish`/`cancel` are invoked inside the synchronous
+//  continuation closure so the arming always happens before any outcome is
+//  delivered — an unstructured `Task` would race and deliver outcomes before
+//  the continuation is installed.
+//
 
 import CoreGraphics
 import XCTest
@@ -15,20 +20,6 @@ import XCTest
 
 @MainActor
 final class SingleFrameStreamCaptureSessionTests: XCTestCase {
-
-  /// Arms a session (continuation installed, timeout ticking) and returns it along
-  /// with the task awaiting the frame. No SCStream is created.
-  private func armedSession(
-    timeout: TimeInterval
-  ) -> (session: SingleFrameStreamCaptureSession, task: Task<CGImage, Error>) {
-    let session = SingleFrameStreamCaptureSession()
-    let task = Task<CGImage, Error> {
-      try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<CGImage, Error>) in
-        session.arm(continuation: continuation, timeout: timeout)
-      }
-    }
-    return (session, task)
-  }
 
   private func makeTestImage() -> CGImage {
     let context = CGContext(
@@ -44,24 +35,29 @@ final class SingleFrameStreamCaptureSessionTests: XCTestCase {
   }
 
   func testFinish_firstResultWins_secondFinishIgnored() async throws {
-    let (session, task) = armedSession(timeout: 60)
+    let session = SingleFrameStreamCaptureSession()
 
-    let image = makeTestImage()
-    session.finish(.success(image))
-    // Second resume attempt must be ignored (a double resume would trap).
-    session.finish(.failure(CaptureError.cancelled))
+    let result: CGImage = try await withCheckedThrowingContinuation {
+      (continuation: CheckedContinuation<CGImage, Error>) in
+      session.arm(continuation: continuation, timeout: 60)
+      session.finish(.success(makeTestImage()))
+      // Second resume attempt must be ignored (a double resume would trap).
+      session.finish(.failure(CaptureError.cancelled))
+    }
 
-    let result = try await task.value
     XCTAssertEqual(result.width, 1)
     XCTAssertEqual(result.height, 1)
   }
 
   func testTimeout_noFrameArriving_throwsWithinBoundedTime() async {
-    let (session, task) = armedSession(timeout: 0.2)
-
+    let session = SingleFrameStreamCaptureSession()
     let startedAt = Date()
+
     do {
-      _ = try await task.value
+      let _: CGImage = try await withCheckedThrowingContinuation {
+        (continuation: CheckedContinuation<CGImage, Error>) in
+        session.arm(continuation: continuation, timeout: 0.2)
+      }
       XCTFail("Expected a timeout error, got a frame")
     } catch {
       // The wait must terminate promptly — before the fix it hung forever.
@@ -75,13 +71,15 @@ final class SingleFrameStreamCaptureSessionTests: XCTestCase {
   }
 
   func testCancel_pendingWait_throwsCancelledPromptly() async {
-    let (session, task) = armedSession(timeout: 60)
-
+    let session = SingleFrameStreamCaptureSession()
     let startedAt = Date()
-    session.cancel()
 
     do {
-      _ = try await task.value
+      let _: CGImage = try await withCheckedThrowingContinuation {
+        (continuation: CheckedContinuation<CGImage, Error>) in
+        session.arm(continuation: continuation, timeout: 60)
+        session.cancel()
+      }
       XCTFail("Expected a cancellation error, got a frame")
     } catch {
       XCTAssertLessThan(Date().timeIntervalSince(startedAt), 5)
@@ -93,12 +91,14 @@ final class SingleFrameStreamCaptureSessionTests: XCTestCase {
   }
 
   func testFinishFailure_propagatesError() async {
-    let (session, task) = armedSession(timeout: 60)
-
-    session.finish(.failure(CaptureError.noDisplayFound))
+    let session = SingleFrameStreamCaptureSession()
 
     do {
-      _ = try await task.value
+      let _: CGImage = try await withCheckedThrowingContinuation {
+        (continuation: CheckedContinuation<CGImage, Error>) in
+        session.arm(continuation: continuation, timeout: 60)
+        session.finish(.failure(CaptureError.noDisplayFound))
+      }
       XCTFail("Expected an error, got a frame")
     } catch {
       guard case CaptureError.noDisplayFound = error else {
@@ -109,10 +109,13 @@ final class SingleFrameStreamCaptureSessionTests: XCTestCase {
   }
 
   func testTimeout_afterSuccessfulFinish_doesNotResumeAgain() async throws {
-    let (session, task) = armedSession(timeout: 0.1)
+    let session = SingleFrameStreamCaptureSession()
 
-    session.finish(.success(makeTestImage()))
-    _ = try await task.value
+    let _: CGImage = try await withCheckedThrowingContinuation {
+      (continuation: CheckedContinuation<CGImage, Error>) in
+      session.arm(continuation: continuation, timeout: 0.1)
+      session.finish(.success(makeTestImage()))
+    }
 
     // Let the (cancelled) timeout lapse; a late fire or finish must not resume twice.
     try await Task.sleep(nanoseconds: 300_000_000)
