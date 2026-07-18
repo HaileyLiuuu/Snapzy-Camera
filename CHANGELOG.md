@@ -93,6 +93,21 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 
 
+
+## [1.30.0-beta.5] - 2026-07-18
+
+### Bug Fixes
+-  Fixed area capture hang on macOS 13 when Snapzy is excluded from screenshots (#385) (97832ca)
+
+### Chore
+- docs: Add documentation for new features and updates (0fe3ca6)
+- refactor: Remove upload to cloud functionality and related configurations (dd4ccd5)
+- chore: update appcast for v1.30.0-beta.4 (45ff8cd)
+
+### Contributors
+- @duongductrong
+- @github-actions[bot]
+
 ## [1.30.0-beta.4] - 2026-07-17
 
 ### Features
