@@ -9,7 +9,7 @@ Snapzy's annotation subsystem: the full Annotate editor window (hybrid AppKit sh
 - `Snapzy/Features/Annotate/Managers/AnnotateWindow.swift` — `NSWindow` subclass; intercepts ⌘+scroll zoom, trackpad magnify, Space key (pan mode via `annotateSpaceDown/Up` notifications), drag events; level floats while key (`activeEditorLevel`) and restores `restingLevel` on resign; pin sets resting level `.floating`.
 - `Snapzy/Features/Annotate/AnnotateState.swift` — central `ObservableObject` (~4.8k lines): annotations, tools, undo/redo, zoom/pan, canvas effects, crop, cutout, mockup, combine, cloud state.
 - Layout (`AnnotateMainView`): `AnnotateToolbarView` → `AnnotateQuickPropertiesBar` → `HStack(AnnotateSidebarView 240pt | AnnotateCanvasView)` → `AnnotateBottomBarView`.
-- Rendering: `DrawingCanvasNSView` (AppKit, CoreGraphics draw pass in `AnnotateCanvasDrawingView`) + `AnnotateAnnotationRenderer`; deterministic export via `AnnotateExporter.renderFinalImage` / `renderMockupImage`.
+- Rendering: `DrawingCanvasNSView` (AppKit, CoreGraphics draw pass in `AnnotateCanvasDrawingView`) + `AnnotateAnnotationRenderer`; deterministic export via `AnnotateExporter.renderFinalImage` (mockup: `renderMockupFlatImage` off-main + `compositeMockupImage` on main — `ImageRenderer` is main-only).
 - `AnnotateState.EditorMode`: `.annotate` (flat editing), `.mockup` (3D transforms), `.preview` (hides editing UI).
 
 ```mermaid
@@ -27,6 +27,17 @@ flowchart TD
     I -->|Save / copy&close / drag success / cloud upload| J["AnnotateExporter.renderFinalImage -> write file + persist sidecar"]
     I -->|Close w/o commit| K["Unsaved-change prompt; no sidecar write"]
 ```
+
+### Save-and-close ordering (perf)
+
+⌘S/close-with-save is ordered so the Quick Access card reappears with an unblocked main thread:
+
+1. `markAsSaved` + session cache + `state.makeRenderSnapshot()` — freezes every render input into a value-type `AnnotateRenderSnapshot` (warms lazy embedded-CGImage caches, pre-resolves main-bound wallpaper/blur images).
+2. Instant anti-flash thumbnail: `cacheDisplay` of the canvas region (`DrawingCanvasNSView`, no toolbar/sidebar chrome) downscaled to 200px — set on the card immediately; the pin window is NOT updated with it.
+3. `forceClose()` — window hidden + closed, card reappear commits.
+4. `Task.detached`: off-main `renderFinalImage(snapshot:)` → off-main 200px downscale → main push of the authoritative thumbnail + pin full-res update + `markCloudStale` (guarded by a per-item save generation, last-save-wins) → `saveToFileOffMain` (encode off-main; scoped write + history on main) → sidecar persist off-main (`AnnotationSessionStore.persistOffMain`) → clipboard re-copy off-main (`ClipboardHelper.copyImageOffMain`, serialized).
+
+The `.accessory` activation-policy revert is deferred to a later runloop turn (shared by Annotate/VideoEditor) so it never stalls the reappear. Signposts (`perf.signposts` default + Instruments `com.snapzy.perf`): `AnnotateReturn`, `instantThumbCapture`, `windowClose`, `render`, `thumbnailScale`. Perf evidence: `plans/260718-1956-quick-access-annotate-return-perf/reports/`.
 
 ## Tools & Shortcuts
 
