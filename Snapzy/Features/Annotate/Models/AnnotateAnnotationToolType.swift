@@ -8,7 +8,7 @@
 import Foundation
 
 /// Tool types available in annotation editor
-enum AnnotationToolType: String, CaseIterable, Identifiable {
+nonisolated enum AnnotationToolType: String, CaseIterable, Identifiable {
   case selection
   case crop
   case rectangle

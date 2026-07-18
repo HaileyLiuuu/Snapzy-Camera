@@ -572,58 +572,62 @@ final class AnnotateWindowController: NSWindowController, NSWindowDelegate {
       let sessionSnapshot = makeSessionSnapshot()
       state.markAsSaved()
       saveSessionCache(sessionSnapshot)
-      
-      // Capture instant visual thumbnail from canvas view to avoid stale/blank flash
-      var instantThumbnail: NSImage? = nil
-      if let contentView = self.window?.contentView {
-        let bounds = contentView.bounds
-        if let imageRep = contentView.bitmapImageRepForCachingDisplay(in: bounds) {
-          contentView.cacheDisplay(in: bounds, to: imageRep)
-          let img = NSImage(size: bounds.size)
-          img.addRepresentation(imageRep)
-          instantThumbnail = QuickAccessManager.shared.cgScaleThumbnail(img, maxSize: 200)
-        }
-      }
-      
+
+      // Freeze all render inputs on main (warms lazy caches, resolves main-bound
+      // resources) so the background render never touches live state.
+      let renderSnapshot = state.makeRenderSnapshot()
       let itemId = quickAccessItemId
-      if let instantThumbnail = instantThumbnail, let itemId = itemId {
-        QuickAccessManager.shared.updateItemThumbnail(id: itemId, thumbnail: instantThumbnail, fullResImage: instantThumbnail)
+      let generation = itemId.map { QuickAccessManager.shared.nextThumbnailGeneration(for: $0) }
+
+      // Instant anti-flash thumbnail from the canvas region (display-res; the
+      // authoritative render replaces it in ~50-100ms). The pin window is NOT updated
+      // here — it keeps its full-res image until the real render lands.
+      if let itemId,
+         let instantThumbnail = PerfSignpost.measure("instantThumbCapture", { captureCanvasThumbnail() }) {
+        QuickAccessManager.shared.updateItemThumbnail(id: itemId, thumbnail: instantThumbnail, fullResImage: nil)
       }
-      
-      // Pre-cache source image on main thread before background task
-      if let sourceImage = state.effectiveSourceImage {
-        _ = sourceImage.cgImage(forProposedRect: nil, context: nil, hints: nil)
-      }
-      
-      let capturedState = state
+
       forceClose(perfInterval: returnInterval)
-      
+
       Task.detached(priority: .userInitiated) {
-        // Off-main full-res render
-        let renderedImage = PerfSignpost.measure("render") {
-          AnnotateExporter.renderFinalImage(state: capturedState)
+        guard let renderSnapshot else {
+          DiagnosticLogger.shared.log(.error, .annotate, "Save-and-close skipped: no render snapshot")
+          return
         }
-        
-        guard let renderedImage = renderedImage else { return }
-        
+
+        // Off-main full-res render from the frozen snapshot (mockup composites on main)
+        let renderInterval = PerfSignpost.beginInterval("render")
+        let renderedImage = await AnnotateExporter.renderFinalImage(snapshot: renderSnapshot)
+        PerfSignpost.endInterval(renderInterval)
+
+        guard let renderedImage else {
+          DiagnosticLogger.shared.log(.error, .annotate, "Save-and-close render failed; file not saved")
+          return
+        }
+
         // Off-main downscale
         let finalThumbnail = PerfSignpost.measure("thumbnailScale") {
-          QuickAccessManager.shared.cgScaleThumbnail(renderedImage, maxSize: 200)
+          QuickAccessManager.cgScaleThumbnail(renderedImage, maxSize: 200)
         }
-        
+
         // Main-actor push of authoritative thumbnail & pinned window update
-        if let itemId = itemId {
+        if let itemId {
           await MainActor.run {
-            QuickAccessManager.shared.updateItemThumbnail(id: itemId, thumbnail: finalThumbnail, fullResImage: renderedImage)
+            QuickAccessManager.shared.updateItemThumbnail(
+              id: itemId,
+              thumbnail: finalThumbnail,
+              fullResImage: renderedImage,
+              generation: generation
+            )
             QuickAccessManager.shared.markCloudStale(id: itemId)
           }
         }
-        
-        // Save to file
-        guard await AnnotateExporter.saveToFile(image: renderedImage, state: capturedState),
-              let sourceURL else { return }
-              
-        await Self.persistCommittedSession(sessionSnapshot, for: sourceURL)
+
+        // Save to file (encode off-main; scoped write + history on main)
+        guard let sourceURL,
+              await AnnotateExporter.saveToFileOffMain(image: renderedImage, sourceURL: sourceURL) else { return }
+
+        await Self.persistCommittedSessionOffMain(sessionSnapshot, for: sourceURL)
         await PostCaptureActionHandler.shared.copyEditedCaptureToClipboardIfEnabled(
           for: .screenshot,
           url: sourceURL
@@ -635,6 +639,20 @@ final class AnnotateWindowController: NSWindowController, NSWindowDelegate {
     }
   }
 
+  /// Capture the canvas region (the edited image the user is looking at, without
+  /// toolbar/sidebar chrome) as a 200px instant thumbnail. Runs on main, ~2-5ms.
+  private func captureCanvasThumbnail() -> NSImage? {
+    guard let contentView = window?.contentView else { return nil }
+    let target = contentView.firstDescendant(ofType: DrawingCanvasNSView.self) ?? contentView
+    let rect = target.convert(target.bounds, to: contentView).integral
+    guard !rect.isEmpty,
+          let imageRep = contentView.bitmapImageRepForCachingDisplay(in: rect) else { return nil }
+    contentView.cacheDisplay(in: rect, to: imageRep)
+    let image = NSImage(size: rect.size)
+    image.addRepresentation(imageRep)
+    return QuickAccessManager.cgScaleThumbnail(image, maxSize: 200)
+  }
+
 
 
   private func forceClose(perfInterval: Any? = nil) {
@@ -643,14 +661,14 @@ final class AnnotateWindowController: NSWindowController, NSWindowDelegate {
       PerfSignpost.endInterval(perfInterval)
       return
     }
-    
+
     // Hide window instantly
     window.alphaValue = 0
-    
+
     if let itemId = quickAccessItemId {
       QuickAccessManager.shared.setWindowOpen(id: itemId, isOpen: false)
     }
-    
+
     PerfSignpost.measure("windowClose") {
       window.close()
     }
@@ -862,7 +880,7 @@ final class AnnotateWindowController: NSWindowController, NSWindowDelegate {
         )
         return
       }
-      await Self.persistCommittedSession(sessionSnapshot, for: sourceURL)
+      await Self.persistCommittedSessionOffMain(sessionSnapshot, for: sourceURL)
       await PostCaptureActionHandler.shared.copyEditedCaptureToClipboardIfEnabled(
         for: .screenshot,
         url: sourceURL
@@ -998,7 +1016,7 @@ final class AnnotateWindowController: NSWindowController, NSWindowDelegate {
       Task.detached(priority: .userInitiated) {
         guard await AnnotateExporter.saveToFile(image: renderedImage, state: capturedState),
               let sourceURL else { return }
-        await Self.persistCommittedSession(sessionSnapshot, for: sourceURL)
+        await Self.persistCommittedSessionOffMain(sessionSnapshot, for: sourceURL)
         await PostCaptureActionHandler.shared.copyEditedCaptureToClipboardIfEnabled(
           for: .screenshot,
           url: sourceURL
@@ -1166,7 +1184,7 @@ final class AnnotateWindowController: NSWindowController, NSWindowDelegate {
     Task.detached(priority: .userInitiated) {
       guard await AnnotateExporter.saveToFile(image: renderedImage, state: capturedState),
             let sourceURL else { return }
-      await Self.persistCommittedSession(sessionSnapshot, for: sourceURL)
+      await Self.persistCommittedSessionOffMain(sessionSnapshot, for: sourceURL)
     }
   }
 
@@ -1415,5 +1433,14 @@ final class AnnotateWindowController: NSWindowController, NSWindowDelegate {
     guard let snapshot,
           AnnotationSessionStore.shared.shouldPersist(for: sourceURL) else { return }
     AnnotationSessionStore.shared.persist(snapshot, for: sourceURL)
+  }
+
+  /// Off-main variant for background save flows: the multi-MB sidecar package write
+  /// runs on the calling queue; only the cheap shouldPersist check hops to main.
+  nonisolated private static func persistCommittedSessionOffMain(_ snapshot: AnnotationSessionData?, for sourceURL: URL) async {
+    guard let snapshot else { return }
+    let shouldPersist = await MainActor.run { AnnotationSessionStore.shared.shouldPersist(for: sourceURL) }
+    guard shouldPersist else { return }
+    _ = await AnnotationSessionStore.shared.persistOffMain(snapshot, for: sourceURL)
   }
 }

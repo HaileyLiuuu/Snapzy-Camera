@@ -10,7 +10,7 @@ import Foundation
 import SwiftUI
 
 /// Blur effect type for blur annotations
-enum BlurType: String, CaseIterable, Identifiable, Equatable {
+nonisolated enum BlurType: String, CaseIterable, Identifiable, Equatable {
   case pixelated
   case gaussian
   case hexagonal
@@ -51,7 +51,7 @@ enum BlurType: String, CaseIterable, Identifiable, Equatable {
   }
 }
 
-enum WatermarkStyle: String, CaseIterable, Identifiable, Equatable {
+nonisolated enum WatermarkStyle: String, CaseIterable, Identifiable, Equatable {
   case single
   case diagonal
   case tiled
@@ -84,7 +84,7 @@ enum WatermarkStyle: String, CaseIterable, Identifiable, Equatable {
   }
 }
 
-enum TextPresentation: String, CaseIterable, Identifiable, Equatable {
+nonisolated enum TextPresentation: String, CaseIterable, Identifiable, Equatable {
   case plain
   case label
   case callout
@@ -110,7 +110,7 @@ enum TextPresentation: String, CaseIterable, Identifiable, Equatable {
 
 /// Shared proportions for label and callout text. Keeping these in one place
 /// makes the editing overlay, on-canvas preview, and exported image agree.
-enum TextBubbleGeometry {
+nonisolated enum TextBubbleGeometry {
   private enum TailSide {
     case minX
     case maxX
@@ -321,25 +321,25 @@ enum TextBubbleGeometry {
   }
 }
 
-private func + (lhs: CGPoint, rhs: CGPoint) -> CGPoint {
+nonisolated private func + (lhs: CGPoint, rhs: CGPoint) -> CGPoint {
   CGPoint(x: lhs.x + rhs.x, y: lhs.y + rhs.y)
 }
 
-private func - (lhs: CGPoint, rhs: CGPoint) -> CGPoint {
+nonisolated private func - (lhs: CGPoint, rhs: CGPoint) -> CGPoint {
   CGPoint(x: lhs.x - rhs.x, y: lhs.y - rhs.y)
 }
 
-private func * (lhs: CGPoint, rhs: CGFloat) -> CGPoint {
+nonisolated private func * (lhs: CGPoint, rhs: CGFloat) -> CGPoint {
   CGPoint(x: lhs.x * rhs, y: lhs.y * rhs)
 }
 
-private func normalized(_ point: CGPoint) -> CGPoint {
+nonisolated private func normalized(_ point: CGPoint) -> CGPoint {
   let length = hypot(point.x, point.y)
   guard length > 0.0001 else { return .zero }
   return point * (1 / length)
 }
 
-enum ArrowStyle: String, CaseIterable, Identifiable, Equatable {
+nonisolated enum ArrowStyle: String, CaseIterable, Identifiable, Equatable {
   case straight
   case curvedRight
   case curvedLeft
@@ -390,7 +390,7 @@ enum ArrowStyle: String, CaseIterable, Identifiable, Equatable {
   }
 }
 
-enum ArrowBendDirection: String, CaseIterable, Identifiable, Equatable {
+nonisolated enum ArrowBendDirection: String, CaseIterable, Identifiable, Equatable {
   case primary
   case alternate
 
@@ -420,7 +420,7 @@ enum ArrowBendDirection: String, CaseIterable, Identifiable, Equatable {
   }
 }
 
-enum ArrowType: String, Codable, CaseIterable, Identifiable {
+nonisolated enum ArrowType: String, Codable, CaseIterable, Identifiable {
   case classic
   case tapered
   case outlined
@@ -469,7 +469,7 @@ enum ArrowType: String, Codable, CaseIterable, Identifiable {
 
 /// Decoration drawn at a single arrow endpoint (start or end).
 /// Applies to the `.classic` display type; tapered/outlined bake their head into the body.
-enum ArrowEndpointStyle: String, CaseIterable, Identifiable, Equatable {
+nonisolated enum ArrowEndpointStyle: String, CaseIterable, Identifiable, Equatable {
   case none
   case arrow
   case circle
@@ -493,7 +493,7 @@ enum ArrowEndpointStyle: String, CaseIterable, Identifiable, Equatable {
   }
 }
 
-struct ArrowGeometry: Equatable {
+nonisolated struct ArrowGeometry: Equatable {
   var start: CGPoint
   var end: CGPoint
   var style: ArrowStyle
@@ -851,7 +851,7 @@ struct ArrowGeometry: Equatable {
     return rect
   }
 
-  func translatedBy(dx: CGFloat, dy: CGFloat) -> ArrowGeometry {
+  nonisolated func translatedBy(dx: CGFloat, dy: CGFloat) -> ArrowGeometry {
     ArrowGeometry(
       start: CGPoint(x: start.x + dx, y: start.y + dy),
       end: CGPoint(x: end.x + dx, y: end.y + dy),
@@ -1084,7 +1084,7 @@ struct AnnotationItem: Identifiable, Equatable {
 }
 
 /// Types of annotations
-enum AnnotationType: Equatable {
+nonisolated enum AnnotationType: Equatable {
   case path([CGPoint])
   case rectangle
   case filledRectangle
@@ -1146,7 +1146,7 @@ enum AnnotationType: Equatable {
 }
 
 /// Visual properties for an annotation
-struct AnnotationProperties: Equatable {
+nonisolated struct AnnotationProperties: Equatable {
   static let controlValueRange: ClosedRange<CGFloat> = 1 ... 20
 
   var strokeColor: Color

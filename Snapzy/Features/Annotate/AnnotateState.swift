@@ -210,7 +210,7 @@ final class AnnotateState: ObservableObject {
   // MARK: - Editor Mode
 
   /// Editor mode determines whether user is annotating or applying mockup transforms
-  enum EditorMode: String, CaseIterable {
+  nonisolated enum EditorMode: String, CaseIterable {
     case annotate  // Normal annotation editing (flat image)
     case mockup    // 3D perspective transforms with controls
     case preview   // Preview combined result (hides all editing UI)
@@ -1525,6 +1525,63 @@ final class AnnotateState: ObservableObject {
     }
     embeddedImageCGImageCache[assetId] = cgImage
     return cgImage
+  }
+
+  /// Freeze every render input into a value-type snapshot so final-image rendering can run
+  /// off the main actor. Warms lazy caches (embedded CGImage) and resolves main-bound
+  /// resources (sandboxed wallpaper disk access, CI blur) before copying.
+  func makeRenderSnapshot() -> AnnotateRenderSnapshot? {
+    guard let sourceImage = effectiveSourceImage else { return nil }
+
+    // Warm the lazy CGImage cache for every embedded asset referenced by annotations,
+    // then freeze plain dictionary copies (off-main render must be read-only).
+    for annotation in annotations {
+      if case .embeddedImage(let assetId) = annotation.type {
+        _ = embeddedCGImage(for: assetId)
+      }
+    }
+
+    // Pre-resolve the background image for the active style (mirrors the exporter's
+    // resolve logic: blurred preferred when the effect is active / for .blurred style).
+    let resolvedBackgroundImage: NSImage?
+    switch backgroundStyle {
+    case .wallpaper(let url) where url.scheme != "preset":
+      resolvedBackgroundImage = isBlurredBackgroundEffectActive
+        ? blurredBackgroundImage(for: url)
+        : backgroundImage(for: url)
+    case .blurred(let url):
+      resolvedBackgroundImage = blurredBackgroundImage(for: url)
+    default:
+      resolvedBackgroundImage = nil
+    }
+
+    return AnnotateRenderSnapshot(
+      sourceImage: sourceImage,
+      editorMode: editorMode,
+      isCombineMode: isCombineMode,
+      effectiveContentBounds: effectiveContentBounds,
+      cropRect: cropRect,
+      annotations: annotations,
+      embeddedImages: embeddedImageAssets,
+      embeddedCGImages: embeddedImageCGImageCache,
+      backgroundStyle: backgroundStyle,
+      isBlurredBackgroundEffectActive: isBlurredBackgroundEffectActive,
+      blurredBackgroundEffect: blurredBackgroundEffect,
+      resolvedBackgroundImage: resolvedBackgroundImage,
+      padding: padding,
+      cornerRadius: cornerRadius,
+      shadowIntensity: shadowIntensity,
+      imageAlignment: imageAlignment,
+      aspectRatio: aspectRatio,
+      aspectRatioOrientation: aspectRatioOrientation,
+      mockupRotationX: mockupRotationX,
+      mockupRotationY: mockupRotationY,
+      mockupRotationZ: mockupRotationZ,
+      mockupPerspective: mockupPerspective,
+      mockupShadowRadius: mockupShadowRadius,
+      mockupShadowOffsetX: mockupShadowOffsetX,
+      mockupShadowOffsetY: mockupShadowOffsetY
+    )
   }
 
   func restoreEmbeddedImageAssets(from snapshot: [UUID: Data]) {
@@ -4879,7 +4936,7 @@ final class AnnotateState: ObservableObject {
   }
 }
 
-enum AnnotateTextLayout {
+nonisolated enum AnnotateTextLayout {
   static let horizontalPadding: CGFloat = 4
   static let verticalPadding: CGFloat = 4
   static let minWidth: CGFloat = 30

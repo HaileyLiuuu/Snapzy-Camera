@@ -687,7 +687,7 @@ struct QuickAccessCardView: View {
             do {
               try await CloudManager.shared.deleteByKey(key: oldKey)
             } catch {
-              await DiagnosticLogger.shared.logError(.cloud, error, "Quick access old cloud object cleanup failed")
+              DiagnosticLogger.shared.logError(.cloud, error, "Quick access old cloud object cleanup failed")
             }
           }
         }

@@ -40,7 +40,7 @@ enum DiagnosticLogCategory: String {
 
 // MARK: - Log Entry
 
-struct DiagnosticLogEntry {
+nonisolated struct DiagnosticLogEntry {
   let timestamp: Date
   let level: DiagnosticLogLevel
   let category: DiagnosticLogCategory

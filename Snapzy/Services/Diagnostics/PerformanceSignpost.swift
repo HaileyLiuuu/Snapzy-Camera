@@ -9,7 +9,7 @@ import Foundation
 import os
 
 @available(macOS 12.0, *)
-private let poster = OSSignposter(subsystem: "com.snapzy.perf", category: "annotate-return")
+nonisolated private let poster = OSSignposter(subsystem: "com.snapzy.perf", category: "annotate-return")
 
 enum PerfSignpost {
   #if DEBUG
@@ -20,7 +20,7 @@ enum PerfSignpost {
   }
   #endif
 
-  static func beginInterval(_ name: StaticString) -> Any? {
+  nonisolated static func beginInterval(_ name: StaticString) -> Any? {
     #if DEBUG
     if #available(macOS 12.0, *) {
       if UserDefaults.standard.bool(forKey: "perf.signposts") {
@@ -32,7 +32,7 @@ enum PerfSignpost {
     return nil
   }
 
-  static func endInterval(_ interval: Any?) {
+  nonisolated static func endInterval(_ interval: Any?) {
     #if DEBUG
     if #available(macOS 12.0, *) {
       if let iv = interval as? Interval {
@@ -42,7 +42,7 @@ enum PerfSignpost {
     #endif
   }
 
-  static func event(_ name: StaticString) {
+  nonisolated static func event(_ name: StaticString) {
     #if DEBUG
     if #available(macOS 12.0, *) {
       if UserDefaults.standard.bool(forKey: "perf.signposts") {
@@ -53,7 +53,7 @@ enum PerfSignpost {
   }
 
   @discardableResult
-  static func measure<T>(_ name: StaticString, _ body: () -> T) -> T {
+  nonisolated static func measure<T>(_ name: StaticString, _ body: () -> T) -> T {
     #if DEBUG
     if #available(macOS 12.0, *) {
       if UserDefaults.standard.bool(forKey: "perf.signposts") {

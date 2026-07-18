@@ -10,7 +10,7 @@ import CoreGraphics
 import SwiftUI
 
 /// Renders annotations to a CGContext
-struct AnnotationRenderer {
+nonisolated struct AnnotationRenderer {
   private static let livePreviewFullQualityAreaThreshold: CGFloat = 120_000
 
   let context: CGContext
@@ -617,6 +617,8 @@ struct AnnotationRenderer {
 
     // Editor preview path: never do exact work inside draw(). A cache miss schedules
     // async refinement and returns immediately with a friendly placeholder.
+    // NOTE: the export path never passes a blurCacheManager, so this main-isolated
+    // cache is only touched from the interactive (main-actor) canvas.
     if let cacheManager = blurCacheManager {
       if let cachedImage = cacheManager.getCachedBlur(
         for: annotationId,
@@ -838,7 +840,7 @@ struct AnnotationRenderer {
 // MARK: - AnnotationType Extension
 
 extension AnnotationType {
-  var isHighlight: Bool {
+  nonisolated var isHighlight: Bool {
     if case .highlight = self { return true }
     return false
   }

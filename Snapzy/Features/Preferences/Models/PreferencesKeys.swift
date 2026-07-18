@@ -132,7 +132,7 @@ enum PreferencesKeys {
   static let annotationShortcutHoldDuration = "recording.annotation.shortcutHoldDuration"
 
   // Diagnostics
-  static let diagnosticsEnabled = "diagnostics.enabled"
+  nonisolated static let diagnosticsEnabled = "diagnostics.enabled"
   static let diagnosticsRetentionDays = "diagnostics.retentionDays"
   static let diagnosticsSessionActive = "diagnostics.sessionActive"
 

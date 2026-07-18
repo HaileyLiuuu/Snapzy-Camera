@@ -9,7 +9,7 @@ import CoreGraphics
 import Foundation
 import SwiftUI
 
-struct PersistedAnnotationSession: Codable {
+nonisolated struct PersistedAnnotationSession: Codable {
   static let currentSchemaVersion = 1
 
   var schemaVersion: Int
@@ -44,7 +44,7 @@ struct PersistedCombineSession: Codable, Equatable {
   var freeBoundsByAnnotationID: [String: CGRect]
 }
 
-struct PersistedFileSignature: Codable, Equatable {
+nonisolated struct PersistedFileSignature: Codable, Equatable {
   var fileSize: Int64
   var modifiedAtMilliseconds: Int64
   var pathExtension: String

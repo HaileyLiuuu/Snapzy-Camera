@@ -90,6 +90,28 @@ final class AnnotateExporter {
     }
   }
 
+  /// Off-main variant of `saveToFile`: the full-res encode runs on the calling (background)
+  /// queue — it is the most expensive step — while only the sandbox-scoped write and
+  /// history bookkeeping hop to main (both main-bound APIs, ~ms).
+  nonisolated static func saveToFileOffMain(image: NSImage, sourceURL: URL) async -> Bool {
+    DiagnosticLogger.shared.log(.info, .annotate, "Background save", context: ["file": sourceURL.lastPathComponent])
+
+    guard let data = imageData(from: image, for: sourceURL.pathExtension) else { return false }
+
+    do {
+      try await MainActor.run {
+        try SandboxFileAccessManager.shared.withScopedAccess(to: sourceURL.deletingLastPathComponent()) {
+          try data.write(to: sourceURL, options: .atomic)
+        }
+        CaptureHistoryStore.shared.markFileChanged(at: sourceURL)
+      }
+      return true
+    } catch {
+      DiagnosticLogger.shared.logError(.annotate, error, "Background save failed")
+      return false
+    }
+  }
+
   static func copyToClipboard(state: AnnotateState) {
     DiagnosticLogger.shared.log(.info, .annotate, "Copy to clipboard", context: ["annotations": "\(state.annotations.count)"])
     guard let image = renderFinalImage(state: state) else {
@@ -144,7 +166,7 @@ final class AnnotateExporter {
 
   /// Determine the pixel-to-point scale factor from the source image.
   /// Falls back to 1.0 when bitmap metadata is unavailable.
-  private static func sourceImageScale(_ sourceImage: NSImage) -> CGFloat {
+  nonisolated private static func sourceImageScale(_ sourceImage: NSImage) -> CGFloat {
     let pointWidth = sourceImage.size.width
     let pointHeight = sourceImage.size.height
     guard pointWidth > 0, pointHeight > 0 else { return 1.0 }
@@ -168,7 +190,7 @@ final class AnnotateExporter {
     return 1.0
   }
 
-  private static func bestBitmapRepresentation(in image: NSImage) -> NSBitmapImageRep? {
+  nonisolated private static func bestBitmapRepresentation(in image: NSImage) -> NSBitmapImageRep? {
     image.representations
       .compactMap { $0 as? NSBitmapImageRep }
       .max { lhs, rhs in
@@ -176,7 +198,7 @@ final class AnnotateExporter {
       }
   }
 
-  static func bestCGImage(from image: NSImage) -> CGImage? {
+  nonisolated static func bestCGImage(from image: NSImage) -> CGImage? {
     if let cgImage = bestBitmapRepresentation(in: image)?.cgImage {
       return cgImage
     }
@@ -185,7 +207,7 @@ final class AnnotateExporter {
 
   /// Convert NSImage to Data for any supported format (PNG, JPEG, WebP)
   /// Uses CGImageDestination for WebP support (macOS 14+)
-  static func imageData(from image: NSImage, for fileExtension: String) -> Data? {
+  nonisolated static func imageData(from image: NSImage, for fileExtension: String) -> Data? {
     guard let cgImage = bestCGImage(from: image) else {
       return nil
     }
@@ -218,7 +240,7 @@ final class AnnotateExporter {
     return data as Data
   }
 
-  private static func imageDestinationProperties(
+  nonisolated private static func imageDestinationProperties(
     for fileExtension: String,
     scaleFactor: CGFloat
   ) -> CFDictionary? {
@@ -345,9 +367,35 @@ final class AnnotateExporter {
     return image
   }
 
+  /// Main-actor render entry point (Save As / Copy / Share). Freezes state into a
+  /// snapshot first so every render path shares one implementation.
   static func renderFinalImage(state: AnnotateState) -> NSImage? {
+    guard let snapshot = state.makeRenderSnapshot() else { return nil }
+    if snapshot.editorMode == .mockup {
+      DiagnosticLogger.shared.log(.debug, .annotate, "Rendering mockup image")
+      guard let flatImage = renderMockupFlatImage(snapshot: snapshot) else { return nil }
+      return compositeMockupImage(flatImage: flatImage, snapshot: snapshot)
+    }
+    return renderFlatFinalImage(snapshot: snapshot)
+  }
+
+  /// Off-main render entry point for the save-and-close background path.
+  /// Mockup mode renders the flat image off-main, then composites 3D transforms on main
+  /// (SwiftUI `ImageRenderer` is a main-only API).
+  nonisolated static func renderFinalImage(snapshot: AnnotateRenderSnapshot) async -> NSImage? {
+    if snapshot.editorMode == .mockup {
+      DiagnosticLogger.shared.log(.debug, .annotate, "Rendering mockup image")
+      guard let flatImage = renderMockupFlatImage(snapshot: snapshot) else { return nil }
+      return await compositeMockupImage(flatImage: flatImage, snapshot: snapshot)
+    }
+    return renderFlatFinalImage(snapshot: snapshot)
+  }
+
+  /// Flat render pipeline (no mockup transforms). Pure CoreGraphics/AppKit drawing into a
+  /// private bitmap context — safe on any queue, reads only the frozen snapshot.
+  nonisolated static func renderFlatFinalImage(snapshot: AnnotateRenderSnapshot) -> NSImage? {
     let startedAt = CFAbsoluteTimeGetCurrent()
-    let embeddedLayerCount = state.annotations.reduce(into: 0) { count, annotation in
+    let embeddedLayerCount = snapshot.annotations.reduce(into: 0) { count, annotation in
       if case .embeddedImage = annotation.type {
         count += 1
       }
@@ -356,50 +404,44 @@ final class AnnotateExporter {
     defer {
       let durationMs = Int((CFAbsoluteTimeGetCurrent() - startedAt) * 1_000)
       DiagnosticLogger.shared.log(.debug, .annotate, "Render final image completed", context: [
-        "mode": state.editorMode.rawValue,
-        "annotations": "\(state.annotations.count)",
+        "mode": snapshot.editorMode.rawValue,
+        "annotations": "\(snapshot.annotations.count)",
         "embeddedLayers": "\(embeddedLayerCount)",
         "outputSize": outputSizeDescription,
         "durationMs": "\(durationMs)"
       ])
     }
 
-    guard let sourceImage = state.effectiveSourceImage else { return nil }
-
-    // If mockup mode is active, use mockup rendering path with 3D transforms
-    if state.editorMode == .mockup {
-      DiagnosticLogger.shared.log(.debug, .annotate, "Rendering mockup image")
-      return renderMockupImage(state: state)
-    }
+    let sourceImage = snapshot.sourceImage
 
     DiagnosticLogger.shared.log(.debug, .annotate, "Rendering final image", context: [
-      "annotations": "\(state.annotations.count)",
-      "hasCrop": "\(state.cropRect != nil)",
-      "background": "\(state.backgroundStyle)"
+      "annotations": "\(snapshot.annotations.count)",
+      "hasCrop": "\(snapshot.cropRect != nil)",
+      "background": "\(snapshot.backgroundStyle)"
     ])
 
     // Determine effective bounds (crop or full image)
     let effectiveBounds: CGRect
-    if state.isCombineMode {
-      effectiveBounds = state.effectiveContentBounds
-    } else if let cropRect = state.cropRect {
+    if snapshot.isCombineMode {
+      effectiveBounds = snapshot.effectiveContentBounds
+    } else if let cropRect = snapshot.cropRect {
       effectiveBounds = cropRect
     } else {
       effectiveBounds = CGRect(origin: .zero, size: sourceImage.size)
     }
 
-    let padding = state.isCombineMode ? state.padding : (state.backgroundStyle != .none ? state.padding : 0)
+    let padding = snapshot.isCombineMode ? snapshot.padding : (snapshot.backgroundStyle != .none ? snapshot.padding : 0)
 
     // Add alignment space for non-center alignments (matches preview)
-    let alignmentSpace: CGFloat = state.imageAlignment != .center ? 40 : 0
+    let alignmentSpace: CGFloat = snapshot.imageAlignment != .center ? 40 : 0
 
-    let totalSize: NSSize = state.isCombineMode
+    let totalSize: NSSize = snapshot.isCombineMode
       ? NSSize(width: effectiveBounds.width + padding * 2, height: effectiveBounds.height + padding * 2)
-      : state.aspectRatio.canvasSize(
+      : snapshot.aspectRatio.canvasSize(
         for: effectiveBounds.size,
         padding: padding,
         alignmentSpace: alignmentSpace,
-        orientation: state.aspectRatioOrientation
+        orientation: snapshot.aspectRatioOrientation
       )
     outputSizeDescription = "\(Int(totalSize.width))x\(Int(totalSize.height))"
 
@@ -429,7 +471,7 @@ final class AnnotateExporter {
     let context = graphicsContext.cgContext
 
     // Draw background
-    drawBackground(state: state, in: context, size: totalSize)
+    drawBackground(snapshot: snapshot, in: context, size: totalSize)
 
     // Calculate image position based on alignment
     let imageWidth = effectiveBounds.width
@@ -442,7 +484,7 @@ final class AnnotateExporter {
     let destX: CGFloat
     let destY: CGFloat
 
-    switch state.isCombineMode ? ImageAlignment.center : state.imageAlignment {
+    switch snapshot.isCombineMode ? ImageAlignment.center : snapshot.imageAlignment {
     case .center:
       destX = totalExtraWidth / 2
       destY = totalExtraHeight / 2
@@ -472,14 +514,14 @@ final class AnnotateExporter {
       destY = 0
     }
 
-    if state.cornerRadius > 0 {
+    if snapshot.cornerRadius > 0 {
       let clipRect = NSRect(
         x: destX,
         y: destY,
         width: effectiveBounds.width,
         height: effectiveBounds.height
       )
-      let path = NSBezierPath(roundedRect: clipRect, xRadius: state.cornerRadius, yRadius: state.cornerRadius)
+      let path = NSBezierPath(roundedRect: clipRect, xRadius: snapshot.cornerRadius, yRadius: snapshot.cornerRadius)
       path.addClip()
     }
 
@@ -490,13 +532,13 @@ final class AnnotateExporter {
       in: context
     )
 
-    if !state.isCombineMode {
+    if !snapshot.isCombineMode {
       context.resetClip()
     }
 
     // Unified Spotlight overlay pass (drawn below other annotations, above base image).
     // Opacity sourced from per-item properties so exported image matches the on-screen appearance.
-    let spotlightRegions: [SpotlightRegion] = state.annotations.compactMap { a in
+    let spotlightRegions: [SpotlightRegion] = snapshot.annotations.compactMap { a in
       guard case .spotlight = a.type else { return nil }
       let offset = offsetAnnotationForExport(
         a,
@@ -518,16 +560,16 @@ final class AnnotateExporter {
       context: context,
       sourceImage: sourceImage,
       embeddedImageProvider: { assetId in
-        state.embeddedImage(for: assetId)
+        snapshot.embeddedImages[assetId]
       },
       embeddedCGImageProvider: { assetId in
-        state.embeddedCGImage(for: assetId)
+        snapshot.embeddedCGImages[assetId]
       }
     )
-    for annotation in state.annotations {
+    for annotation in snapshot.annotations {
       if case .spotlight = annotation.type { continue }
       // Only include annotations that intersect with crop bounds
-      if let cropRect = state.cropRect {
+      if let cropRect = snapshot.cropRect {
         guard annotation.bounds.intersects(cropRect) else { continue }
       }
       let offsetAnnotation = offsetAnnotationForExport(
@@ -539,7 +581,7 @@ final class AnnotateExporter {
       renderer.draw(offsetAnnotation)
     }
 
-    if state.isCombineMode {
+    if snapshot.isCombineMode {
       context.resetClip()
     }
 
@@ -552,7 +594,7 @@ final class AnnotateExporter {
 
   /// Draw only the source-image portion that intersects the requested canvas bounds.
   /// Expanded crop areas outside the source image intentionally stay transparent/background-filled.
-  private static func drawSourceImage(
+  nonisolated private static func drawSourceImage(
     _ sourceImage: NSImage,
     effectiveBounds: CGRect,
     destinationOrigin: CGPoint,
@@ -601,7 +643,7 @@ final class AnnotateExporter {
     context.restoreGState()
   }
 
-  private static func sourcePixelCropRect(
+  nonisolated private static func sourcePixelCropRect(
     for bounds: CGRect,
     imageSize: CGSize,
     pixelSize: CGSize
@@ -631,7 +673,7 @@ final class AnnotateExporter {
   }
 
   /// Offset annotation for export, accounting for crop origin and alignment-based image position
-  private static func offsetAnnotationForExport(
+  nonisolated private static func offsetAnnotationForExport(
     _ annotation: AnnotationItem,
     cropOrigin: CGPoint,
     imageX: CGFloat,
@@ -675,7 +717,7 @@ final class AnnotateExporter {
   }
 
   /// Offset annotation for crop, accounting for crop origin and padding
-  private static func offsetAnnotationForCrop(
+  nonisolated private static func offsetAnnotationForCrop(
     _ annotation: AnnotationItem,
     cropOrigin: CGPoint,
     padding: CGFloat
@@ -718,7 +760,7 @@ final class AnnotateExporter {
   }
 
   /// Offset an annotation by padding, including internal points for lines/arrows
-  private static func offsetAnnotation(_ annotation: AnnotationItem, by padding: CGFloat) -> AnnotationItem {
+  nonisolated private static func offsetAnnotation(_ annotation: AnnotationItem, by padding: CGFloat) -> AnnotationItem {
     var result = annotation
     result.bounds = annotation.bounds.offsetBy(dx: padding, dy: padding)
 
@@ -742,10 +784,12 @@ final class AnnotateExporter {
     return result
   }
 
-  private static func drawBackground(state: AnnotateState, in context: CGContext, size: NSSize) {
+  /// Snapshot-based background draw. The wallpaper/blurred image arrives pre-resolved
+  /// (main-bound sandbox access + CI blur happen when the snapshot is built).
+  nonisolated private static func drawBackground(snapshot: AnnotateRenderSnapshot, in context: CGContext, size: NSSize) {
     let rect = CGRect(origin: .zero, size: size)
 
-    switch state.backgroundStyle {
+    switch snapshot.backgroundStyle {
     case .none:
       break
 
@@ -755,8 +799,8 @@ final class AnnotateExporter {
     case .solidColor(let color):
       context.setFillColor(NSColor(color).cgColor)
       context.fill(rect)
-      if state.isBlurredBackgroundEffectActive {
-        drawBlurredBackgroundTint(state: state, in: context, rect: rect)
+      if snapshot.isBlurredBackgroundEffectActive {
+        drawBlurredBackgroundTint(effect: snapshot.blurredBackgroundEffect, in: context, rect: rect)
       }
 
     case .wallpaper(let url):
@@ -766,18 +810,17 @@ final class AnnotateExporter {
         drawLinearGradient(colors: preset.colors, in: context, size: size)
         return
       }
-      let preferBlurred = state.isBlurredBackgroundEffectActive
-      if let wallpaper = resolveWallpaperImage(for: url, state: state, preferBlurred: preferBlurred) {
+      if let wallpaper = snapshot.resolvedBackgroundImage {
         wallpaper.draw(in: rect)
-        if preferBlurred {
-          drawBlurredBackgroundTint(state: state, in: context, rect: rect)
+        if snapshot.isBlurredBackgroundEffectActive {
+          drawBlurredBackgroundTint(effect: snapshot.blurredBackgroundEffect, in: context, rect: rect)
         }
       }
 
-    case .blurred(let url):
-      if let wallpaper = resolveWallpaperImage(for: url, state: state, preferBlurred: true) {
+    case .blurred:
+      if let wallpaper = snapshot.resolvedBackgroundImage {
         wallpaper.draw(in: rect)
-        drawBlurredBackgroundTint(state: state, in: context, rect: rect)
+        drawBlurredBackgroundTint(effect: snapshot.blurredBackgroundEffect, in: context, rect: rect)
       }
     }
   }
@@ -838,7 +881,7 @@ final class AnnotateExporter {
     return effects.isBlurredBackgroundEnabled
   }
 
-  private static func drawLinearGradient(colors: [Color], in context: CGContext, size: NSSize) {
+  nonisolated private static func drawLinearGradient(colors: [Color], in context: CGContext, size: NSSize) {
     let cgColors = colors.map { NSColor($0).cgColor }
     let gradient = CGGradient(
       colorsSpace: CGColorSpaceCreateDeviceRGB(),
@@ -857,22 +900,6 @@ final class AnnotateExporter {
 
   private static func resolveWallpaperImage(
     for url: URL,
-    state: AnnotateState,
-    preferBlurred: Bool
-  ) -> NSImage? {
-    if preferBlurred {
-      return state.blurredBackgroundImage(for: url)
-    }
-
-    if let image = state.backgroundImage(for: url) {
-      return image
-    }
-
-    return nil
-  }
-
-  private static func resolveWallpaperImage(
-    for url: URL,
     blurredEffect: BlurredBackgroundEffect,
     preferBlurred: Bool
   ) -> NSImage? {
@@ -883,21 +910,7 @@ final class AnnotateExporter {
     return makeBlurredBackgroundImage(from: image, effect: blurredEffect)
   }
 
-  private static func drawBlurredBackgroundTint(
-    state: AnnotateState,
-    in context: CGContext,
-    rect: CGRect
-  ) {
-    let effect = state.blurredBackgroundEffect
-    guard effect.tintOpacity > 0 else { return }
-
-    context.saveGState()
-    context.setFillColor(NSColor(effect.tintColor).withAlphaComponent(CGFloat(effect.tintOpacity)).cgColor)
-    context.fill(rect)
-    context.restoreGState()
-  }
-
-  private static func drawBlurredBackgroundTint(
+  nonisolated private static func drawBlurredBackgroundTint(
     effect: BlurredBackgroundEffect,
     in context: CGContext,
     rect: CGRect
@@ -910,7 +923,7 @@ final class AnnotateExporter {
     context.restoreGState()
   }
 
-  private static func makeBlurredBackgroundImage(
+  nonisolated private static func makeBlurredBackgroundImage(
     from image: NSImage?,
     effect: BlurredBackgroundEffect
   ) -> NSImage? {
@@ -938,7 +951,7 @@ final class AnnotateExporter {
     return blurred
   }
 
-  private static func destinationOrigin(
+  nonisolated private static func destinationOrigin(
     imageSize: CGSize,
     totalSize: CGSize,
     alignment: ImageAlignment
@@ -972,35 +985,14 @@ final class AnnotateExporter {
 
   // MARK: - Mockup Rendering
 
-  /// Render mockup image with 3D transforms using ImageRenderer
-  /// First flattens image + annotations, then applies 3D transforms
-  private static func renderMockupImage(state: AnnotateState) -> NSImage? {
-    guard state.effectiveSourceImage != nil else { return nil }
-
-    // Step 1: Render flat image with annotations (temporarily disable mockup mode)
-    let savedMode = state.editorMode
-    state.editorMode = .annotate
-    guard let flatImage = renderFlatImageWithAnnotations(state: state) else {
-      state.editorMode = savedMode
-      return nil
-    }
-    state.editorMode = savedMode
-
-    // Step 2: Apply mockup transforms to the flattened image
-    let mockupView = MockupExportViewForAnnotate(flatImage: flatImage, state: state)
-    let renderer = ImageRenderer(content: mockupView)
-    renderer.scale = 2.0
-
-    return renderer.nsImage
-  }
-
-  /// Render flat image with annotations (no mockup transforms)
-  private static func renderFlatImageWithAnnotations(state: AnnotateState) -> NSImage? {
-    guard let sourceImage = state.effectiveSourceImage else { return nil }
+  /// Render the flattened image + annotations that mockup transforms are applied to.
+  /// Pure bitmap drawing from the frozen snapshot — safe on any queue.
+  nonisolated static func renderMockupFlatImage(snapshot: AnnotateRenderSnapshot) -> NSImage? {
+    let sourceImage = snapshot.sourceImage
 
     // Determine effective bounds (crop or full image)
     let effectiveBounds: CGRect
-    if let cropRect = state.cropRect {
+    if let cropRect = snapshot.cropRect {
       effectiveBounds = cropRect
     } else {
       effectiveBounds = CGRect(origin: .zero, size: sourceImage.size)
@@ -1038,14 +1030,14 @@ final class AnnotateExporter {
       context: context,
       sourceImage: sourceImage,
       embeddedImageProvider: { assetId in
-        state.embeddedImage(for: assetId)
+        snapshot.embeddedImages[assetId]
       },
       embeddedCGImageProvider: { assetId in
-        state.embeddedCGImage(for: assetId)
+        snapshot.embeddedCGImages[assetId]
       }
     )
-    for annotation in state.annotations {
-      if let cropRect = state.cropRect {
+    for annotation in snapshot.annotations {
+      if let cropRect = snapshot.cropRect {
         guard annotation.bounds.intersects(cropRect) else { continue }
       }
       let offsetAnnotation = offsetAnnotationForCrop(
@@ -1062,6 +1054,16 @@ final class AnnotateExporter {
     image.addRepresentation(bitmapRep)
     return image
   }
+
+  /// Apply mockup 3D transforms to the flattened image via SwiftUI ImageRenderer.
+  /// ImageRenderer is main-only — this is the sole main-actor step of mockup export.
+  @MainActor static func compositeMockupImage(flatImage: NSImage, snapshot: AnnotateRenderSnapshot) -> NSImage? {
+    let mockupView = MockupExportViewForAnnotate(flatImage: flatImage, snapshot: snapshot)
+    let renderer = ImageRenderer(content: mockupView)
+    renderer.scale = 2.0
+
+    return renderer.nsImage
+  }
 }
 
 // MARK: - Mockup Export View for Annotate
@@ -1069,7 +1071,7 @@ final class AnnotateExporter {
 /// SwiftUI view for exporting mockup with 3D transforms
 struct MockupExportViewForAnnotate: View {
   let flatImage: NSImage  // Pre-rendered image with annotations
-  let state: AnnotateState
+  let snapshot: AnnotateRenderSnapshot
 
   var body: some View {
     ZStack {
@@ -1080,31 +1082,31 @@ struct MockupExportViewForAnnotate: View {
         .resizable()
         .aspectRatio(contentMode: .fit)
         .frame(maxWidth: imageSize.width, maxHeight: imageSize.height)
-        .clipShape(RoundedRectangle(cornerRadius: state.cornerRadius, style: .continuous))
+        .clipShape(RoundedRectangle(cornerRadius: snapshot.cornerRadius, style: .continuous))
         .rotation3DEffect(
-          .degrees(state.mockupRotationY),
+          .degrees(snapshot.mockupRotationY),
           axis: (x: 0, y: 1, z: 0),
           anchor: .center,
           anchorZ: 0,
-          perspective: state.mockupPerspective
+          perspective: snapshot.mockupPerspective
         )
         .rotation3DEffect(
-          .degrees(state.mockupRotationX),
+          .degrees(snapshot.mockupRotationX),
           axis: (x: 1, y: 0, z: 0),
           anchor: .center,
           anchorZ: 0,
-          perspective: state.mockupPerspective
+          perspective: snapshot.mockupPerspective
         )
         .rotation3DEffect(
-          .degrees(state.mockupRotationZ),
+          .degrees(snapshot.mockupRotationZ),
           axis: (x: 0, y: 0, z: 1),
           anchor: .center
         )
         .shadow(
-          color: .black.opacity(state.shadowIntensity),
-          radius: state.mockupShadowRadius,
-          x: state.mockupShadowOffsetX,
-          y: state.mockupShadowOffsetY
+          color: .black.opacity(snapshot.shadowIntensity),
+          radius: snapshot.mockupShadowRadius,
+          x: snapshot.mockupShadowOffsetX,
+          y: snapshot.mockupShadowOffsetY
         )
     }
   }
@@ -1116,7 +1118,7 @@ struct MockupExportViewForAnnotate: View {
   }
 
   private var canvasSize: CGSize {
-    let padding = state.backgroundStyle != .none ? state.padding : 0
+    let padding = snapshot.backgroundStyle != .none ? snapshot.padding : 0
     let extraSpace = padding * 2 + 100 // Extra for shadow and rotation
     return CGSize(
       width: imageSize.width + extraSpace,
@@ -1128,7 +1130,7 @@ struct MockupExportViewForAnnotate: View {
 
   @ViewBuilder
   private var backgroundLayer: some View {
-    switch state.backgroundStyle {
+    switch snapshot.backgroundStyle {
     case .none:
       Color.clear
     case .gradient(let preset):
@@ -1139,51 +1141,37 @@ struct MockupExportViewForAnnotate: View {
       )
     case .solidColor(let color):
       color
-        .brightness(state.isBlurredBackgroundEffectActive ? state.blurredBackgroundEffect.brightness : 0)
+        .brightness(snapshot.isBlurredBackgroundEffectActive ? snapshot.blurredBackgroundEffect.brightness : 0)
         .overlay(
-          (state.isBlurredBackgroundEffectActive ? state.blurredBackgroundEffect.tintColor : .clear)
-            .opacity(state.isBlurredBackgroundEffectActive ? state.blurredBackgroundEffect.tintOpacity : 0)
+          (snapshot.isBlurredBackgroundEffectActive ? snapshot.blurredBackgroundEffect.tintColor : .clear)
+            .opacity(snapshot.isBlurredBackgroundEffectActive ? snapshot.blurredBackgroundEffect.tintOpacity : 0)
         )
     case .wallpaper(let url):
       // Check if this is a preset wallpaper
       if url.scheme == "preset", let presetName = url.host,
          let preset = WallpaperPreset(rawValue: presetName) {
         preset.gradient
-      } else if state.isBlurredBackgroundEffectActive,
-                let image = state.blurredBackgroundImage(for: url) {
+      } else if let image = snapshot.resolvedBackgroundImage {
         Image(nsImage: image)
           .resizable()
           .aspectRatio(contentMode: .fill)
-          .overlay(state.blurredBackgroundEffect.tintColor.opacity(state.blurredBackgroundEffect.tintOpacity))
-      } else if let image = resolvedWallpaperImage(for: url) {
-        Image(nsImage: image)
-          .resizable()
-          .aspectRatio(contentMode: .fill)
+          .overlay(
+            snapshot.isBlurredBackgroundEffectActive
+              ? snapshot.blurredBackgroundEffect.tintColor.opacity(snapshot.blurredBackgroundEffect.tintOpacity)
+              : .clear
+          )
       } else {
         Color.gray.opacity(0.3)
       }
-    case .blurred(let url):
-      let effect = state.blurredBackgroundEffect
-      if let image = state.blurredBackgroundImage(for: url) {
+    case .blurred:
+      if let image = snapshot.resolvedBackgroundImage {
         Image(nsImage: image)
           .resizable()
           .aspectRatio(contentMode: .fill)
-          .overlay(effect.tintColor.opacity(effect.tintOpacity))
-      } else if let image = resolvedWallpaperImage(for: url) {
-        Image(nsImage: image)
-          .resizable()
-          .aspectRatio(contentMode: .fill)
-          .blur(radius: effect.blurRadius)
-          .saturation(effect.saturation)
-          .brightness(effect.brightness)
-          .overlay(effect.tintColor.opacity(effect.tintOpacity))
+          .overlay(snapshot.blurredBackgroundEffect.tintColor.opacity(snapshot.blurredBackgroundEffect.tintOpacity))
       } else {
         Color.gray.opacity(0.3)
       }
     }
-  }
-
-  private func resolvedWallpaperImage(for url: URL) -> NSImage? {
-    state.backgroundImage(for: url)
   }
 }

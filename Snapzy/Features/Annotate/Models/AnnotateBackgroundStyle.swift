@@ -9,7 +9,7 @@ import Foundation
 import SwiftUI
 
 /// Background style types
-enum BackgroundStyle: Equatable, Sendable {
+nonisolated enum BackgroundStyle: Equatable, Sendable {
   case none
   case gradient(GradientPreset)
   case wallpaper(URL)
@@ -36,7 +36,7 @@ enum BackgroundStyle: Equatable, Sendable {
 }
 
 /// Blur presets for applying a soft effect to the selected background layer.
-enum BlurredBackgroundEffect: String, CaseIterable, Identifiable, Codable, Equatable, Sendable {
+nonisolated enum BlurredBackgroundEffect: String, CaseIterable, Identifiable, Codable, Equatable, Sendable {
   case soft
   case frosted
   case vivid
@@ -124,7 +124,7 @@ enum BlurredBackgroundEffect: String, CaseIterable, Identifiable, Codable, Equat
 }
 
 /// Predefined gradient presets
-enum GradientPreset: String, CaseIterable, Identifiable, Sendable {
+nonisolated enum GradientPreset: String, CaseIterable, Identifiable, Sendable {
   case pinkOrange
   case bluePurple
   case greenBlue
@@ -153,14 +153,14 @@ enum GradientPreset: String, CaseIterable, Identifiable, Sendable {
 }
 
 /// Image alignment within background
-enum ImageAlignment: String, CaseIterable, Sendable {
+nonisolated enum ImageAlignment: String, CaseIterable, Sendable {
   case topLeft, top, topRight
   case left, center, right
   case bottomLeft, bottom, bottomRight
 }
 
 /// Predefined wallpaper presets (abstract gradient patterns)
-enum WallpaperPreset: String, CaseIterable, Identifiable {
+nonisolated enum WallpaperPreset: String, CaseIterable, Identifiable {
   case oceanBreeze
   case sunsetGlow
   case forestMist
@@ -203,7 +203,7 @@ enum WallpaperPreset: String, CaseIterable, Identifiable {
 }
 
 /// Orientation for fixed aspect ratio presets.
-enum AspectRatioOrientation: String, CaseIterable, Identifiable, Sendable {
+nonisolated enum AspectRatioOrientation: String, CaseIterable, Identifiable, Sendable {
   case horizontal
   case vertical
 
@@ -222,7 +222,7 @@ enum AspectRatioOrientation: String, CaseIterable, Identifiable, Sendable {
 }
 
 /// Aspect ratio options for export.
-enum AspectRatioOption: String, CaseIterable, Identifiable, Sendable {
+nonisolated enum AspectRatioOption: String, CaseIterable, Identifiable, Sendable {
   case auto = "Auto"
   case free = "Free"
   case square = "1:1"

@@ -13,7 +13,7 @@ final class AnnotationSessionStore {
   static let shared = AnnotationSessionStore()
 
   private let fileManager: FileManager
-  private let rootDirectory: URL
+  private nonisolated let rootDirectory: URL
 
   init(
     rootDirectory: URL = AnnotationSessionStore.defaultRootDirectory(),
@@ -64,22 +64,54 @@ final class AnnotationSessionStore {
 
   @discardableResult
   func persist(_ sessionData: AnnotationSessionData, for sourceURL: URL) -> Bool {
+    let scopedAccess = SandboxFileAccessManager.shared.beginAccessingURL(sourceURL)
+    defer { scopedAccess.stop() }
+    guard let signature = readFileSignature(for: sourceURL) else { return false }
+    let manifest = buildManifest(sessionData, for: sourceURL, signature: signature)
+    return persistWrite(manifest: manifest, sessionData: sessionData, for: sourceURL)
+  }
+
+  /// Off-main persist for the save-and-close background path: the multi-MB package
+  /// write runs on the calling queue instead of the main thread.
+  nonisolated func persistOffMain(_ sessionData: AnnotationSessionData, for sourceURL: URL) async -> Bool {
+    let scopedAccess = await MainActor.run { SandboxFileAccessManager.shared.beginAccessingURL(sourceURL) }
+    defer { scopedAccess.stop() }
+    guard let signature = readFileSignature(for: sourceURL) else { return false }
+    let manifest = await buildManifest(sessionData, for: sourceURL, signature: signature)
+    return persistWrite(manifest: manifest, sessionData: sessionData, for: sourceURL)
+  }
+
+  /// Manifest construction is cheap and kept on main (the conversion init is @MainActor).
+  @MainActor
+  private func buildManifest(
+    _ sessionData: AnnotationSessionData,
+    for sourceURL: URL,
+    signature: PersistedFileSignature
+  ) -> PersistedAnnotationSession {
     let normalizedPath = Self.normalizedPath(for: sourceURL)
     let pathHash = Self.pathHash(for: normalizedPath)
-    guard let signature = fileSignature(for: sourceURL) else { return false }
-
     let directory = sessionDirectory(pathHash: pathHash)
     let previousCreatedAt = readManifest(
       at: directory.appendingPathComponent("manifest.json")
     )?.createdAt ?? Date()
-    let manifest = PersistedAnnotationSession(
+    return PersistedAnnotationSession(
       sessionData: sessionData,
       sourceFilePath: normalizedPath,
       sourceFilePathHash: pathHash,
       sourceSignature: signature,
       createdAt: previousCreatedAt
     )
+  }
 
+  /// The heavy multi-MB package write. Runs on the caller's queue (main for the
+  /// interactive path, a background queue for the save-and-close path).
+  private nonisolated func persistWrite(
+    manifest: PersistedAnnotationSession,
+    sessionData: AnnotationSessionData,
+    for sourceURL: URL
+  ) -> Bool {
+    let pathHash = Self.pathHash(for: Self.normalizedPath(for: sourceURL))
+    let directory = sessionDirectory(pathHash: pathHash)
     do {
       try writePackage(
         manifest: manifest,
@@ -203,19 +235,22 @@ final class AnnotationSessionStore {
       .appendingPathComponent("AnnotationSessions", isDirectory: true)
   }
 
-  private func sessionDirectory(pathHash: String) -> URL {
+  private nonisolated func sessionDirectory(pathHash: String) -> URL {
     rootDirectory.appendingPathComponent(pathHash, isDirectory: true)
   }
 
-  private func ensureRootDirectory() throws {
-    try fileManager.createDirectory(at: rootDirectory, withIntermediateDirectories: true)
+  private nonisolated func ensureRootDirectory() throws {
+    try FileManager.default.createDirectory(at: rootDirectory, withIntermediateDirectories: true)
   }
 
   private func fileSignature(for sourceURL: URL) -> PersistedFileSignature? {
     let scopedAccess = SandboxFileAccessManager.shared.beginAccessingURL(sourceURL)
     defer { scopedAccess.stop() }
+    return readFileSignature(for: sourceURL)
+  }
 
-    guard let attributes = try? fileManager.attributesOfItem(atPath: sourceURL.path) else {
+  private nonisolated func readFileSignature(for sourceURL: URL) -> PersistedFileSignature? {
+    guard let attributes = try? FileManager.default.attributesOfItem(atPath: sourceURL.path) else {
       return nil
     }
     let modifiedAt = (attributes[.modificationDate] as? Date)?.timeIntervalSince1970 ?? 0
@@ -228,14 +263,14 @@ final class AnnotationSessionStore {
     )
   }
 
-  private func readManifest(at url: URL) -> PersistedAnnotationSession? {
+  private nonisolated func readManifest(at url: URL) -> PersistedAnnotationSession? {
     guard let data = try? Data(contentsOf: url) else { return nil }
     let decoder = JSONDecoder()
     decoder.dateDecodingStrategy = .iso8601
     return try? decoder.decode(PersistedAnnotationSession.self, from: data)
   }
 
-  private func writePackage(
+  private nonisolated func writePackage(
     manifest: PersistedAnnotationSession,
     sessionData: AnnotationSessionData,
     to directory: URL
@@ -243,7 +278,7 @@ final class AnnotationSessionStore {
     try ensureRootDirectory()
     let tempDirectory = rootDirectory.appendingPathComponent(".\(directory.lastPathComponent).\(UUID().uuidString)", isDirectory: true)
     let assetsDirectory = tempDirectory.appendingPathComponent("assets", isDirectory: true)
-    try fileManager.createDirectory(at: assetsDirectory, withIntermediateDirectories: true)
+    try FileManager.default.createDirectory(at: assetsDirectory, withIntermediateDirectories: true)
     do {
       try sessionData.originalImageData.write(to: tempDirectory.appendingPathComponent(manifest.originalFileName), options: .atomic)
       if let cutoutFileName = manifest.cutoutFileName, let cutoutImageData = sessionData.cutoutImageData {
@@ -255,17 +290,17 @@ final class AnnotationSessionStore {
         try data.write(to: assetsDirectory.appendingPathComponent(fileName), options: .atomic)
       }
       try writeManifest(manifest, to: tempDirectory.appendingPathComponent("manifest.json"))
-      if fileManager.fileExists(atPath: directory.path) {
-        try fileManager.removeItem(at: directory)
+      if FileManager.default.fileExists(atPath: directory.path) {
+        try FileManager.default.removeItem(at: directory)
       }
-      try fileManager.moveItem(at: tempDirectory, to: directory)
+      try FileManager.default.moveItem(at: tempDirectory, to: directory)
     } catch {
-      try? fileManager.removeItem(at: tempDirectory)
+      try? FileManager.default.removeItem(at: tempDirectory)
       throw error
     }
   }
 
-  private func writeManifest(_ manifest: PersistedAnnotationSession, to url: URL) throws {
+  private nonisolated func writeManifest(_ manifest: PersistedAnnotationSession, to url: URL) throws {
     let encoder = JSONEncoder()
     encoder.dateEncodingStrategy = .iso8601
     encoder.outputFormatting = [.sortedKeys]

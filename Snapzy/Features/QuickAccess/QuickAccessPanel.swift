@@ -50,6 +50,16 @@ final class QuickAccessPanel: NSPanel {
     installMouseMonitors()
   }
 
+  /// Reinstall monitors after a runloop stall. macOS can silently disable the global
+  /// event tap when delivery stalls (no re-enable notification reaches the app),
+  /// which leaves hover dead until the monitors are recreated. No-op while suspended
+  /// (e.g. during an active capture session).
+  func reinstallMouseMonitors() {
+    guard !isMonitorsSuspended else { return }
+    removeMouseMonitors()
+    installMouseMonitors()
+  }
+
   func updatePassthroughRegion(itemCount: Int, scale: CGFloat) {
     visibleItemCount = max(0, itemCount)
     overlayScale = max(0.1, scale)
