@@ -11,7 +11,7 @@ import CoreImage
 import Metal
 
 /// Quality tier for blur renders. Interactive work must be bounded so UI input never waits on expensive effects.
-enum BlurRenderQuality: Equatable {
+nonisolated enum BlurRenderQuality: Equatable {
   case interactive
   case settled
   case export
@@ -29,7 +29,7 @@ enum BlurRenderQuality: Equatable {
 }
 
 /// Renders pixelated blur effect for sensitive content redaction
-enum BlurEffectRenderer {
+nonisolated enum BlurEffectRenderer {
   /// Default pixel block size for blur effect
   static let defaultPixelSize: CGFloat = 12
 

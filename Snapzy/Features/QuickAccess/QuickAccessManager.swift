@@ -136,6 +136,9 @@ final class QuickAccessManager: ObservableObject {
   private let fileAccessManager = SandboxFileAccessManager.shared
   private let tempCaptureManager = TempCaptureManager.shared
   private var dismissTimers: [UUID: QuickAccessCountdownTimer] = [:]
+  /// Monotonic per-item save tokens; guards the async save-and-close thumbnail push
+  /// against out-of-order arrival when the same item is saved twice quickly.
+  private var thumbnailSaveGenerations: [UUID: UInt64] = [:]
   /// Tracks which item IDs are currently being edited (paused by editor)
   private var editingItemIds: Set<UUID> = []
   /// Tracks items doing async work, such as GIF conversion or cloud upload.
@@ -639,8 +642,16 @@ final class QuickAccessManager: ObservableObject {
 
   func setWindowOpen(id: UUID, isOpen: Bool) {
     if let index = items.firstIndex(where: { $0.id == id }) {
-      withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
-        items[index].isWindowOpen = isOpen
+      PerfSignpost.event("setWindowOpenCommit")
+      // No inline withAnimation here: QuickAccessStackView's
+      // `.animation(value: visibleItems.count)` is the single driver for the
+      // hide/reappear spring. Wrapping this mutation too would compound two springs.
+      items[index].isWindowOpen = isOpen
+
+      if !isOpen {
+        // An editor window just closed and the card reappeared: self-heal the
+        // hover monitors in case the runloop stall got the global event tap killed.
+        panelController.reinstallMouseMonitors()
       }
     }
   }
@@ -793,34 +804,111 @@ final class QuickAccessManager: ObservableObject {
     logger.info("Thumbnail updated directly for item \(id)")
   }
 
-  /// Scale image to thumbnail size (synchronous, no file I/O)
-  private func scaleThumbnail(_ image: NSImage, maxSize: CGFloat) -> NSImage {
+  /// Update thumbnail directly with an already-scaled thumbnail and an optional full-resolution image.
+  /// Skips lockFocus scaling on the main thread.
+  /// - `fullResImage`: when non-nil, also pushed to the pin window as `imageOverride`
+  ///   (pin sizing derives from it, so never pass a downscaled thumb here).
+  /// - `generation`: stale-write guard from `nextThumbnailGeneration(for:)`; a late
+  ///   off-main render with an older generation is dropped so last-save-wins holds.
+  func updateItemThumbnail(id: UUID, thumbnail: NSImage, fullResImage: NSImage?, generation: UInt64? = nil) {
+    if let generation {
+      guard generation >= thumbnailSaveGenerations[id, default: 0] else { return }
+    }
+    guard let index = items.firstIndex(where: { $0.id == id }) else { return }
+    let existing = items[index]
+    items[index] = QuickAccessItem(
+      id: existing.id,
+      url: existing.url,
+      thumbnail: thumbnail,
+      capturedAt: existing.capturedAt,
+      itemType: existing.itemType,
+      duration: existing.duration,
+      cloudURL: existing.cloudURL,
+      cloudKey: existing.cloudKey,
+      isCloudStale: existing.isCloudStale,
+      isPinned: existing.isPinned
+    )
+    if let fullResImage {
+      pinWindowManager.update(item: items[index], imageOverride: fullResImage)
+    }
+    logger.info("Thumbnail updated directly with pre-scaled image for item \(id)")
+  }
+
+  /// Monotonic per-item token for the save-and-close async thumbnail push.
+  /// Call on main when the save starts; pass the token to the async `updateItemThumbnail`
+  /// so a slower earlier render can never overwrite a newer one.
+  func nextThumbnailGeneration(for id: UUID) -> UInt64 {
+    let next = thumbnailSaveGenerations[id, default: 0] + 1
+    thumbnailSaveGenerations[id] = next
+    return next
+  }
+
+  /// Scale image to thumbnail size using CGContext (thread-safe, runs on any queue)
+  nonisolated static func cgScaleThumbnail(_ image: NSImage, maxSize: CGFloat) -> NSImage {
     let originalSize = image.size
     guard originalSize.width > 0, originalSize.height > 0 else { return image }
 
-    let scale: CGFloat
-    if originalSize.width > originalSize.height {
-      scale = min(maxSize / originalSize.width, 1.0)
-    } else {
-      scale = min(maxSize / originalSize.height, 1.0)
-    }
+    let scale = min(maxSize / max(originalSize.width, originalSize.height), 1.0)
     if scale >= 1.0 { return image }
 
     let newSize = CGSize(
       width: originalSize.width * scale,
       height: originalSize.height * scale
     )
-    let thumbnail = NSImage(size: newSize)
-    thumbnail.lockFocus()
-    NSGraphicsContext.current?.imageInterpolation = .high
-    image.draw(
-      in: NSRect(origin: .zero, size: newSize),
-      from: NSRect(origin: .zero, size: originalSize),
-      operation: .copy,
-      fraction: 1.0
-    )
-    thumbnail.unlockFocus()
-    return thumbnail
+
+    var rect = CGRect(origin: .zero, size: originalSize)
+    guard let cgImage = image.cgImage(forProposedRect: &rect, context: nil, hints: nil) else { return image }
+    let width = Int(newSize.width)
+    let height = Int(newSize.height)
+
+    guard let colorSpace = CGColorSpace(name: CGColorSpace.sRGB),
+          let context = CGContext(
+            data: nil,
+            width: width,
+            height: height,
+            bitsPerComponent: 8,
+            bytesPerRow: 0,
+            space: colorSpace,
+            bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue
+          ) else { return image }
+
+    context.interpolationQuality = .high
+    context.draw(cgImage, in: CGRect(origin: .zero, size: newSize))
+
+    guard let scaledCgImage = context.makeImage() else { return image }
+    return NSImage(cgImage: scaledCgImage, size: newSize)
+  }
+
+  /// Scale image to thumbnail size (synchronous, no file I/O)
+  private func scaleThumbnail(_ image: NSImage, maxSize: CGFloat) -> NSImage {
+    return PerfSignpost.measure("scaleThumbnailInner") {
+      let originalSize = image.size
+      guard originalSize.width > 0, originalSize.height > 0 else { return image }
+
+      let scale: CGFloat
+      if originalSize.width > originalSize.height {
+        scale = min(maxSize / originalSize.width, 1.0)
+      } else {
+        scale = min(maxSize / originalSize.height, 1.0)
+      }
+      if scale >= 1.0 { return image }
+
+      let newSize = CGSize(
+        width: originalSize.width * scale,
+        height: originalSize.height * scale
+      )
+      let thumbnail = NSImage(size: newSize)
+      thumbnail.lockFocus()
+      NSGraphicsContext.current?.imageInterpolation = .high
+      image.draw(
+        in: NSRect(origin: .zero, size: newSize),
+        from: NSRect(origin: .zero, size: originalSize),
+        operation: .copy,
+        fraction: 1.0
+      )
+      thumbnail.unlockFocus()
+      return thumbnail
+    }
   }
 
   /// Refresh thumbnail for an item after its image was updated on disk (e.g. annotation saved)

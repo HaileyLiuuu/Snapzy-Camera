@@ -6,8 +6,9 @@ Floating post-capture card stack: appears after every screenshot/video/GIF when 
 
 - `QuickAccessPanel` — borderless `.nonactivatingPanel` NSPanel at `.floating` level; mouse-passthrough outside the card region (`updatePassthroughRegion`, `ignoresMouseEvents` toggled by hit-test).
 - `QuickAccessManager` — singleton stack state; `maxVisibleItems = 5`, newest at top; oldest evicted when full.
-- Mouse monitors suspended during area capture (`suspendForCapture()` → panel + pin windows).
+- Mouse monitors suspended during area capture (`suspendForCapture()` → panel + pin windows). Self-heal: `setWindowOpen(isOpen: false)` (editor window closed) reinstalls the panel's monitors — macOS can silently disable the global event tap after a runloop stall, which otherwise leaves hover dead.
 - Slide-in animation: spring 0.4s (`QuickAccessAnimations.panelEnter`, damping 0.75); falls back to fade under reduceMotion. Appear sound via `QuickAccessSound`.
+- Card hide/reappear (editor open/close) is driven by a SINGLE animation source: `QuickAccessStackView.animation(value: visibleItems.count)` — `QuickAccessManager.setWindowOpen` deliberately does NOT wrap its mutation in `withAnimation` (two compounding springs caused reappear jank).
 - Position: 4-corner model `QuickAccessPosition`; prefs UI exposes left/right (bottom corners). Overlay scale 0.75–1.5 step 0.25 (`overlayScale`, scales `QuickAccessLayout` 180×112 base). Animation style slide/scale (`quickAccess.animationStyle`).
 
 ## Card Anatomy
@@ -75,8 +76,8 @@ flowchart TD
 ```
 
 - See [POST_CAPTURE.md](POST_CAPTURE.md) for the routing matrix, [RECORDING.md](RECORDING.md) for the GIF swap, [HISTORY.md](HISTORY.md) for restore.
-- Clipboard copy runs before Quick Access work so pasteboard updates stay immediate.
-- Save/copy/drag of a pinned screenshot pushes the new render into the open pin window immediately.
+- Clipboard copy runs before Quick Access work so pasteboard updates stay immediate. Exception: the re-copy after an EDITED save runs off-main (decode/encode in background, serialized) and lands ~100-300ms after the window closes — keeps the card reappear stall-free.
+- Save/copy/drag of a pinned screenshot pushes the new render into the open pin window as soon as the background render completes (~50-100ms after save-and-close). The instant 200px anti-flash thumbnail is card-only and is never sent to the pin window (pin sizing derives from the full-res image).
 
 ## Preferences Surface
 

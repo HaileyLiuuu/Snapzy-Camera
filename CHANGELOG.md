@@ -94,6 +94,31 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 
 
+
+
+## [1.30.0-beta.7] - 2026-07-19
+
+### Chore
+- refactor: Eliminate canvas lag and color flicker with layer-composition rendering (#389) (abdf8ae)
+- perf: Eliminate Quick Access card reappear jank on annotate save-and-close (#388) (af5dcf7)
+- chore: update appcast for v1.30.0-beta.6 (7cf924b)
+
+### Contributors
+- @duongductrong
+- @github-actions[bot]
+
+## [1.30.0-beta.6] - 2026-07-18
+
+### Bug Fixes
+-  Restore markup on combined images and enhance text editing (#377) (62f4782)
+
+### Chore
+- chore: update appcast for v1.30.0-beta.5 (91e46d6)
+
+### Contributors
+- @github-actions[bot]
+- @menmer0859
+
 ## [1.30.0-beta.5] - 2026-07-18
 
 ### Bug Fixes

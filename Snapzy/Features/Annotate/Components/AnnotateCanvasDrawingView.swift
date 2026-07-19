@@ -45,6 +45,37 @@ enum ResizeHandle: Equatable {
   case textCalloutTail
 }
 
+/// Transparent drawing layer of the annotate canvas. Renders via `drawBody`
+/// only when invalidated; CoreAnimation composites the existing backing store
+/// otherwise. All mouse/key events fall through to the container view.
+final class CanvasLayerView: NSView {
+  var drawBody: ((NSRect) -> Void)?
+
+  init() {
+    super.init(frame: .zero)
+    wantsLayer = true
+    layer?.backgroundColor = NSColor.clear.cgColor
+  }
+
+  @available(*, unavailable)
+  required init?(coder _: NSCoder) {
+    fatalError("init(coder:) has not been implemented")
+  }
+
+  override func draw(_ dirtyRect: NSRect) {
+    super.draw(dirtyRect)
+    drawBody?(dirtyRect)
+  }
+
+  override func hitTest(_: NSPoint) -> NSView? {
+    nil
+  }
+
+  override var acceptsFirstResponder: Bool {
+    false
+  }
+}
+
 /// NSView subclass handling mouse events and drawing
 final class DrawingCanvasNSView: NSView {
   private static let drawingCommitDragThreshold: CGFloat = 2
@@ -91,8 +122,38 @@ final class DrawingCanvasNSView: NSView {
   // Blur cache manager for performance optimization
   private let blurCacheManager = BlurCacheManager()
   private var lastSourceImageIdentifier: ObjectIdentifier?
-  private var stateObserver: AnyCancellable?
-  private var isDisplayInvalidationScheduled = false
+
+  // Gesture-local manipulation state. Drag/resize gestures mutate these plain
+  // copies instead of @Published state, so SwiftUI is not invalidated per mouse
+  // event; final values are committed to state once on mouseUp.
+  private var gestureOriginalItems: [UUID: AnnotationItem] = [:]
+  private var gestureLocalItems: [UUID: AnnotationItem] = [:]
+  private var gestureLastResizeBounds: CGRect?
+  private var gestureLastPoint: CGPoint?
+  private var gestureDidMutate = false
+
+  // Layered canvas composition: stacked child views let CoreAnimation composite
+  // unchanged content straight from their backing stores (a layer-backed view
+  // only redraws when invalidated), so per-frame cost stays flat without any
+  // manual bitmap or color-space management — rendering always goes through the
+  // standard AppKit pipeline in the window's own color space.
+  // Order (back → front): overlay → static-below → dragged → static-above → preview.
+  private let overlayLayerView = CanvasLayerView()
+  private let staticBelowLayerView = CanvasLayerView()
+  private let draggedLayerView = CanvasLayerView()
+  private let staticAboveLayerView = CanvasLayerView()
+  private let previewLayerView = CanvasLayerView()
+
+  private var layerViews: [CanvasLayerView] {
+    [overlayLayerView, staticBelowLayerView, draggedLayerView, staticAboveLayerView, previewLayerView]
+  }
+
+  /// Views redrawn per frame while a gesture runs (cheap content only).
+  private var liveLayerViews: [CanvasLayerView] {
+    [overlayLayerView, draggedLayerView, previewLayerView]
+  }
+
+  private var stateObservers = Set<AnyCancellable>()
 
   init(state: AnnotateState) {
     self.state = state
@@ -109,9 +170,26 @@ final class DrawingCanvasNSView: NSView {
     fatalError("init(coder:) has not been implemented")
   }
 
+  override func setFrameSize(_ newSize: NSSize) {
+    super.setFrameSize(newSize)
+    // Resized layers keep scaled stale content until redrawn (.onSetNeedsDisplay).
+    invalidateDrawing()
+  }
+
   private func setupView() {
     wantsLayer = true
     layer?.backgroundColor = NSColor.clear.cgColor
+
+    for layerView in layerViews {
+      layerView.autoresizingMask = [.width, .height]
+      layerView.frame = bounds
+      addSubview(layerView)
+    }
+    overlayLayerView.drawBody = { [weak self] dirtyRect in self?.drawSpotlightOverlay(dirtyRect: dirtyRect) }
+    staticBelowLayerView.drawBody = { [weak self] dirtyRect in self?.drawStaticBelow(dirtyRect: dirtyRect) }
+    draggedLayerView.drawBody = { [weak self] dirtyRect in self?.drawDraggedItems(dirtyRect: dirtyRect) }
+    staticAboveLayerView.drawBody = { [weak self] dirtyRect in self?.drawStaticAbove(dirtyRect: dirtyRect) }
+    previewLayerView.drawBody = { [weak self] dirtyRect in self?.drawGesturePreview(dirtyRect: dirtyRect) }
 
     // Enable mouse tracking for cursor updates
     let trackingArea = NSTrackingArea(
@@ -124,33 +202,82 @@ final class DrawingCanvasNSView: NSView {
   }
 
   private func observeStateChanges() {
-    stateObserver = state.objectWillChange.sink { [weak self] _ in
-      self?.scheduleDisplayInvalidation()
+    stateObservers.removeAll()
+    // Content-driving publishers: redraw every layer.
+    state.$annotations
+      .sink { [weak self] _ in self?.invalidateDrawing() }
+      .store(in: &stateObservers)
+    state.$selectedAnnotationIds
+      .sink { [weak self] _ in self?.invalidateDrawing() }
+      .store(in: &stateObservers)
+    state.$selectedAnnotationId
+      .sink { [weak self] _ in self?.invalidateDrawing() }
+      .store(in: &stateObservers)
+    state.$editingTextAnnotationId
+      .sink { [weak self] _ in self?.invalidateDrawing() }
+      .store(in: &stateObservers)
+    state.$embeddedImageAssets
+      .sink { [weak self] _ in self?.invalidateDrawing() }
+      .store(in: &stateObservers)
+    state.$sourceImage
+      .sink { [weak self] _ in self?.invalidateDrawing() }
+      .store(in: &stateObservers)
+    state.$cutoutImage
+      .sink { [weak self] _ in self?.invalidateDrawing() }
+      .store(in: &stateObservers)
+
+    // Everything else (crop flags, spotlight opacity, zoom/pan, ...) only needs
+    // the cheap live layers; static annotation content is unaffected.
+    state.objectWillChange
+      .sink { [weak self] _ in self?.scheduleLiveLayerInvalidation() }
+      .store(in: &stateObservers)
+  }
+
+  /// Redraw all layers (content changed).
+  func invalidateDrawing() {
+    for layerView in layerViews {
+      layerView.needsDisplay = true
     }
   }
 
-  func invalidateDrawing() {
-    needsDisplay = true
+  /// Redraw only the per-frame layers (overlay/dragged/preview) — the static
+  /// layers keep compositing their existing backing store.
+  private func invalidateLiveLayers() {
+    // When the manipulated items can't be split into the dragged layer
+    // (multi-select drag, or a selected item outside the gesture), their
+    // gesture-local copies live in the static layers, so everything must
+    // redraw per frame for the gesture to be visible.
+    if isDraggingAnnotation || isResizingAnnotation, !usesDragLayerSplit {
+      invalidateDrawing()
+      return
+    }
+    for layerView in liveLayerViews {
+      layerView.needsDisplay = true
+    }
   }
 
   private func invalidateDisplay(forImageRect imageRect: CGRect) {
     let imagePadding = max(12, 24 / max(displayScale, 0.0001))
     let dirtyRect = imageToDisplay(imageRect.insetBy(dx: -imagePadding, dy: -imagePadding)).intersection(bounds)
-    if dirtyRect.isNull || dirtyRect.isEmpty {
-      needsDisplay = true
-    } else {
-      setNeedsDisplay(dirtyRect)
+    for layerView in layerViews {
+      if dirtyRect.isNull || dirtyRect.isEmpty {
+        layerView.needsDisplay = true
+      } else {
+        layerView.setNeedsDisplay(dirtyRect)
+      }
     }
   }
 
-  private func scheduleDisplayInvalidation() {
-    guard !isDisplayInvalidationScheduled else { return }
-    isDisplayInvalidationScheduled = true
+  private var isLiveInvalidationScheduled = false
+
+  private func scheduleLiveLayerInvalidation() {
+    guard !isLiveInvalidationScheduled else { return }
+    isLiveInvalidationScheduled = true
 
     DispatchQueue.main.async { [weak self] in
       guard let self else { return }
-      isDisplayInvalidationScheduled = false
-      invalidateDrawing()
+      isLiveInvalidationScheduled = false
+      invalidateLiveLayers()
     }
   }
 
@@ -170,7 +297,7 @@ final class DrawingCanvasNSView: NSView {
         Task { @MainActor in
           state.deleteSelectedAnnotation()
         }
-        needsDisplay = true
+        invalidateDrawing()
       }
 
     case 53: // Escape
@@ -179,20 +306,20 @@ final class DrawingCanvasNSView: NSView {
         Task { @MainActor in
           state.cancelCrop()
         }
-        needsDisplay = true
+        invalidateDrawing()
         return
       }
       Task { @MainActor in
         state.deselectAnnotation()
       }
-      needsDisplay = true
+      invalidateDrawing()
 
     case 36: // Enter - confirm crop
       if state.isCropInteractionActive {
         Task { @MainActor in
           state.confirmCropInteraction()
         }
-        needsDisplay = true
+        invalidateDrawing()
         return
       }
 
@@ -201,7 +328,7 @@ final class DrawingCanvasNSView: NSView {
         Task { @MainActor in
           state.nudgeSelectedAnnotation(dx: 0, dy: nudgeAmount)
         }
-        needsDisplay = true
+        invalidateDrawing()
       }
 
     case 125: // Arrow Down
@@ -209,7 +336,7 @@ final class DrawingCanvasNSView: NSView {
         Task { @MainActor in
           state.nudgeSelectedAnnotation(dx: 0, dy: -nudgeAmount)
         }
-        needsDisplay = true
+        invalidateDrawing()
       }
 
     case 123: // Arrow Left
@@ -217,7 +344,7 @@ final class DrawingCanvasNSView: NSView {
         Task { @MainActor in
           state.nudgeSelectedAnnotation(dx: -nudgeAmount, dy: 0)
         }
-        needsDisplay = true
+        invalidateDrawing()
       }
 
     case 124: // Arrow Right
@@ -225,7 +352,7 @@ final class DrawingCanvasNSView: NSView {
         Task { @MainActor in
           state.nudgeSelectedAnnotation(dx: nudgeAmount, dy: 0)
         }
-        needsDisplay = true
+        invalidateDrawing()
       }
 
     case 6: // Z key - Undo/Redo
@@ -237,7 +364,7 @@ final class DrawingCanvasNSView: NSView {
             state.undo()
           }
         }
-        needsDisplay = true
+        invalidateDrawing()
       }
 
     default:
@@ -258,7 +385,7 @@ final class DrawingCanvasNSView: NSView {
             state.selectedTool = matchedTool
           }
         }
-        needsDisplay = true
+        invalidateDrawing()
       } else {
         super.keyDown(with: event)
       }
@@ -269,7 +396,7 @@ final class DrawingCanvasNSView: NSView {
 
   /// Find annotation at given point (in image coordinates), topmost first
   private func hitTestAnnotation(at point: CGPoint) -> AnnotationItem? {
-    for annotation in state.annotations.reversed() {
+    for annotation in state.annotations.renderOrdered.reversed() {
       // Quick bounds check first (optimization)
       let expandedBounds = annotation.selectionBounds.insetBy(dx: -10, dy: -10)
       guard expandedBounds.contains(point) else { continue }
@@ -436,7 +563,7 @@ final class DrawingCanvasNSView: NSView {
           state.selectedAnnotationId = annotation.id
           state.beginTextEditing(id: annotation.id)
         }
-        needsDisplay = true
+        invalidateDrawing()
         return
       }
     }
@@ -447,7 +574,7 @@ final class DrawingCanvasNSView: NSView {
         state.commitTextEditing()
         state.selectedAnnotationId = nil
       }
-      needsDisplay = true
+      invalidateDrawing()
       return
     }
 
@@ -461,6 +588,11 @@ final class DrawingCanvasNSView: NSView {
         resizingAnnotationId = selectedId
         activeResizeHandle = handle
         originalBounds = annotation.resizeBounds // Store in image coords
+        gestureOriginalItems = [selectedId: annotation]
+        gestureLocalItems = [selectedId: annotation]
+        gestureLastResizeBounds = nil
+        gestureLastPoint = nil
+        gestureDidMutate = false
         return
       }
     }
@@ -485,7 +617,7 @@ final class DrawingCanvasNSView: NSView {
         return
       } else {
         beginAreaSelection(at: imagePoint)
-        needsDisplay = true
+        invalidateDrawing()
         return
       }
     }
@@ -545,7 +677,7 @@ final class DrawingCanvasNSView: NSView {
     if state.isCombineMode, state.combineMode == .autoStitch,
        case .embeddedImage = annotation.type {
       state.setSelectedAnnotationIds([annotation.id])
-      needsDisplay = true
+      invalidateDrawing()
       return
     }
 
@@ -564,13 +696,17 @@ final class DrawingCanvasNSView: NSView {
       y: imagePoint.y - anchorBounds.origin.y
     )
     originalBounds = anchorBounds
+    let draggedItems = state.annotations.filter { activeIds.contains($0.id) }
     originalBoundsByAnnotationId = Dictionary(
-      uniqueKeysWithValues: state.annotations
-        .filter { activeIds.contains($0.id) }
-        .map { ($0.id, $0.resizeBounds) }
+      uniqueKeysWithValues: draggedItems.map { ($0.id, $0.resizeBounds) }
     )
+    gestureOriginalItems = Dictionary(uniqueKeysWithValues: draggedItems.map { ($0.id, $0) })
+    gestureLocalItems = gestureOriginalItems
+    gestureLastResizeBounds = nil
+    gestureLastPoint = nil
+    gestureDidMutate = false
     NSCursor.closedHand.set()
-    needsDisplay = true
+    invalidateDrawing()
   }
 
   private func canResizeAnnotation(_ annotation: AnnotationItem) -> Bool {
@@ -624,45 +760,12 @@ final class DrawingCanvasNSView: NSView {
     let displayPoint = convert(event.locationInWindow, from: nil)
     let imagePoint = interactionPoint(from: displayPoint)
 
-    // Handle resizing (in image coordinates)
+    // Handle resizing (in image coordinates). Mutates only the gesture-local
+    // copy; the final geometry commits to state once on mouseUp.
     if isResizingAnnotation, let handle = activeResizeHandle,
        let resizeId = resizingAnnotationId {
-      Task { @MainActor in
-        let isArrow: Bool = {
-          if case .arrow = state.annotations.first(where: { $0.id == resizeId })?.type { return true }
-          return false
-        }()
-        switch handle {
-        case .lineStart:
-          if isArrow {
-            state.updateArrowEndpoint(id: resizeId, start: imagePoint)
-          } else {
-            state.updateLineEndpoint(id: resizeId, start: imagePoint)
-          }
-        case .lineEnd:
-          if isArrow {
-            state.updateArrowEndpoint(id: resizeId, end: imagePoint)
-          } else {
-            state.updateLineEndpoint(id: resizeId, end: imagePoint)
-          }
-        case .textCalloutTail:
-          state.updateTextCalloutTail(id: resizeId, target: imagePoint)
-        default:
-          let isEmbeddedImage = state.annotations.first(where: { $0.id == resizeId }).map {
-            if case .embeddedImage = $0.type { return true }
-            return false
-          } ?? false
-          let proportional = event.modifierFlags.contains(.shift)
-            || (state.isCombineMode && isEmbeddedImage)
-          let newBounds = calculateResizedBounds(
-            handle: handle,
-            currentPoint: imagePoint,
-            proportional: proportional
-          )
-          state.updateAnnotationBounds(id: resizeId, bounds: newBounds)
-        }
-      }
-      needsDisplay = true
+      applyGestureResize(handle: handle, resizeId: resizeId, imagePoint: imagePoint, event: event)
+      invalidateLiveLayers()
       return
     }
 
@@ -674,24 +777,25 @@ final class DrawingCanvasNSView: NSView {
         state.isCropResizing = true
         state.isCropShiftLocked = shiftHeld
       }
-      needsDisplay = true
+      invalidateLiveLayers()
       return
     }
 
     // Handle crop dragging
     if isCropDragging {
       handleCropDrag(to: imagePoint)
-      needsDisplay = true
+      invalidateLiveLayers()
       return
     }
 
     if isSelectingArea {
       selectionAreaCurrent = imagePoint
-      needsDisplay = true
+      invalidateLiveLayers()
       return
     }
 
-    // Handle dragging annotation (in image coordinates)
+    // Handle dragging annotation (in image coordinates). Mutates only
+    // gesture-local copies; final bounds commit to state once on mouseUp.
     if isDraggingAnnotation {
       let activeIds = draggingAnnotationIds.isEmpty
         ? Set(draggingAnnotationId.map { [$0] } ?? [])
@@ -699,40 +803,43 @@ final class DrawingCanvasNSView: NSView {
       guard let start = dragStart, !activeIds.isEmpty else { return }
       let dx = imagePoint.x - start.x
       let dy = imagePoint.y - start.y
-      Task { @MainActor in
-        for id in activeIds {
-          guard let originalBounds = originalBoundsByAnnotationId[id] else { continue }
-          let newBounds = CGRect(
-            origin: CGPoint(
-              x: originalBounds.origin.x + dx,
-              y: originalBounds.origin.y + dy
-            ),
-            size: originalBounds.size
-          )
-          state.updateAnnotationBounds(id: id, bounds: newBounds)
-        }
 
-        if state.isCombineMode,
-           state.combineMode == .freeCanvas,
-           activeIds.count == 1,
-           let draggedID = activeIds.first,
-           let dragged = state.annotations.first(where: { $0.id == draggedID }),
-           case .embeddedImage = dragged.type {
-          let candidates = [state.sourceImageBounds] + state.annotations.compactMap { annotation -> CGRect? in
-            guard annotation.id != draggedID, case .embeddedImage = annotation.type else { return nil }
-            return annotation.bounds
-          }
-          if let snapped = CombineSnapping.resolve(
-            draggedBounds: dragged.bounds,
-            candidateBounds: candidates,
-            gap: state.combineGap,
-            tolerance: state.combineSnapTolerance
-          ) {
-            state.updateAnnotationBounds(id: draggedID, bounds: snapped)
-          }
+      for id in activeIds {
+        guard let originalBounds = originalBoundsByAnnotationId[id],
+              let original = gestureOriginalItems[id] else { continue }
+        let newBounds = CGRect(
+          origin: CGPoint(
+            x: originalBounds.origin.x + dx,
+            y: originalBounds.origin.y + dy
+          ),
+          size: originalBounds.size
+        )
+        gestureLocalItems[id] = original.applyingResizeBounds(newBounds)
+        gestureDidMutate = true
+      }
+
+      // Combine free-canvas snapping resolves against the gesture-local copy
+      // so the gesture stays state-free until mouseUp commits.
+      if state.isCombineMode,
+         state.combineMode == .freeCanvas,
+         activeIds.count == 1,
+         let draggedID = activeIds.first,
+         let dragged = gestureLocalItems[draggedID],
+         case .embeddedImage = dragged.type {
+        let candidates = [state.sourceImageBounds] + state.annotations.compactMap { annotation -> CGRect? in
+          guard annotation.id != draggedID, case .embeddedImage = annotation.type else { return nil }
+          return annotation.bounds
+        }
+        if let snapped = CombineSnapping.resolve(
+          draggedBounds: dragged.bounds,
+          candidateBounds: candidates,
+          gap: state.combineGap,
+          tolerance: state.combineSnapTolerance
+        ) {
+          gestureLocalItems[draggedID] = dragged.applyingResizeBounds(snapped)
         }
       }
-      needsDisplay = true
+      invalidateLiveLayers()
       return
     }
 
@@ -750,10 +857,78 @@ final class DrawingCanvasNSView: NSView {
     switch state.selectedTool {
     case .pencil, .highlighter:
       currentPath.append(imagePoint)
-      needsDisplay = true
+      invalidateLiveLayers()
     default:
       currentPath = [imagePoint]
-      needsDisplay = true
+      invalidateLiveLayers()
+    }
+  }
+
+  /// Applies a resize gesture to the gesture-local copy only. Mirrors the
+  /// state update methods (`updateArrowEndpoint`, `updateLineEndpoint`,
+  /// `updateTextCalloutTail`, `updateAnnotationBounds`) so the commit on
+  /// mouseUp produces the exact same final geometry.
+  private func applyGestureResize(handle: ResizeHandle, resizeId: UUID, imagePoint: CGPoint, event: NSEvent) {
+    guard let original = gestureOriginalItems[resizeId] else { return }
+    gestureLastPoint = imagePoint
+    gestureDidMutate = true
+
+    switch handle {
+    case .lineStart, .lineEnd:
+      var item = original
+      let isStart = handle == .lineStart
+      switch item.type {
+      case .arrow(let geometry):
+        let updated = ArrowGeometry(
+          start: isStart ? imagePoint : geometry.start,
+          end: isStart ? geometry.end : imagePoint,
+          style: geometry.style,
+          arrowType: geometry.arrowType,
+          startHead: geometry.startHead,
+          endHead: geometry.endHead
+        )
+        item.type = .arrow(updated)
+        item.bounds = updated.bounds()
+      case .line(let start, let end):
+        let updatedStart = isStart ? imagePoint : start
+        let updatedEnd = isStart ? end : imagePoint
+        item.type = .line(start: updatedStart, end: updatedEnd)
+        item.bounds = CGRect(
+          x: min(updatedStart.x, updatedEnd.x),
+          y: min(updatedStart.y, updatedEnd.y),
+          width: abs(updatedEnd.x - updatedStart.x),
+          height: abs(updatedEnd.y - updatedStart.y)
+        ).standardized
+      default:
+        return
+      }
+      gestureLocalItems[resizeId] = item
+
+    case .textCalloutTail:
+      var item = original
+      guard case .text = item.type,
+            item.properties.textPresentation == .callout else { return }
+      item.properties.calloutTailTarget = TextBubbleGeometry.resolvedTailTarget(
+        in: item.bounds,
+        requestedTarget: imagePoint,
+        fontSize: item.properties.fontSize
+      )
+      gestureLocalItems[resizeId] = item
+
+    default:
+      let isEmbeddedImage: Bool = {
+        if case .embeddedImage = original.type { return true }
+        return false
+      }()
+      let proportional = event.modifierFlags.contains(.shift)
+        || (state.isCombineMode && isEmbeddedImage)
+      let newBounds = calculateResizedBounds(
+        handle: handle,
+        currentPoint: imagePoint,
+        proportional: proportional
+      )
+      gestureLastResizeBounds = newBounds
+      gestureLocalItems[resizeId] = original.applyingResizeBounds(newBounds)
     }
   }
 
@@ -772,13 +947,48 @@ final class DrawingCanvasNSView: NSView {
          case .blur = annotation.type {
         blurCacheManager.invalidate(id: resizeId)
       }
-      Task { @MainActor in
-        state.saveState()
+      // Commit the gesture-local result synchronously so the very next draw
+      // shows the new geometry — a deferred Task would paint one stale frame
+      // at the old bounds first (visible as old/new flicker on drop).
+      if let resizeId = resizingAnnotationId, let handle = activeResizeHandle {
+        let isArrow: Bool = {
+          guard let item = gestureLocalItems[resizeId] ?? gestureOriginalItems[resizeId] else { return false }
+          if case .arrow = item.type { return true }
+          return false
+        }()
+        switch handle {
+        case .lineStart:
+          if let lastPoint = gestureLastPoint {
+            if isArrow {
+              state.updateArrowEndpoint(id: resizeId, start: lastPoint)
+            } else {
+              state.updateLineEndpoint(id: resizeId, start: lastPoint)
+            }
+          }
+        case .lineEnd:
+          if let lastPoint = gestureLastPoint {
+            if isArrow {
+              state.updateArrowEndpoint(id: resizeId, end: lastPoint)
+            } else {
+              state.updateLineEndpoint(id: resizeId, end: lastPoint)
+            }
+          }
+        case .textCalloutTail:
+          if let lastPoint = gestureLastPoint {
+            state.updateTextCalloutTail(id: resizeId, target: lastPoint)
+          }
+        default:
+          if let lastBounds = gestureLastResizeBounds {
+            state.updateAnnotationBounds(id: resizeId, bounds: lastBounds)
+          }
+        }
       }
+      state.saveState()
       isResizingAnnotation = false
       resizingAnnotationId = nil
       activeResizeHandle = nil
-      needsDisplay = true
+      clearGestureState()
+      invalidateDrawing()
       return
     }
 
@@ -791,14 +1001,15 @@ final class DrawingCanvasNSView: NSView {
         state.isCropResizing = false
         state.isCropShiftLocked = false
       }
-      needsDisplay = true
+      invalidateDrawing()
       return
     }
 
     if isSelectingArea {
       finishAreaSelection()
+      clearGestureState()
       updateCursor(for: event)
-      needsDisplay = true
+      invalidateDrawing()
       return
     }
 
@@ -813,15 +1024,22 @@ final class DrawingCanvasNSView: NSView {
           blurCacheManager.invalidate(id: id)
         }
       }
-      Task { @MainActor in
-        state.saveState()
+      // Commit gesture-local bounds once, synchronously, so the next draw is
+      // already at the final position (deferred commit caused old/new flicker).
+      if gestureDidMutate {
+        for id in activeIds {
+          guard let local = gestureLocalItems[id] else { continue }
+          state.updateAnnotationBounds(id: id, bounds: local.resizeBounds)
+        }
       }
+      state.saveState()
       isDraggingAnnotation = false
       draggingAnnotationId = nil
       draggingAnnotationIds = []
       originalBoundsByAnnotationId = [:]
+      clearGestureState()
       updateCursor(for: event)
-      needsDisplay = true
+      invalidateDrawing()
       return
     }
 
@@ -833,13 +1051,14 @@ final class DrawingCanvasNSView: NSView {
     let pathToSave = currentPath
 
     if shouldCommitDrawing(tool: tool, start: start, end: imagePoint, path: pathToSave) {
-      Task { @MainActor in
-        createAnnotation(tool: tool, from: start, to: imagePoint, path: pathToSave)
-      }
+      // Commit synchronously: deferring to a Task lets a frame render where the
+      // stroke preview is already gone but the annotation is not yet appended,
+      // which reads as a flicker on completion.
+      createAnnotation(tool: tool, from: start, to: imagePoint, path: pathToSave)
     }
 
     resetDrawingInteraction()
-    needsDisplay = true
+    invalidateDrawing()
   }
 
   private func calculateResizedBounds(
@@ -939,6 +1158,17 @@ final class DrawingCanvasNSView: NSView {
     drawingStartDisplayPoint = nil
     drawingDragDistance = 0
     currentPath = []
+    clearGestureState()
+  }
+
+  /// Drops gesture-local copies. Called when any gesture ends so the next
+  /// gesture starts from pristine state.
+  private func clearGestureState() {
+    gestureOriginalItems = [:]
+    gestureLocalItems = [:]
+    gestureLastResizeBounds = nil
+    gestureLastPoint = nil
+    gestureDidMutate = false
   }
 
   @MainActor
@@ -987,27 +1217,77 @@ final class DrawingCanvasNSView: NSView {
 
   // MARK: - Drawing
 
-  override func draw(_ dirtyRect: NSRect) {
-    super.draw(dirtyRect)
-    guard let context = NSGraphicsContext.current?.cgContext else { return }
+  /// Current items for display: gesture-local copies shadow state items while
+  /// a drag/resize is active.
+  private func currentDisplayItems() -> [AnnotationItem] {
+    gestureLocalItems.isEmpty
+      ? state.annotations
+      : state.annotations.map { gestureLocalItems[$0.id] ?? $0 }
+  }
 
+  /// Ids of annotations pulled out of the static layers because they are being
+  /// manipulated. Empty unless exactly one item is dragged/resized.
+  private var gestureExcludedIds: Set<UUID> {
+    if isResizingAnnotation {
+      return resizingAnnotationId.map { [$0] } ?? []
+    }
+    if isDraggingAnnotation {
+      let ids = draggingAnnotationIds.isEmpty
+        ? Set(draggingAnnotationId.map { [$0] } ?? [])
+        : draggingAnnotationIds
+      // Exact z-order is only guaranteed for a single dragged item; multi-item
+      // drags keep everything in the static layer.
+      return ids.count == 1 ? ids : []
+    }
+    return []
+  }
+
+  /// Whether the dragged item gets its own live layer between the static
+  /// below/above layers (exact z-order during the gesture).
+  private var usesDragLayerSplit: Bool {
+    guard isResizingAnnotation || isDraggingAnnotation else { return false }
+    if isDraggingAnnotation, gestureExcludedIds.isEmpty { return false } // multi-item drag
+    let excluded = gestureExcludedIds
+    // A selected item outside the gesture would keep stale selection visuals in
+    // the static layers — keep everything static instead (exact same output).
+    guard state.selectedAnnotationIds.allSatisfy({ excluded.contains($0) }),
+          state.selectedAnnotationId.map({ excluded.contains($0) }) ?? true else { return false }
+    return true
+  }
+
+  /// Splits display items into the three drawing layers, preserving the
+  /// `renderOrdered` z-order around the dragged item.
+  private func partitionedDisplayItems() -> (below: [AnnotationItem], dragged: [AnnotationItem], above: [AnnotationItem]) {
+    let ordered = currentDisplayItems().renderOrdered
+    guard usesDragLayerSplit else {
+      return (ordered, [], [])
+    }
+    let excluded = gestureExcludedIds
+    let splitIndex = ordered.firstIndex(where: { excluded.contains($0.id) }) ?? ordered.endIndex
+    let below = Array(ordered[..<splitIndex])
+    let dragged = ordered[splitIndex...].filter { excluded.contains($0.id) }
+    let above = ordered[splitIndex...].filter { !excluded.contains($0.id) }
+    return (below, dragged, above)
+  }
+
+  /// Resolves shared render inputs for one draw pass and drops the blur cache
+  /// when the source image changed.
+  private func prepareRenderInputs() -> (sourceImage: NSImage?, sourceCGImage: CGImage?) {
     let effectiveSourceImage = state.effectiveSourceImage
     let currentImageIdentifier = effectiveSourceImage.map(ObjectIdentifier.init)
     if currentImageIdentifier != lastSourceImageIdentifier {
       blurCacheManager.clearAll()
       lastSourceImageIdentifier = currentImageIdentifier
     }
+    return (effectiveSourceImage, effectiveSourceImage?.cgImage(forProposedRect: nil, context: nil, hints: nil))
+  }
 
-    // Apply scale transform for rendering
-    context.saveGState()
-    context.scaleBy(x: displayScale, y: displayScale)
-    context.translateBy(x: -effectiveCanvasBounds.minX, y: -effectiveCanvasBounds.minY)
-
-    // Draw existing annotations (at image coordinates - transform handles scaling)
-    let renderer = AnnotationRenderer(
+  private func makeRenderer(sourceImage: NSImage?, sourceCGImage: CGImage?, in context: CGContext) -> AnnotationRenderer {
+    AnnotationRenderer(
       context: context,
       editingTextId: state.editingTextAnnotationId,
-      sourceImage: effectiveSourceImage,
+      sourceImage: sourceImage,
+      sourceCGImage: sourceCGImage,
       blurCacheManager: blurCacheManager,
       interactiveBlurAnnotationIds: activeInteractiveBlurAnnotationIds(),
       interactiveEmbeddedImageAnnotationId: activeInteractiveEmbeddedImageAnnotationId(),
@@ -1018,11 +1298,71 @@ final class DrawingCanvasNSView: NSView {
         state.embeddedCGImage(for: assetId)
       }
     )
+  }
 
-    // Unified Spotlight overlay pass (draws overlay below other annotations, above base image).
-    // Opacity is sourced from each item's own properties so slider changes reflect immediately.
+  // MARK: Layer draw bodies (invoked by CanvasLayerView, on that view's context)
+
+  private func drawStaticBelow(dirtyRect: NSRect) {
+    drawAnnotationItems(partitionedDisplayItems().below, dirtyRect: dirtyRect)
+  }
+
+  private func drawDraggedItems(dirtyRect: NSRect) {
+    drawAnnotationItems(partitionedDisplayItems().dragged, dirtyRect: dirtyRect)
+  }
+
+  private func drawStaticAbove(dirtyRect: NSRect) {
+    drawAnnotationItems(partitionedDisplayItems().above, dirtyRect: dirtyRect)
+  }
+
+  /// Draws annotations with selection visuals. Skips items that cannot
+  /// intersect the dirty rect — AppKit clips to it anyway, output is identical.
+  private func drawAnnotationItems(_ items: [AnnotationItem], dirtyRect: NSRect) {
+    guard !items.isEmpty,
+          let context = NSGraphicsContext.current?.cgContext else { return }
+
+    let (sourceImage, sourceCGImage) = prepareRenderInputs()
+    context.saveGState()
+    context.scaleBy(x: displayScale, y: displayScale)
+    context.translateBy(x: -effectiveCanvasBounds.minX, y: -effectiveCanvasBounds.minY)
+
+    let renderer = makeRenderer(sourceImage: sourceImage, sourceCGImage: sourceCGImage, in: context)
+    let cullingPadding = max(24, 8 / max(displayScale, 0.0001))
+    let imageDirtyRect = displayToImage(dirtyRect).insetBy(dx: -cullingPadding, dy: -cullingPadding)
+
+    for annotation in items {
+      guard annotation.selectionBounds.intersects(imageDirtyRect) else { continue }
+
+      // Freeform strokes show selection as a soft glow painted *beneath* the body,
+      // so the highlight frames the ink without a line or box crossing over it.
+      if state.isAnnotationSelected(annotation.id) {
+        drawSelectionUnderlay(for: annotation, in: context)
+      }
+
+      renderer.draw(annotation)
+
+      // Draw selection affordance if selected. Single selections can also show resize handles.
+      if state.isAnnotationSelected(annotation.id) {
+        drawSelectionAffordance(
+          for: annotation,
+          in: context,
+          showsHandles: state.selectedAnnotationIds.count == 1 && annotation.supportsResize
+        )
+      }
+    }
+
+    context.restoreGState()
+  }
+
+  /// Unified Spotlight overlay pass (below annotations, above base image).
+  /// Opacity is sourced from each item's own properties so slider changes reflect immediately.
+  private func drawSpotlightOverlay(dirtyRect _: NSRect) {
+    guard let context = NSGraphicsContext.current?.cgContext else { return }
+    context.saveGState()
+    context.scaleBy(x: displayScale, y: displayScale)
+    context.translateBy(x: -effectiveCanvasBounds.minX, y: -effectiveCanvasBounds.minY)
+
     let spotlightCreationProps = state.annotationCreationProperties(for: .spotlight)
-    let spotlightRegions = state.annotations.compactMap { a -> SpotlightRegion? in
+    let spotlightRegions = currentDisplayItems().compactMap { a -> SpotlightRegion? in
       guard case .spotlight = a.type else { return nil }
       return SpotlightRegion(
         rect: a.bounds,
@@ -1048,65 +1388,59 @@ final class DrawingCanvasNSView: NSView {
       in: context
     )
 
-    for annotation in state.annotations {
-      // Freeform strokes show selection as a soft glow painted *beneath* the body,
-      // so the highlight frames the ink without a line or box crossing over it.
-      if state.isAnnotationSelected(annotation.id) {
-        drawSelectionUnderlay(for: annotation, in: context)
-      }
-
-      renderer.draw(annotation)
-
-      // Draw selection affordance if selected. Single selections can also show resize handles.
-      if state.isAnnotationSelected(annotation.id) {
-        drawSelectionAffordance(
-          for: annotation,
-          in: context,
-          showsHandles: state.selectedAnnotationIds.count == 1 && annotation.supportsResize
-        )
-      }
-    }
-
-    // Draw current stroke if drawing
-    if isDrawing, let start = dragStart {
-      // Special handling for blur tool preview
-      if state.selectedTool == .blur, let lastPoint = currentPath.last {
-        renderer.drawBlurPreview(
-          start: start,
-          currentPoint: lastPoint,
-          strokeColor: state.strokeColor,
-          blurType: state.blurType,
-          controlValue: state.annotationCreationProperties(for: .blur).strokeWidth
-        )
-      } else if state.selectedTool == .spotlight {
-        // Spotlight preview is handled in the unified overlay pass above.
-      } else {
-        let previewProperties = state.annotationCreationProperties(for: state.selectedTool)
-        renderer.drawCurrentStroke(
-          tool: state.selectedTool,
-          start: start,
-          currentPath: currentPath,
-          strokeColor: previewProperties.strokeColor,
-          strokeWidth: previewProperties.strokeWidth,
-          fillColor: previewProperties.fillColor,
-          arrowStyle: state.arrowStyle,
-          arrowType: state.arrowType,
-          arrowBendDirection: state.arrowBendDirection,
-          arrowStartHead: state.arrowStartHead,
-          arrowEndHead: state.arrowEndHead,
-          rectangleCornerRadius: previewProperties.cornerRadius,
-          watermarkText: state.watermarkText,
-          watermarkStyle: previewProperties.watermarkStyle,
-          watermarkOpacity: previewProperties.opacity,
-          watermarkRotationDegrees: previewProperties.rotationDegrees,
-          watermarkFontSize: previewProperties.fontSize
-        )
-      }
-    }
-
-    drawAreaSelectionPreview(in: context)
-
     context.restoreGState()
+  }
+
+  /// Live gesture previews: in-progress stroke and area-selection rect.
+  private func drawGesturePreview(dirtyRect _: NSRect) {
+    guard let context = NSGraphicsContext.current?.cgContext else { return }
+    let (sourceImage, sourceCGImage) = prepareRenderInputs()
+    context.saveGState()
+    context.scaleBy(x: displayScale, y: displayScale)
+    context.translateBy(x: -effectiveCanvasBounds.minX, y: -effectiveCanvasBounds.minY)
+    drawCurrentStrokePreview(sourceImage: sourceImage, sourceCGImage: sourceCGImage, in: context)
+    drawAreaSelectionPreview(in: context)
+    context.restoreGState()
+  }
+
+  /// Live preview of the in-progress stroke while a drawing gesture is active.
+  private func drawCurrentStrokePreview(sourceImage: NSImage?, sourceCGImage: CGImage?, in context: CGContext) {
+    guard isDrawing, let start = dragStart else { return }
+    let renderer = makeRenderer(sourceImage: sourceImage, sourceCGImage: sourceCGImage, in: context)
+
+    // Special handling for blur tool preview
+    if state.selectedTool == .blur, let lastPoint = currentPath.last {
+      renderer.drawBlurPreview(
+        start: start,
+        currentPoint: lastPoint,
+        strokeColor: state.strokeColor,
+        blurType: state.blurType,
+        controlValue: state.annotationCreationProperties(for: .blur).strokeWidth
+      )
+    } else if state.selectedTool == .spotlight {
+      // Spotlight preview is handled in the unified overlay pass above.
+    } else {
+      let previewProperties = state.annotationCreationProperties(for: state.selectedTool)
+      renderer.drawCurrentStroke(
+        tool: state.selectedTool,
+        start: start,
+        currentPath: currentPath,
+        strokeColor: previewProperties.strokeColor,
+        strokeWidth: previewProperties.strokeWidth,
+        fillColor: previewProperties.fillColor,
+        arrowStyle: state.arrowStyle,
+        arrowType: state.arrowType,
+        arrowBendDirection: state.arrowBendDirection,
+        arrowStartHead: state.arrowStartHead,
+        arrowEndHead: state.arrowEndHead,
+        rectangleCornerRadius: previewProperties.cornerRadius,
+        watermarkText: state.watermarkText,
+        watermarkStyle: previewProperties.watermarkStyle,
+        watermarkOpacity: previewProperties.opacity,
+        watermarkRotationDegrees: previewProperties.rotationDegrees,
+        watermarkFontSize: previewProperties.fontSize
+      )
+    }
   }
 
   private func activeInteractiveBlurAnnotationIds() -> Set<UUID> {

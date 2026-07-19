@@ -88,10 +88,11 @@ final class BlurCacheManager {
     effectValue: CGFloat = BlurEffectRenderer.defaultPixelSize,
     allowApproximateReuse: Bool = false,
     renderSynchronously: Bool = true,
-    quality: BlurRenderQuality = .settled
+    quality: BlurRenderQuality = .settled,
+    resolvedSourceCGImage: CGImage? = nil
   ) -> CGImage? {
     let normalizedBounds = bounds.standardized
-    guard let sourceCGImage = sourceImage.cgImage(forProposedRect: nil, context: nil, hints: nil) else { return nil }
+    guard let sourceCGImage = resolvedSourceCGImage ?? sourceImage.cgImage(forProposedRect: nil, context: nil, hints: nil) else { return nil }
 
     let sourceSignature = makeSourceSignature(for: sourceImage, cgImage: sourceCGImage)
     let cacheScale = renderScale(for: sourceImage, cgImage: sourceCGImage, bounds: normalizedBounds)

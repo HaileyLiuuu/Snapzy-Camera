@@ -10,12 +10,14 @@ import CoreGraphics
 import SwiftUI
 
 /// Renders annotations to a CGContext
-struct AnnotationRenderer {
+nonisolated struct AnnotationRenderer {
   private static let livePreviewFullQualityAreaThreshold: CGFloat = 120_000
 
   let context: CGContext
   var editingTextId: UUID?
   var sourceImage: NSImage?
+  /// Pre-resolved `sourceImage` CGImage; avoids re-resolving per blur per frame.
+  var sourceCGImage: CGImage?
   var blurCacheManager: BlurCacheManager?
   private var interactiveBlurAnnotationIds: Set<UUID>
   var interactiveEmbeddedImageAnnotationId: UUID?
@@ -26,6 +28,7 @@ struct AnnotationRenderer {
     context: CGContext,
     editingTextId: UUID? = nil,
     sourceImage: NSImage? = nil,
+    sourceCGImage: CGImage? = nil,
     blurCacheManager: BlurCacheManager? = nil,
     interactiveBlurAnnotationId: UUID? = nil,
     interactiveBlurAnnotationIds: Set<UUID> = [],
@@ -36,6 +39,7 @@ struct AnnotationRenderer {
     self.context = context
     self.editingTextId = editingTextId
     self.sourceImage = sourceImage
+    self.sourceCGImage = sourceCGImage
     self.blurCacheManager = blurCacheManager
     var normalizedInteractiveBlurIds = interactiveBlurAnnotationIds
     if let interactiveBlurAnnotationId {
@@ -617,6 +621,8 @@ struct AnnotationRenderer {
 
     // Editor preview path: never do exact work inside draw(). A cache miss schedules
     // async refinement and returns immediately with a friendly placeholder.
+    // NOTE: the export path never passes a blurCacheManager, so this main-isolated
+    // cache is only touched from the interactive (main-actor) canvas.
     if let cacheManager = blurCacheManager {
       if let cachedImage = cacheManager.getCachedBlur(
         for: annotationId,
@@ -626,7 +632,8 @@ struct AnnotationRenderer {
         effectValue: effectValue,
         allowApproximateReuse: shouldAllowApproximateReuse,
         renderSynchronously: false,
-        quality: shouldAllowApproximateReuse ? .interactive : .settled
+        quality: shouldAllowApproximateReuse ? .interactive : .settled,
+        resolvedSourceCGImage: sourceCGImage
       ) {
         switch blurType {
         case .pixelated:
@@ -706,9 +713,10 @@ struct AnnotationRenderer {
   }
 
   private func alignToSourcePixelGrid(_ rect: CGRect, sourceImage: NSImage) -> CGRect {
+    let resolvedCGImage = sourceCGImage ?? sourceImage.cgImage(forProposedRect: nil, context: nil, hints: nil)
     guard sourceImage.size.width > 0,
           sourceImage.size.height > 0,
-          let cgImage = sourceImage.cgImage(forProposedRect: nil, context: nil, hints: nil),
+          let cgImage = resolvedCGImage,
           cgImage.width > 0,
           cgImage.height > 0 else {
       return rect
@@ -838,7 +846,7 @@ struct AnnotationRenderer {
 // MARK: - AnnotationType Extension
 
 extension AnnotationType {
-  var isHighlight: Bool {
+  nonisolated var isHighlight: Bool {
     if case .highlight = self { return true }
     return false
   }

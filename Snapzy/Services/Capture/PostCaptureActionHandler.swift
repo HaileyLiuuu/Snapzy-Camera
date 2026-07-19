@@ -254,6 +254,9 @@ final class PostCaptureActionHandler {
   }
 
   /// Re-run clipboard automation after an in-place edit save succeeds.
+  /// Screenshots: decode/encode run off-main (serialized so rapid successive
+  /// saves keep last-save-wins clipboard order); only the pasteboard write
+  /// hops back to main. Videos stay on the cheap file-URL path.
   func copyEditedCaptureToClipboardIfEnabled(for captureType: CaptureType, url: URL) {
     guard preferences.isActionEnabled(.copyFile, for: captureType) else {
       DiagnosticLogger.shared.log(
@@ -265,7 +268,15 @@ final class PostCaptureActionHandler {
       return
     }
 
-    copyToClipboard(url: url, isVideo: captureType == .recording)
+    if captureType == .recording {
+      copyToClipboard(url: url, isVideo: true)
+    } else {
+      let previous = editedClipboardTask
+      editedClipboardTask = Task.detached(priority: .userInitiated) {
+        await previous?.value
+        await ClipboardHelper.copyImageOffMain(from: url)
+      }
+    }
 
     let label = captureType == .screenshot ? "screenshot" : "recording"
     logger.debug("Clipboard re-copy executed for edited \(url.lastPathComponent)")
@@ -276,6 +287,9 @@ final class PostCaptureActionHandler {
       context: ["captureType": label, "fileName": url.lastPathComponent]
     )
   }
+
+  /// Chained task serializing off-main edited-capture clipboard writes.
+  private var editedClipboardTask: Task<Void, Never>?
 
   // MARK: - Private
 

@@ -19,7 +19,9 @@ extension NSApplication {
     }
 
     if visibleWindows.isEmpty && activationPolicy() != .accessory {
-      setActivationPolicy(.accessory)
+      PerfSignpost.measure("policyRevert") {
+        _ = setActivationPolicy(.accessory)
+      }
       DiagnosticLogger.shared.log(.debug, .ui, "Activation policy restored to accessory coordinates")
     }
   }

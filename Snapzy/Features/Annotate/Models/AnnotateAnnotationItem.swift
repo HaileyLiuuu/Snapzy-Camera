@@ -10,7 +10,7 @@ import Foundation
 import SwiftUI
 
 /// Blur effect type for blur annotations
-enum BlurType: String, CaseIterable, Identifiable, Equatable {
+nonisolated enum BlurType: String, CaseIterable, Identifiable, Equatable {
   case pixelated
   case gaussian
   case hexagonal
@@ -51,7 +51,7 @@ enum BlurType: String, CaseIterable, Identifiable, Equatable {
   }
 }
 
-enum WatermarkStyle: String, CaseIterable, Identifiable, Equatable {
+nonisolated enum WatermarkStyle: String, CaseIterable, Identifiable, Equatable {
   case single
   case diagonal
   case tiled
@@ -84,7 +84,7 @@ enum WatermarkStyle: String, CaseIterable, Identifiable, Equatable {
   }
 }
 
-enum TextPresentation: String, CaseIterable, Identifiable, Equatable {
+nonisolated enum TextPresentation: String, CaseIterable, Identifiable, Equatable {
   case plain
   case label
   case callout
@@ -110,7 +110,7 @@ enum TextPresentation: String, CaseIterable, Identifiable, Equatable {
 
 /// Shared proportions for label and callout text. Keeping these in one place
 /// makes the editing overlay, on-canvas preview, and exported image agree.
-enum TextBubbleGeometry {
+nonisolated enum TextBubbleGeometry {
   private enum TailSide {
     case minX
     case maxX
@@ -321,25 +321,25 @@ enum TextBubbleGeometry {
   }
 }
 
-private func + (lhs: CGPoint, rhs: CGPoint) -> CGPoint {
+nonisolated private func + (lhs: CGPoint, rhs: CGPoint) -> CGPoint {
   CGPoint(x: lhs.x + rhs.x, y: lhs.y + rhs.y)
 }
 
-private func - (lhs: CGPoint, rhs: CGPoint) -> CGPoint {
+nonisolated private func - (lhs: CGPoint, rhs: CGPoint) -> CGPoint {
   CGPoint(x: lhs.x - rhs.x, y: lhs.y - rhs.y)
 }
 
-private func * (lhs: CGPoint, rhs: CGFloat) -> CGPoint {
+nonisolated private func * (lhs: CGPoint, rhs: CGFloat) -> CGPoint {
   CGPoint(x: lhs.x * rhs, y: lhs.y * rhs)
 }
 
-private func normalized(_ point: CGPoint) -> CGPoint {
+nonisolated private func normalized(_ point: CGPoint) -> CGPoint {
   let length = hypot(point.x, point.y)
   guard length > 0.0001 else { return .zero }
   return point * (1 / length)
 }
 
-enum ArrowStyle: String, CaseIterable, Identifiable, Equatable {
+nonisolated enum ArrowStyle: String, CaseIterable, Identifiable, Equatable {
   case straight
   case curvedRight
   case curvedLeft
@@ -390,7 +390,7 @@ enum ArrowStyle: String, CaseIterable, Identifiable, Equatable {
   }
 }
 
-enum ArrowBendDirection: String, CaseIterable, Identifiable, Equatable {
+nonisolated enum ArrowBendDirection: String, CaseIterable, Identifiable, Equatable {
   case primary
   case alternate
 
@@ -420,7 +420,7 @@ enum ArrowBendDirection: String, CaseIterable, Identifiable, Equatable {
   }
 }
 
-enum ArrowType: String, Codable, CaseIterable, Identifiable {
+nonisolated enum ArrowType: String, Codable, CaseIterable, Identifiable {
   case classic
   case tapered
   case outlined
@@ -469,7 +469,7 @@ enum ArrowType: String, Codable, CaseIterable, Identifiable {
 
 /// Decoration drawn at a single arrow endpoint (start or end).
 /// Applies to the `.classic` display type; tapered/outlined bake their head into the body.
-enum ArrowEndpointStyle: String, CaseIterable, Identifiable, Equatable {
+nonisolated enum ArrowEndpointStyle: String, CaseIterable, Identifiable, Equatable {
   case none
   case arrow
   case circle
@@ -493,7 +493,7 @@ enum ArrowEndpointStyle: String, CaseIterable, Identifiable, Equatable {
   }
 }
 
-struct ArrowGeometry: Equatable {
+nonisolated struct ArrowGeometry: Equatable {
   var start: CGPoint
   var end: CGPoint
   var style: ArrowStyle
@@ -851,7 +851,7 @@ struct ArrowGeometry: Equatable {
     return rect
   }
 
-  func translatedBy(dx: CGFloat, dy: CGFloat) -> ArrowGeometry {
+  nonisolated func translatedBy(dx: CGFloat, dy: CGFloat) -> ArrowGeometry {
     ArrowGeometry(
       start: CGPoint(x: start.x + dx, y: start.y + dy),
       end: CGPoint(x: end.x + dx, y: end.y + dy),
@@ -1083,8 +1083,118 @@ struct AnnotationItem: Identifiable, Equatable {
   }
 }
 
+// MARK: - Bounds Remapping
+
+extension AnnotationItem {
+  /// Returns a copy resized/moved to `newBounds`, remapping embedded geometry
+  /// (arrow/line/path/highlight points, counter diameter, callout tail) exactly
+  /// as an interactive bounds change would. Pure: no side effects, so the canvas
+  /// can preview gestures on local copies and commit through `AnnotateState`.
+  func applyingResizeBounds(_ newBounds: CGRect) -> AnnotationItem {
+    var copy = self
+    let oldBounds = resizeBounds
+    let normalizedBounds = newBounds.standardized
+
+    if case .text = copy.type,
+       copy.properties.textPresentation == .callout,
+       let tailTarget = copy.properties.calloutTailTarget {
+      if TextBubbleGeometry.isDefaultTail(tailTarget, for: oldBounds, fontSize: copy.properties.fontSize) {
+        copy.properties.calloutTailTarget = TextBubbleGeometry.defaultTailTarget(for: normalizedBounds, fontSize: copy.properties.fontSize)
+      } else if oldBounds.size == normalizedBounds.size {
+        copy.properties.calloutTailTarget = CGPoint(
+          x: tailTarget.x + normalizedBounds.minX - oldBounds.minX,
+          y: tailTarget.y + normalizedBounds.minY - oldBounds.minY
+        )
+      }
+    }
+    copy.bounds = normalizedBounds
+
+    // Also remap embedded coordinates for arrows/lines/paths
+    switch copy.type {
+    case .arrow(let geometry):
+      let updated = geometry.remapped(from: oldBounds, to: normalizedBounds)
+      copy.type = .arrow(updated)
+      copy.bounds = updated.bounds()
+    case .line(let start, let end):
+      copy.type = .line(
+        start: Self.remapPoint(start, from: oldBounds, to: normalizedBounds),
+        end: Self.remapPoint(end, from: oldBounds, to: normalizedBounds)
+      )
+    case .path(let points):
+      copy.type = .path(points.map { Self.remapPoint($0, from: oldBounds, to: normalizedBounds) })
+    case .highlight(let points):
+      copy.type = .highlight(points.map { Self.remapPoint($0, from: oldBounds, to: normalizedBounds) })
+    case .counter:
+      let diameter = max(normalizedBounds.width, normalizedBounds.height)
+      let controlValue = AnnotationProperties.controlValue(forCounterDiameter: diameter)
+      let counterDiameter = AnnotationProperties.counterDiameter(for: controlValue)
+      copy.bounds = CGRect(
+        x: normalizedBounds.midX - counterDiameter / 2,
+        y: normalizedBounds.midY - counterDiameter / 2,
+        width: counterDiameter,
+        height: counterDiameter
+      )
+      copy.properties.strokeWidth = controlValue
+    default:
+      break
+    }
+
+    return copy
+  }
+
+  private static func remapPoint(_ point: CGPoint, from oldBounds: CGRect, to newBounds: CGRect) -> CGPoint {
+    CGPoint(
+      x: remapCoordinate(point.x, oldMin: oldBounds.minX, oldSize: oldBounds.width, newMin: newBounds.minX, newSize: newBounds.width),
+      y: remapCoordinate(point.y, oldMin: oldBounds.minY, oldSize: oldBounds.height, newMin: newBounds.minY, newSize: newBounds.height)
+    )
+  }
+
+  private static func remapCoordinate(
+    _ value: CGFloat,
+    oldMin: CGFloat,
+    oldSize: CGFloat,
+    newMin: CGFloat,
+    newSize: CGFloat
+  ) -> CGFloat {
+    guard oldSize != 0 else {
+      return newMin + newSize / 2
+    }
+
+    let progress = (value - oldMin) / oldSize
+    return newMin + progress * newSize
+  }
+}
+
+// MARK: - Render Ordering
+
+extension Array where Element == AnnotationItem {
+  /// Z-order for rendering and hit-testing: embedded images (canvas surfaces)
+  /// at the bottom, blur/redact effects above them, and markup annotations
+  /// (shapes, arrows, text, counters, …) always on top. Stable within each
+  /// tier; the model array order itself is unchanged.
+  var renderOrdered: [AnnotationItem] {
+    var embedded: [AnnotationItem] = []
+    var blurs: [AnnotationItem] = []
+    var markup: [AnnotationItem] = []
+    embedded.reserveCapacity(count)
+    blurs.reserveCapacity(count)
+    markup.reserveCapacity(count)
+    for item in self {
+      switch item.type {
+      case .embeddedImage:
+        embedded.append(item)
+      case .blur:
+        blurs.append(item)
+      default:
+        markup.append(item)
+      }
+    }
+    return embedded + blurs + markup
+  }
+}
+
 /// Types of annotations
-enum AnnotationType: Equatable {
+nonisolated enum AnnotationType: Equatable {
   case path([CGPoint])
   case rectangle
   case filledRectangle
@@ -1146,7 +1256,7 @@ enum AnnotationType: Equatable {
 }
 
 /// Visual properties for an annotation
-struct AnnotationProperties: Equatable {
+nonisolated struct AnnotationProperties: Equatable {
   static let controlValueRange: ClosedRange<CGFloat> = 1 ... 20
 
   var strokeColor: Color

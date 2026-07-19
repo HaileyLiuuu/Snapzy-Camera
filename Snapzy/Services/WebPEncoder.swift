@@ -15,7 +15,7 @@ import WebP
 /// - `method = 1` (fast, ~5x vs default method=4)
 /// - `threadLevel = 1` (multi-threaded VP8 encoding)
 /// - `preset = .photo` (optimised for screenshots / photographic content)
-enum WebPEncoderService {
+nonisolated enum WebPEncoderService {
 
   /// Whether WebP encoding is available (always true when Swift-WebP is linked)
   static var isAvailable: Bool { true }

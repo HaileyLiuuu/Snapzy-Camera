@@ -39,9 +39,12 @@ final class VideoEditorManager {
 
   /// Switch back to accessory mode (menu bar only) if no windows open
   private func becomeAccessoryAppIfNeeded() {
-    guard !hasOpenWindows else { return }
-    guard !AnnotateManager.shared.hasOpenWindows else { return }
-    NSApp.revertActivationPolicyToAccessoryIfNeeded()
+    DispatchQueue.main.async { [weak self] in
+      guard let self = self else { return }
+      guard !self.hasOpenWindows else { return }
+      guard !AnnotateManager.shared.hasOpenWindows else { return }
+      NSApp.revertActivationPolicyToAccessoryIfNeeded()
+    }
   }
 
   /// Open video editor for a quick access item

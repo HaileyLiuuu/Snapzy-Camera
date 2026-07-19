@@ -7,7 +7,7 @@
 
 import Foundation
 
-enum L10n {
+nonisolated enum L10n {
   private nonisolated static let tableMappings: [(prefix: String, tableName: String)] = [
     ("action.", "Common"),
     ("combine.", "Combine"),

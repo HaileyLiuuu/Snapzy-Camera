@@ -210,7 +210,7 @@ final class AnnotateState: ObservableObject {
   // MARK: - Editor Mode
 
   /// Editor mode determines whether user is annotating or applying mockup transforms
-  enum EditorMode: String, CaseIterable {
+  nonisolated enum EditorMode: String, CaseIterable {
     case annotate  // Normal annotation editing (flat image)
     case mockup    // 3D perspective transforms with controls
     case preview   // Preview combined result (hides all editing UI)
@@ -1527,6 +1527,63 @@ final class AnnotateState: ObservableObject {
     return cgImage
   }
 
+  /// Freeze every render input into a value-type snapshot so final-image rendering can run
+  /// off the main actor. Warms lazy caches (embedded CGImage) and resolves main-bound
+  /// resources (sandboxed wallpaper disk access, CI blur) before copying.
+  func makeRenderSnapshot() -> AnnotateRenderSnapshot? {
+    guard let sourceImage = effectiveSourceImage else { return nil }
+
+    // Warm the lazy CGImage cache for every embedded asset referenced by annotations,
+    // then freeze plain dictionary copies (off-main render must be read-only).
+    for annotation in annotations {
+      if case .embeddedImage(let assetId) = annotation.type {
+        _ = embeddedCGImage(for: assetId)
+      }
+    }
+
+    // Pre-resolve the background image for the active style (mirrors the exporter's
+    // resolve logic: blurred preferred when the effect is active / for .blurred style).
+    let resolvedBackgroundImage: NSImage?
+    switch backgroundStyle {
+    case .wallpaper(let url) where url.scheme != "preset":
+      resolvedBackgroundImage = isBlurredBackgroundEffectActive
+        ? blurredBackgroundImage(for: url)
+        : backgroundImage(for: url)
+    case .blurred(let url):
+      resolvedBackgroundImage = blurredBackgroundImage(for: url)
+    default:
+      resolvedBackgroundImage = nil
+    }
+
+    return AnnotateRenderSnapshot(
+      sourceImage: sourceImage,
+      editorMode: editorMode,
+      isCombineMode: isCombineMode,
+      effectiveContentBounds: effectiveContentBounds,
+      cropRect: cropRect,
+      annotations: annotations,
+      embeddedImages: embeddedImageAssets,
+      embeddedCGImages: embeddedImageCGImageCache,
+      backgroundStyle: backgroundStyle,
+      isBlurredBackgroundEffectActive: isBlurredBackgroundEffectActive,
+      blurredBackgroundEffect: blurredBackgroundEffect,
+      resolvedBackgroundImage: resolvedBackgroundImage,
+      padding: padding,
+      cornerRadius: cornerRadius,
+      shadowIntensity: shadowIntensity,
+      imageAlignment: imageAlignment,
+      aspectRatio: aspectRatio,
+      aspectRatioOrientation: aspectRatioOrientation,
+      mockupRotationX: mockupRotationX,
+      mockupRotationY: mockupRotationY,
+      mockupRotationZ: mockupRotationZ,
+      mockupPerspective: mockupPerspective,
+      mockupShadowRadius: mockupShadowRadius,
+      mockupShadowOffsetX: mockupShadowOffsetX,
+      mockupShadowOffsetY: mockupShadowOffsetY
+    )
+  }
+
   func restoreEmbeddedImageAssets(from snapshot: [UUID: Data]) {
     var restored: [UUID: NSImage] = [:]
     for (assetId, data) in snapshot {
@@ -2727,8 +2784,8 @@ final class AnnotateState: ObservableObject {
   }
 
   func selectAnnotation(at point: CGPoint) -> AnnotationItem? {
-    // Find annotation at point (in reverse order to select topmost)
-    for annotation in annotations.reversed() {
+    // Find annotation at point (in reverse render order to select topmost)
+    for annotation in annotations.renderOrdered.reversed() {
       // Quick bounds check first (optimization)
       let expandedBounds = annotation.selectionBounds.insetBy(dx: -10, dy: -10)
       guard expandedBounds.contains(point) else { continue }
@@ -2776,48 +2833,11 @@ final class AnnotateState: ObservableObject {
 
     let oldBounds = annotations[index].resizeBounds
     let normalizedBounds = bounds.standardized
-
-    if case .text = annotations[index].type,
-       annotations[index].properties.textPresentation == .callout,
-       let tailTarget = annotations[index].properties.calloutTailTarget {
-      if TextBubbleGeometry.isDefaultTail(tailTarget, for: oldBounds, fontSize: annotations[index].properties.fontSize) {
-        annotations[index].properties.calloutTailTarget = defaultCalloutTailTarget(for: normalizedBounds, fontSize: annotations[index].properties.fontSize)
-      } else if oldBounds.size == normalizedBounds.size {
-        annotations[index].properties.calloutTailTarget = CGPoint(
-          x: tailTarget.x + normalizedBounds.minX - oldBounds.minX,
-          y: tailTarget.y + normalizedBounds.minY - oldBounds.minY
-        )
-      }
-    }
-    annotations[index].bounds = normalizedBounds
+    annotations[index] = annotations[index].applyingResizeBounds(normalizedBounds)
 
     if case .text = annotations[index].type,
        abs(oldBounds.width - normalizedBounds.width) > 0.5 {
       autoSizingTextAnnotationIDs.remove(id)
-    }
-
-    // Also update embedded coordinates for arrows/lines/paths
-    switch annotations[index].type {
-    case .arrow(let geometry):
-      let updated = geometry.remapped(from: oldBounds, to: normalizedBounds)
-      annotations[index].type = .arrow(updated)
-      annotations[index].bounds = updated.bounds()
-    case .line(let start, let end):
-      annotations[index].type = .line(
-        start: remapPoint(start, from: oldBounds, to: normalizedBounds),
-        end: remapPoint(end, from: oldBounds, to: normalizedBounds)
-      )
-    case .path(let points):
-      annotations[index].type = .path(points.map { remapPoint($0, from: oldBounds, to: normalizedBounds) })
-    case .highlight(let points):
-      annotations[index].type = .highlight(points.map { remapPoint($0, from: oldBounds, to: normalizedBounds) })
-    case .counter:
-      let diameter = max(normalizedBounds.width, normalizedBounds.height)
-      let updatedCounterBounds = counterBounds(center: CGPoint(x: normalizedBounds.midX, y: normalizedBounds.midY), controlValue: AnnotationProperties.controlValue(forCounterDiameter: diameter))
-      annotations[index].bounds = updatedCounterBounds
-      annotations[index].properties.strokeWidth = AnnotationProperties.controlValue(forCounterDiameter: diameter)
-    default:
-      break
     }
 
     if isCombineMode, combineMode == .freeCanvas,
@@ -4855,31 +4875,9 @@ final class AnnotateState: ObservableObject {
       break
     }
   }
-
-  private func remapPoint(_ point: CGPoint, from oldBounds: CGRect, to newBounds: CGRect) -> CGPoint {
-    CGPoint(
-      x: remapCoordinate(point.x, oldMin: oldBounds.minX, oldSize: oldBounds.width, newMin: newBounds.minX, newSize: newBounds.width),
-      y: remapCoordinate(point.y, oldMin: oldBounds.minY, oldSize: oldBounds.height, newMin: newBounds.minY, newSize: newBounds.height)
-    )
-  }
-
-  private func remapCoordinate(
-    _ value: CGFloat,
-    oldMin: CGFloat,
-    oldSize: CGFloat,
-    newMin: CGFloat,
-    newSize: CGFloat
-  ) -> CGFloat {
-    guard oldSize != 0 else {
-      return newMin + newSize / 2
-    }
-
-    let progress = (value - oldMin) / oldSize
-    return newMin + progress * newSize
-  }
 }
 
-enum AnnotateTextLayout {
+nonisolated enum AnnotateTextLayout {
   static let horizontalPadding: CGFloat = 4
   static let verticalPadding: CGFloat = 4
   static let minWidth: CGFloat = 30

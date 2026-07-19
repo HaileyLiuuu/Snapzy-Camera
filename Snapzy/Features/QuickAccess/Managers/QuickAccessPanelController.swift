@@ -157,6 +157,12 @@ final class QuickAccessPanelController {
     panel?.resumeMouseMonitors()
   }
 
+  /// Self-heal the panel's hover monitors after editor windows close (a stalled
+  /// runloop can get the global event tap silently disabled by the system).
+  func reinstallMouseMonitors() {
+    panel?.reinstallMouseMonitors()
+  }
+
   /// Check if panel is currently visible
   var isVisible: Bool {
     panel != nil

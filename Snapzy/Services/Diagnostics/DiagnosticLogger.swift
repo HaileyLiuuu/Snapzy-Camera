@@ -10,7 +10,7 @@ import Foundation
 import IOKit
 
 final class DiagnosticLogger {
-  static let shared = DiagnosticLogger()
+  nonisolated static let shared = DiagnosticLogger()
 
   // MARK: - Configuration
 
@@ -29,7 +29,7 @@ final class DiagnosticLogger {
 
   // MARK: - Public API
 
-  var isEnabled: Bool {
+  nonisolated var isEnabled: Bool {
     UserDefaults.standard.object(forKey: PreferencesKeys.diagnosticsEnabled) as? Bool ?? true
   }
 
@@ -43,7 +43,8 @@ final class DiagnosticLogger {
 
   /// Log a diagnostic entry with source location and optional context.
   /// Backward-compatible: existing calls like `log(.info, .capture, "msg")` still compile.
-  func log(
+  /// Thread-safe: all file state is confined to a private serial queue.
+  nonisolated func log(
     _ level: DiagnosticLogLevel,
     _ category: DiagnosticLogCategory,
     _ message: String,
@@ -68,7 +69,7 @@ final class DiagnosticLogger {
   }
 
   /// Convenience for logging errors — auto-extracts localizedDescription, NSError domain/code, and underlying error.
-  func logError(
+  nonisolated func logError(
     _ category: DiagnosticLogCategory,
     _ error: Error,
     _ message: String = "",

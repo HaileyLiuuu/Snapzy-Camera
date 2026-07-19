@@ -12,7 +12,7 @@ import Foundation
 import UniformTypeIdentifiers
 import os.log
 
-private let logger = Logger(subsystem: "Snapzy", category: "ClipboardHelper")
+nonisolated private let logger = Logger(subsystem: "Snapzy", category: "ClipboardHelper")
 
 /// Centralized helper for copying images to clipboard while respecting the configured format.
 ///
@@ -114,6 +114,7 @@ enum ClipboardHelper {
       to: pasteboard,
       fileURL: url,
       image: image,
+      tiffData: image?.tiffRepresentation,
       encodedData: encodedData,
       encodedType: encodedType
     )
@@ -123,6 +124,51 @@ enum ClipboardHelper {
       // The pasteboard item still exposes the file URL and original encoded data.
       logger.warning("ClipboardHelper: could not decode image, file/data-only clipboard for \(url.lastPathComponent)")
       DiagnosticLogger.shared.log(.warning, .clipboard, "Image decode failed, file/data-only", context: ["file": url.lastPathComponent])
+    }
+
+    logger.info("Clipboard: copied file \(url.lastPathComponent)")
+  }
+
+  /// Off-main variant of `copyImage(from:)` for the post-save re-copy path.
+  /// File read, image decode and TIFF encode (the expensive parts, 50-150ms+ for
+  /// Retina captures) run on the calling background queue; only the pasteboard
+  /// write hops to main. Capture files live inside the app container, so no
+  /// security scope is needed for the read — the scoped-access token is acquired
+  /// on main for parity with the main-thread variant.
+  nonisolated static func copyImageOffMain(from url: URL) async {
+    DiagnosticLogger.shared.log(.info, .clipboard, "Copy image from file (off-main)", context: ["file": url.lastPathComponent])
+
+    guard FileManager.default.fileExists(atPath: url.path) else {
+      logger.error("ClipboardHelper: file not found \(url.lastPathComponent)")
+      DiagnosticLogger.shared.log(.error, .clipboard, "File not found", context: ["file": url.lastPathComponent])
+      return
+    }
+
+    // Heavy work off-main
+    let image = NSImage(contentsOf: url)
+    let tiffData = image?.tiffRepresentation
+    let encodedData = try? Data(contentsOf: url)
+    let encodedType = pasteboardImageType(for: url.pathExtension)
+
+    await MainActor.run {
+      let fileAccess = SandboxFileAccessManager.shared.beginAccessingURL(url)
+      defer { fileAccess.stop() }
+
+      let pasteboard = NSPasteboard.general
+      pasteboard.clearContents()
+      writeSingleImageItem(
+        to: pasteboard,
+        fileURL: url,
+        image: image,
+        tiffData: tiffData,
+        encodedData: encodedData,
+        encodedType: encodedType
+      )
+
+      if image == nil {
+        logger.warning("ClipboardHelper: could not decode image, file/data-only clipboard for \(url.lastPathComponent)")
+        DiagnosticLogger.shared.log(.warning, .clipboard, "Image decode failed, file/data-only", context: ["file": url.lastPathComponent])
+      }
     }
 
     logger.info("Clipboard: copied file \(url.lastPathComponent)")
@@ -173,6 +219,7 @@ enum ClipboardHelper {
       to: pasteboard,
       fileURL: tempURL,
       image: image,
+      tiffData: image.tiffRepresentation,
       encodedData: data,
       encodedType: pasteboardImageType(for: ext)
     )
@@ -186,6 +233,7 @@ enum ClipboardHelper {
     to pasteboard: NSPasteboard,
     fileURL: URL,
     image: NSImage?,
+    tiffData: Data?,
     encodedData: Data?,
     encodedType: NSPasteboard.PasteboardType?
   ) {
@@ -212,7 +260,7 @@ enum ClipboardHelper {
       if let encodedData, let encodedType {
         pasteboard.setData(encodedData, forType: encodedType)
       }
-      if let tiffData = image?.tiffRepresentation {
+      if let tiffData {
         pasteboard.setData(tiffData, forType: .tiff)
       }
     }
@@ -227,7 +275,7 @@ enum ClipboardHelper {
     pasteboard.setString(fileURL.path, forType: .string)
   }
 
-  private static func pasteboardImageType(for fileExtension: String) -> NSPasteboard.PasteboardType? {
+  nonisolated private static func pasteboardImageType(for fileExtension: String) -> NSPasteboard.PasteboardType? {
     let ext = fileExtension.lowercased()
     switch ext {
     case "png":

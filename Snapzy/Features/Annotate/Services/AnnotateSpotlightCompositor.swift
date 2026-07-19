@@ -14,7 +14,7 @@ struct SpotlightRegion {
   let opacity: CGFloat  // darkness strength, clamped 0.1...0.9
 }
 
-enum SpotlightCompositor {
+nonisolated enum SpotlightCompositor {
   /// Darken canvasRect except the union of spotlight regions. Opacity is sourced from regions themselves,
   /// so per-item slider changes reflect immediately without a global state sync cycle.
   static func drawOverlay(
