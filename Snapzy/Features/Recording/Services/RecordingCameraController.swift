@@ -210,7 +210,7 @@ final class RecordingCameraController {
       queue: .main
     ) { [weak self] notification in
       guard let device = notification.object as? AVCaptureDevice else { return }
-      Task { @MainActor in
+      Task { @MainActor [weak self] in
         self?.handleDeviceDisconnected(id: device.uniqueID)
       }
     })
@@ -220,7 +220,7 @@ final class RecordingCameraController {
       queue: .main
     ) { [weak self] notification in
       guard let device = notification.object as? AVCaptureDevice else { return }
-      Task { @MainActor in
+      Task { @MainActor [weak self] in
         await self?.handleDeviceConnected(id: device.uniqueID)
       }
     })
