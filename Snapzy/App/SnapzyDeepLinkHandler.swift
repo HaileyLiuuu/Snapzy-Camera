@@ -119,7 +119,8 @@ enum SnapzyDeepLinkAction: Equatable {
   case openSettings(PreferencesTab?)
 
   init?(url: URL) {
-    guard url.scheme?.lowercased() == "snapzy" else { return nil }
+    let supportedSchemes = ["snapzy", "snapzy-camera"]
+    guard let scheme = url.scheme?.lowercased(), supportedSchemes.contains(scheme) else { return nil }
 
     let components = URLComponents(url: url, resolvingAgainstBaseURL: false)
     let host = url.host?.lowercased()

@@ -42,6 +42,7 @@ enum L10n {
     ("screen-capture.", "Capture"),
     ("scrolling-capture.", "Capture"),
     ("scrolling-capture-status.", "Capture"),
+    ("camera.", "Recording"),
     ("gif.", "Recording"),
     ("keystroke-position.", "Recording"),
     ("microphone.", "Recording"),
@@ -3592,6 +3593,94 @@ enum L10n {
       "microphone.unavailable",
       defaultValue: "Unavailable",
       comment: "Microphone picker suffix for a stored input device that is not currently connected"
+    )
+  }
+
+  enum Camera {
+    static let accessRequiredTitle = string(
+      "camera.access-required-title",
+      defaultValue: "Camera Access Required",
+      comment: "Alert title when camera permission is missing"
+    )
+    static let permissionMessage = string(
+      "camera.permission-message",
+      defaultValue: "Snapzy Camera needs camera permission. Enable it in System Settings > Privacy & Security > Camera.",
+      comment: "Alert message when camera permission is missing"
+    )
+    static let doNotUse = string(
+      "camera.do-not-use",
+      defaultValue: "Do Not Use Camera",
+      comment: "Camera menu option to disable the camera overlay"
+    )
+    static let systemPreferred = string(
+      "camera.system-preferred",
+      defaultValue: "System Preferred Camera",
+      comment: "Camera menu option that follows the system preferred camera"
+    )
+    static let noCameraAvailable = string(
+      "camera.no-camera-available",
+      defaultValue: "No camera available",
+      comment: "Camera menu message when no video device is available"
+    )
+    static let unavailableTitle = string(
+      "camera.unavailable-title",
+      defaultValue: "Camera Unavailable",
+      comment: "Alert title when the selected camera cannot be used"
+    )
+    static let unavailableMessage = string(
+      "camera.unavailable-message",
+      defaultValue: "The selected camera is unavailable. Reconnect it or continue recording without camera.",
+      comment: "Alert message when the selected camera cannot be used"
+    )
+    static let continueWithoutCamera = string(
+      "camera.continue-without-camera",
+      defaultValue: "Continue Without Camera",
+      comment: "Button that starts recording without a camera overlay"
+    )
+    static let options = string(
+      "camera.options",
+      defaultValue: "Camera options",
+      comment: "Accessibility label for camera options"
+    )
+    static let chooseInput = string(
+      "camera.choose-input",
+      defaultValue: "Choose a camera, shape, and mirroring",
+      comment: "Accessibility hint for camera options"
+    )
+    static let on = string(
+      "camera.on",
+      defaultValue: "Camera on",
+      comment: "Tooltip when camera overlay is enabled"
+    )
+    static let off = string(
+      "camera.off",
+      defaultValue: "Camera off",
+      comment: "Tooltip when camera overlay is disabled"
+    )
+    static let shape = string(
+      "camera.shape",
+      defaultValue: "Shape",
+      comment: "Camera overlay shape submenu title"
+    )
+    static let shapeWidescreen = string(
+      "camera.shape-widescreen",
+      defaultValue: "16:9 Rounded Rectangle",
+      comment: "Widescreen camera overlay shape"
+    )
+    static let shapeCircle = string(
+      "camera.shape-circle",
+      defaultValue: "Circle",
+      comment: "Circular camera overlay shape"
+    )
+    static let shapeClassic = string(
+      "camera.shape-classic",
+      defaultValue: "4:3 Rounded Rectangle",
+      comment: "Classic camera overlay shape"
+    )
+    static let mirrored = string(
+      "camera.mirrored",
+      defaultValue: "Mirror Camera",
+      comment: "Camera mirroring toggle"
     )
   }
 

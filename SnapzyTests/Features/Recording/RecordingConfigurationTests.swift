@@ -24,6 +24,13 @@ final class RecordingConfigurationTests: XCTestCase {
     XCTAssertEqual(RecordingToolbarPreferences.selectedQuality(defaults: defaults), .high)
     XCTAssertTrue(RecordingToolbarPreferences.captureAudio(defaults: defaults))
     XCTAssertFalse(RecordingToolbarPreferences.captureMicrophone(defaults: defaults))
+    XCTAssertFalse(RecordingToolbarPreferences.captureCamera(defaults: defaults))
+    XCTAssertEqual(
+      RecordingToolbarPreferences.cameraDeviceID(defaults: defaults),
+      RecordingCameraDevice.systemPreferredID
+    )
+    XCTAssertEqual(RecordingToolbarPreferences.cameraShape(defaults: defaults), .widescreen)
+    XCTAssertFalse(RecordingToolbarPreferences.cameraMirrored(defaults: defaults))
     XCTAssertEqual(
       RecordingToolbarPreferences.microphoneDeviceID(defaults: defaults),
       RecordingMicrophoneDevice.systemDefaultID
@@ -40,6 +47,10 @@ final class RecordingConfigurationTests: XCTestCase {
     defaults.set(false, forKey: PreferencesKeys.recordingCaptureAudio)
     defaults.set(true, forKey: PreferencesKeys.recordingCaptureMicrophone)
     defaults.set("external-mic-id", forKey: PreferencesKeys.recordingMicrophoneDeviceID)
+    defaults.set(true, forKey: PreferencesKeys.recordingCaptureCamera)
+    defaults.set("iphone-camera-id", forKey: PreferencesKeys.recordingCameraDeviceID)
+    defaults.set(CameraOverlayShape.circle.rawValue, forKey: PreferencesKeys.recordingCameraShape)
+    defaults.set(true, forKey: PreferencesKeys.recordingCameraMirrored)
     defaults.set(RecordingOutputMode.gif.rawValue, forKey: PreferencesKeys.recordingOutputMode)
     defaults.set(false, forKey: PreferencesKeys.recordingShowCursor)
     defaults.set(true, forKey: PreferencesKeys.recordingHighlightClicks)
@@ -50,6 +61,10 @@ final class RecordingConfigurationTests: XCTestCase {
     XCTAssertFalse(RecordingToolbarPreferences.captureAudio(defaults: defaults))
     XCTAssertTrue(RecordingToolbarPreferences.captureMicrophone(defaults: defaults))
     XCTAssertEqual(RecordingToolbarPreferences.microphoneDeviceID(defaults: defaults), "external-mic-id")
+    XCTAssertTrue(RecordingToolbarPreferences.captureCamera(defaults: defaults))
+    XCTAssertEqual(RecordingToolbarPreferences.cameraDeviceID(defaults: defaults), "iphone-camera-id")
+    XCTAssertEqual(RecordingToolbarPreferences.cameraShape(defaults: defaults), .circle)
+    XCTAssertTrue(RecordingToolbarPreferences.cameraMirrored(defaults: defaults))
     XCTAssertEqual(RecordingToolbarPreferences.outputMode(defaults: defaults), .gif)
     XCTAssertFalse(RecordingToolbarPreferences.showCursor(defaults: defaults))
     XCTAssertTrue(RecordingToolbarPreferences.highlightClicks(defaults: defaults))
@@ -60,10 +75,12 @@ final class RecordingConfigurationTests: XCTestCase {
     defaults.set("avi", forKey: PreferencesKeys.recordingFormat)
     defaults.set("ultra", forKey: PreferencesKeys.recordingQuality)
     defaults.set("cinematic", forKey: PreferencesKeys.recordingOutputMode)
+    defaults.set("hexagon", forKey: PreferencesKeys.recordingCameraShape)
 
     XCTAssertEqual(RecordingToolbarPreferences.selectedFormat(defaults: defaults), .mov)
     XCTAssertEqual(RecordingToolbarPreferences.selectedQuality(defaults: defaults), .high)
     XCTAssertEqual(RecordingToolbarPreferences.outputMode(defaults: defaults), .video)
+    XCTAssertEqual(RecordingToolbarPreferences.cameraShape(defaults: defaults), .widescreen)
   }
 
   func testRecordingToolbarPlacement_usesOutsideGapWhenBelowSelectionFits() {

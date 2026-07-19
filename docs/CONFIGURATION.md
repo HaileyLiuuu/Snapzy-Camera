@@ -49,7 +49,7 @@ The TOML file covers portable app preferences:
 - Updates: automatic check/download and the Sparkle update channel (`stable` or `beta`).
 - Capture settings: naming templates, screenshot format, cursor/app inclusion, freeze area, show selection area overlay, reverse magnifier zoom direction, scrolling hints, OCR notification, object cutout auto-crop.
 - After-capture actions for screenshot and recording: `save`, `quick_access`, `copy_file`, and `open_annotate` under `[capture.after.screenshot]` / `[capture.after.recording]`. Cloud upload is not part of this matrix — it is manual-only from Quick Access, Annotate, Video Editor, and History surfaces.
-- Recording settings: format, quality, FPS, audio, microphone device id, cursor, click highlights, keystroke overlay, live annotation shortcuts, video editor zoom transition duration.
+- Recording settings: format, quality, FPS, audio, microphone device id, camera enablement/device/shape/mirroring, normalized camera overlay position and size, cursor, click highlights, keystroke overlay, live annotation shortcuts, video editor zoom transition duration.
 - Quick Access: visibility, position, countdown behavior, gesture toggles, trackpad swipe mode, swipe left/right actions, hide card when window open, animation style, action order, enabled actions, card slots.
 - History: retention, maximum count, floating panel layout and filter.
 - Cloud metadata: provider, bucket, region, endpoint, custom domain, expiration, and upload window position.
@@ -141,10 +141,21 @@ quality = "high"
 fps = 30
 capture_system_audio = false
 capture_microphone = false
+microphone_device_id = ""
+capture_camera = false
+camera_device_id = "__system_preferred_camera__"
+camera_shape = "widescreen" # "widescreen" | "circle" | "classic"
+camera_mirrored = false
 show_cursor = true
 highlight_clicks = false
 show_keystrokes = false
 video_editor_zoom_transition_duration = 0.4
+
+[recording.camera_layout]
+center_x = 0.0
+center_y = 0.0
+width = 0.0
+uses_default_placement = true
 
 [quick_access]
 enabled = true

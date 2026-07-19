@@ -1,8 +1,11 @@
+> [!IMPORTANT]
+> **Snapzy Camera 是基于 [duongductrong/Snapzy](https://github.com/duongductrong/Snapzy) 的非官方社区 fork。** 本项目增加了 iPhone 连续互通相机和 USB/AVFoundation 摄像头画中画录屏，由本 fork 独立维护，并非原作者的官方发行版。
+
 <div align="center">
   <img src="./banner.png" width="200" height="200" alt="Snapzy 横幅" />
 
-  <h1>Snapzy</h1>
-  <p><strong>在菜单栏中完成原生 macOS 截图、录屏、标注与编辑。</strong></p>
+  <h1>Snapzy Camera</h1>
+  <p><strong>支持可移动、可缩放摄像头浮层的 Snapzy 录屏工具。</strong></p>
 
   <p>
     <a href="https://trendshift.io/repositories/24550" target="_blank"><img src="https://trendshift.io/api/badge/repositories/24550" alt="duongductrong%2FSnapzy | Trendshift" style="width: 250px; height: 55px;" width="250" height="55"/></a>
@@ -57,7 +60,7 @@
 ## 功能
 
 - **截图**：支持全屏或选区截图，并可在手动选区/应用窗口模式间切换（`Application Capture`，默认 `A`）；同时支持选区截图并实时标注（annotate before saving）、带实时拼接预览的滚动截图、OCR 文字提取、透明背景对象抠图并可选安全自动裁剪、窗口阴影保留（macOS 14+）、多格式导出（PNG/JPG/WebP）、隐藏桌面图标/小组件，以及录屏时快速截图
-- **屏幕录制**：支持视频或 GIF 导出、系统音频 + 麦克风、鼠标点击高亮、按键覆盖层、屏幕实时标注、记住上次区域、GIF 尺寸调整，以及用于 Follow Mouse 编辑的 Smart Camera 元数据
+- **屏幕录制**：支持视频或 GIF 导出、系统音频 + 麦克风、可移动与缩放的摄像头画中画、iPhone 连续互通相机和 USB 摄像头、三种摄像头外观、镜像、鼠标点击高亮、按键覆盖层、屏幕实时标注、记住上次区域、GIF 尺寸调整，以及用于 Follow Mouse 编辑的 Smart Camera 元数据
 - **标注编辑器**：提供形状、箭头、文本、水印、填充矩形、模糊/像素化、编号、裁剪、去背景与感知裁剪区域的自动裁剪、3D 渲染器模拟背景、缩放/平移（触控板捏合 + 键盘）、拖拽到其他应用，以及可配置工具快捷键
 - **截图后设置**：按模式分别配置保存、Quick Access、复制到剪贴板和标注动作矩阵，并为去背景提供独立的全局自动裁剪开关（默认开启）
 - **视频编辑器**：可视化时间线 + 帧条裁剪、自动聚焦的缩放片段（Follow Mouse）、壁纸背景 + 留白、自定义导出尺寸、动态图 GIF 查看器，以及撤销/重做
@@ -74,68 +77,28 @@
 
 ## 安装
 
-> 需要 **macOS 13.0** 或更高版本。
+> 需要 **macOS 13.0** 或更高版本，并将 Xcode 安装在 `/Applications/Xcode.app`。
 
-### Homebrew
-
-```bash
-brew install --cask snapzy
-```
-
-### Shell 脚本
+Snapzy Camera 目前以源码形式发布。克隆本 fork 后运行开发构建安装脚本：
 
 ```bash
-# 安装指定版本
-curl -fsSL https://raw.githubusercontent.com/duongductrong/Snapzy/v1.9.8/install.sh | bash
+git clone https://github.com/HaileyLiuuu/Snapzy-Camera.git
+cd Snapzy-Camera
+./scripts/build-install-camera.sh
 ```
 
-### 下载发行版
+脚本会构建一个 ad-hoc 签名的 Debug 应用，并安装到 `/Applications/Snapzy Camera.app`。若已有旧的自定义版，会先将旧版移入废纸篓；官方 `/Applications/Snapzy.app` 不会被覆盖。
 
-1. 打开 [Releases](https://github.com/duongductrong/Snapzy/releases)
-2. 下载最新打包应用资源，通常为 `Snapzy-v<version>.dmg`
-3. 将 `Snapzy.app` 移动到 `/Applications`
-4. 启动 Snapzy
-5. 当 macOS 在 System Settings 中提示时，授予 Screen Recording 权限
-6. 如果 macOS 提示，请在授予 Screen Recording 后重新启动 Snapzy
-7. 如果你想在录屏中录制人声，也请授予 Microphone 权限
+自定义版使用 Bundle ID `com.haileyliu.snapzy-camera` 和 URL scheme `snapzy-camera://`，因此 macOS 会单独请求屏幕录制、摄像头和麦克风权限。请勿同时运行官方版和自定义版，以免全局快捷键冲突。
 
-**注意：** Snapzy 目前尚未经过 Apple notarize，因此 macOS 可能会在首次启动时阻止应用打开。将 Snapzy 安装到 `/Applications` 后，请运行：
+> [!WARNING]
+> 此开发构建使用 ad-hoc 签名，尚未经过 Apple notarization。目前没有可下载的公开二进制发行包；未来发布安装包时应使用 Developer ID 签名并完成 Apple 公证。
 
-```bash
-sudo xattr -rd com.apple.quarantine /Applications/Snapzy.app
-```
-
-了解更多：[Apple Support: Open a Mac app from an unidentified developer](https://support.apple.com/en-us/102445)。
+如果你只需要不含摄像头浮层的官方签名版 Snapzy，请访问[原项目仓库](https://github.com/duongductrong/Snapzy)。
 
 ## 卸载
 
-若要彻底移除 Snapzy、重置所有权限并清理应用数据：
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/duongductrong/Snapzy/master/uninstall.sh | bash
-```
-
-如果你已经 clone 了仓库，也可以直接运行：
-
-```bash
-./uninstall.sh
-```
-
-该脚本会从 `/Applications` 中移除应用，删除偏好设置和缓存，并重置 TCC 权限（Screen Recording、Microphone、Accessibility）。权限变更可能需要注销或重启后才会完全生效。
-
-### 重置权限
-
-如果你只想重置 TCC 权限（Screen Recording、Microphone、Accessibility）而不卸载应用：
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/duongductrong/Snapzy/master/reset-permissions.sh | bash
-```
-
-如果你已经 clone 了仓库，也可以直接运行：
-
-```bash
-./reset-permissions.sh
-```
+退出 **Snapzy Camera**，然后在 Finder 中将 `/Applications/Snapzy Camera.app` 移入废纸篓。这样不会影响官方 Snapzy 及其数据。除非你也准备删除官方版数据和权限，否则不要对本 fork 使用上游 Snapzy 的卸载脚本。
 
 <a id="shortcuts"></a>
 
@@ -162,6 +125,8 @@ curl -fsSL https://raw.githubusercontent.com/duongductrong/Snapzy/master/reset-p
 ## 自动化
 
 Snapzy 注册了 `snapzy://` URL scheme，因此 launcher 和自动化工具可以直接触发各类捕获动作。此集成选项可以在 **设置 -> 高级 -> URL Scheme 集成** 中开启或关闭。
+
+Snapzy Camera 开发构建使用 `snapzy-camera://`；使用下方示例时，请将 `snapzy://` 替换为 `snapzy-camera://`。
 
 | 操作           | URL                               |
 | -------------- | --------------------------------- |
@@ -273,6 +238,8 @@ Snapzy 在 macOS App Sandbox 中运行，仅请求最小必要 entitlement。网
 ## 致谢
 
 Snapzy 的灵感来源于 [CleanShot X](https://cleanshot.com/)，一款适用于 macOS 的先进截图与录屏应用。
+
+Snapzy Camera 基于 [Trong Duong Duc 创建的原版 Snapzy](https://github.com/duongductrong/Snapzy)。本 fork 完整保留了上游版权声明和 BSD 3-Clause 许可证。
 
 ## 许可证
 

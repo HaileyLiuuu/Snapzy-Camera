@@ -32,15 +32,19 @@
 	<array>
 		<dict>
 			<key>CFBundleURLName</key>
-			<string>com.trongduong.snapzy</string>
+			<string>$(SNAPZY_URL_NAME)</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
-				<string>snapzy</string>
+				<string>$(SNAPZY_URL_SCHEME)</string>
 			</array>
 		</dict>
 	</array>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>Snapzy needs microphone access to record audio with your screen recordings.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Snapzy Camera needs camera access to add your live video to screen recordings.</string>
+	<key>NSCameraUseContinuityCameraDeviceType</key>
+	<true/>
 	<key>NSScreenCaptureUsageDescription</key>
 	<string>Snapzy needs screen recording permission to capture screenshots and record your screen.</string>
 	<key>SUFeedURL</key>

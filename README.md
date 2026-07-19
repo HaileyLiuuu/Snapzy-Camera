@@ -1,8 +1,11 @@
+> [!IMPORTANT]
+> **Snapzy Camera is an unofficial community fork of [duongductrong/Snapzy](https://github.com/duongductrong/Snapzy).** It adds camera picture-in-picture recording with iPhone Continuity Camera and USB/AVFoundation cameras. It is maintained independently and is not an official release from the original Snapzy author.
+
 <div align="center">
   <img src="./banner.png" width="200" height="200" alt="Snapzy banner" />
 
-  <h1>Snapzy</h1>
-  <p><strong>Native macOS screenshots, recording, annotation, and editing from the menu bar.</strong></p>
+  <h1>Snapzy Camera</h1>
+  <p><strong>Snapzy screen recording with a movable, resizable camera overlay.</strong></p>
 
   <p>
     <a href="https://trendshift.io/repositories/24550" target="_blank"><img src="https://trendshift.io/api/badge/repositories/24550" alt="duongductrong%2FSnapzy | Trendshift" style="width: 250px; height: 55px;" width="250" height="55"/></a>
@@ -54,7 +57,7 @@
 ## Features
 
 - **Screenshot**: fullscreen or selected-area capture with manual/application window mode toggle (`Application Capture`, default `A`), area capture with inline annotate (annotate before saving), scrolling capture with live stitched preview, OCR text extraction, transparent object cutout capture with optional safe auto-crop, window shadow capture (macOS 14+), multi-format export (PNG/JPG/WebP), hide desktop icons/widgets, quick screenshot during recording
-- **Screen Recording**: video or GIF output, system audio + microphone, mouse click highlights, keystroke overlays, live on-screen annotations, remember last area, GIF resizing, Smart Camera metadata for Follow Mouse edits
+- **Screen Recording**: video or GIF output, system audio + microphone, movable and resizable camera picture-in-picture, iPhone Continuity Camera and USB camera support, three camera shapes, mirroring, mouse click highlights, keystroke overlays, live on-screen annotations, remember last area, GIF resizing, Smart Camera metadata for Follow Mouse edits
 - **Annotation Editor**: shapes, arrows, text, watermarks, filled rectangles, blur/pixelate, automatic local sensitive-data redaction, counters, crop, remove background with crop-aware auto-crop support, mockup backgrounds with 3D renderer, zoom/pan (pinch + keyboard), drag-to-app with optional keep-editing and editor reactivation behavior, configurable tool/action shortcuts
 - **After Capture Settings**: per-mode action matrix for save, Quick Access, clipboard copy, and annotate plus a separate global remove-background auto-crop toggle (enabled by default)
 - **Video Editor**: trim with visual timeline + frame strip, zoom segments with auto-focus (Follow Mouse), wallpaper backgrounds + padding, custom export dimensions, animated GIF viewer, undo/redo
@@ -70,62 +73,28 @@
 
 ## Install
 
-> Requires **macOS 13.0** or later.
+> Requires **macOS 13.0** or later and Xcode installed at `/Applications/Xcode.app`.
 
-### Homebrew
-
-```bash
-brew install --cask snapzy
-```
-
-### Shell script
+Snapzy Camera is currently distributed as source code. Clone this fork and run the development installer:
 
 ```bash
-# Install a specific version
-curl -fsSL https://raw.githubusercontent.com/duongductrong/Snapzy/v1.29.1/install.sh | bash
+git clone https://github.com/HaileyLiuuu/Snapzy-Camera.git
+cd Snapzy-Camera
+./scripts/build-install-camera.sh
 ```
 
-### Download a release
+The script builds an ad-hoc signed Debug app and installs it as `/Applications/Snapzy Camera.app`. If a previous custom build exists, it is moved to the Trash first. The official `/Applications/Snapzy.app` is not replaced.
 
-1. Go to [Releases](https://github.com/duongductrong/Snapzy/releases)
-2. Download the latest packaged app asset, typically `Snapzy-v<version>.dmg`
-3. Move `Snapzy.app` to `/Applications`
-4. Launch Snapzy
-5. Grant Screen Recording permission when prompted in System Settings
-6. Re-launch Snapzy after granting Screen Recording if macOS asks for it
-7. Grant Microphone permission too if you want voice input in recordings
+The custom app uses Bundle ID `com.haileyliu.snapzy-camera` and URL scheme `snapzy-camera://`. macOS therefore asks separately for Screen Recording, Camera, and Microphone permissions. Do not run the official and custom apps simultaneously because their global shortcuts can conflict.
 
-> Snapzy is signed and notarized by Apple. macOS will open it without any extra steps.
+> [!WARNING]
+> This development build is ad-hoc signed and is not notarized by Apple. There is no downloadable public binary release yet. A future public binary should use Developer ID signing and Apple notarization.
+
+For the original signed Snapzy release without the camera overlay, use the [official repository](https://github.com/duongductrong/Snapzy).
 
 ## Uninstall
 
-To completely remove Snapzy, reset all permissions, and clean up app data:
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/duongductrong/Snapzy/master/uninstall.sh | bash
-```
-
-Or if you cloned the repo:
-
-```bash
-./uninstall.sh
-```
-
-This will remove the app from `/Applications`, delete preferences and caches, and reset TCC permissions (Screen Recording, Microphone, Accessibility). You may need to log out or reboot for permission changes to fully take effect.
-
-### Reset Permissions
-
-If you only want to reset TCC permissions (Screen Recording, Microphone, Accessibility) without uninstalling the app:
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/duongductrong/Snapzy/master/reset-permissions.sh | bash
-```
-
-Or if you cloned the repo:
-
-```bash
-./reset-permissions.sh
-```
+Quit **Snapzy Camera**, then move `/Applications/Snapzy Camera.app` to the Trash in Finder. This leaves the official Snapzy app and its data untouched. Do not use the upstream Snapzy uninstall script for this fork unless you also intend to remove official Snapzy data and permissions.
 
 ## Shortcuts
 
@@ -149,6 +118,8 @@ Or if you cloned the repo:
 ## Automation
 
 Snapzy registers the `snapzy://` URL scheme so launchers and automation tools can trigger capture actions. This integration can be toggled on or off under **Settings -> Advanced -> URL Scheme integration**.
+
+The Snapzy Camera development build uses `snapzy-camera://` instead; replace `snapzy://` with `snapzy-camera://` in the examples below.
 
 | Action                | URL                               |
 | --------------------- | --------------------------------- |
@@ -263,6 +234,8 @@ Thanks to all the people who contribute to Snapzy!
 ## Acknowledgments
 
 Snapzy is inspired by [CleanShot X](https://cleanshot.com/), an advanced screenshot and screen recording application for macOS.
+
+Snapzy Camera is based on the original [Snapzy project by Trong Duong Duc](https://github.com/duongductrong/Snapzy). The upstream copyright notice and BSD 3-Clause license are retained.
 
 ## License
 

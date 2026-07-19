@@ -66,6 +66,28 @@ enum RecordingToolbarPreferences {
     RecordingMicrophoneDeviceProvider.storedDeviceID(defaults: defaults)
   }
 
+  static func captureCamera(defaults: UserDefaults = .standard) -> Bool {
+    defaults.object(forKey: PreferencesKeys.recordingCaptureCamera) as? Bool ?? false
+  }
+
+  static func cameraDeviceID(defaults: UserDefaults = .standard) -> String {
+    defaults.string(forKey: PreferencesKeys.recordingCameraDeviceID)
+      ?? RecordingCameraDevice.systemPreferredID
+  }
+
+  static func cameraShape(defaults: UserDefaults = .standard) -> CameraOverlayShape {
+    guard let rawValue = defaults.string(forKey: PreferencesKeys.recordingCameraShape),
+          let shape = CameraOverlayShape(rawValue: rawValue)
+    else {
+      return .widescreen
+    }
+    return shape
+  }
+
+  static func cameraMirrored(defaults: UserDefaults = .standard) -> Bool {
+    defaults.object(forKey: PreferencesKeys.recordingCameraMirrored) as? Bool ?? false
+  }
+
   static func outputMode(defaults: UserDefaults = .standard) -> RecordingOutputMode {
     guard let modeString = defaults.string(forKey: PreferencesKeys.recordingOutputMode),
           let mode = RecordingOutputMode(rawValue: modeString)
@@ -135,6 +157,10 @@ final class RecordingToolbarState: ObservableObject {
   @Published var captureAudio: Bool
   @Published var captureMicrophone: Bool
   @Published var microphoneDeviceID: String
+  @Published var captureCamera: Bool
+  @Published var cameraDeviceID: String
+  @Published var cameraShape: CameraOverlayShape
+  @Published var cameraMirrored: Bool
   @Published var captureMode: RecordingCaptureMode
   @Published var outputMode: RecordingOutputMode
   @Published var showCursor: Bool
@@ -143,6 +169,7 @@ final class RecordingToolbarState: ObservableObject {
   @Published var isPreparingToRecord: Bool = false
 
   var onCaptureModeChanged: ((RecordingCaptureMode) -> Void)?
+  var onCameraConfigurationChanged: (() -> Void)?
 
   init() {
     self.selectedFormat = RecordingToolbarPreferences.selectedFormat()
@@ -150,6 +177,10 @@ final class RecordingToolbarState: ObservableObject {
     self.captureAudio = RecordingToolbarPreferences.captureAudio()
     self.captureMicrophone = RecordingToolbarPreferences.captureMicrophone()
     self.microphoneDeviceID = RecordingToolbarPreferences.microphoneDeviceID()
+    self.captureCamera = RecordingToolbarPreferences.captureCamera()
+    self.cameraDeviceID = RecordingToolbarPreferences.cameraDeviceID()
+    self.cameraShape = RecordingToolbarPreferences.cameraShape()
+    self.cameraMirrored = RecordingToolbarPreferences.cameraMirrored()
     self.captureMode = .area
     self.outputMode = RecordingToolbarPreferences.outputMode()
     self.showCursor = RecordingToolbarPreferences.showCursor()
@@ -207,6 +238,22 @@ final class RecordingToolbarWindow: NSWindow {
   var microphoneDeviceID: String {
     get { state.microphoneDeviceID }
     set { state.microphoneDeviceID = newValue }
+  }
+  var captureCamera: Bool {
+    get { state.captureCamera }
+    set { state.captureCamera = newValue }
+  }
+  var cameraDeviceID: String {
+    get { state.cameraDeviceID }
+    set { state.cameraDeviceID = newValue }
+  }
+  var cameraShape: CameraOverlayShape {
+    get { state.cameraShape }
+    set { state.cameraShape = newValue }
+  }
+  var cameraMirrored: Bool {
+    get { state.cameraMirrored }
+    set { state.cameraMirrored = newValue }
   }
   var captureMode: RecordingCaptureMode {
     get { state.captureMode }

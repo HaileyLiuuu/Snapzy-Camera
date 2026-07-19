@@ -37,6 +37,12 @@ final class SnapzyDeepLinkHandlerTests: XCTestCase {
     }
   }
 
+  func testCameraDistributionSchemeParsesRecordingRoute() throws {
+    let url = try XCTUnwrap(URL(string: "snapzy-camera://record/screen"))
+
+    XCTAssertEqual(SnapzyDeepLinkAction(url: url), .recordScreen)
+  }
+
   func testCombineAliasesParseExpectedAction() throws {
     let aliases = [
       "snapzy://combine",

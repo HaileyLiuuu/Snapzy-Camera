@@ -10,7 +10,9 @@ import Foundation
 import Security
 
 enum AppBundleIdentity {
-  #if DEBUG
+  #if SNAPZY_CAMERA
+  static let expected = "com.haileyliu.snapzy-camera"
+  #elseif DEBUG
   static let expected = "com.trongduong.snapzy.debug"
   #else
   static let expected = "com.trongduong.snapzy"

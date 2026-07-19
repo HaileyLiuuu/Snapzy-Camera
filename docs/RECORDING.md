@@ -1,6 +1,6 @@
 # Screen Recording, GIF Output, and Smart Camera Capture
 
-This doc covers the runtime path for screen recording: trigger, pre-record toolbar, the `ScreenRecordingManager` media pipeline, pause/resume, audio, in-recording overlays, GIF conversion, and the Smart Camera metadata recorded for the video editor. Editing recorded videos lives in [`VIDEO_EDITOR.md`](VIDEO_EDITOR.md); screenshots and other capture modes live in [`CAPTURE.md`](CAPTURE.md).
+This doc covers the runtime path for screen recording: trigger, pre-record toolbar, the `ScreenRecordingManager` media pipeline, pause/resume, audio, the live camera overlay, other in-recording overlays, GIF conversion, and Smart Camera mouse metadata recorded for the video editor. The physical camera overlay and the editor's mouse-following Smart Camera are separate features. Editing recorded videos lives in [`VIDEO_EDITOR.md`](VIDEO_EDITOR.md); screenshots and other capture modes live in [`CAPTURE.md`](CAPTURE.md).
 
 ## Recording Flow
 
@@ -13,7 +13,7 @@ flowchart TD
     E --> D
 
     D --> F["RecordingToolbarWindow (pre-record) + RecordingRegionOverlayWindow per screen"]
-    F --> G["User adjusts region / mode / audio / format, presses Record"]
+    F --> G["User adjusts region / mode / audio / camera / format, presses Record"]
     G --> H["TempCaptureManager.makeRecordingSavePlan(exportDirectory:)"]
     H --> I["ScreenRecordingManager.prepareRecording(...)"]
     I --> J["ScreenRecordingManager.startRecording()"]
@@ -22,6 +22,7 @@ flowchart TD
     J --> L["RecordingMouseTracker starts on first video frame"]
     J --> M["Optional click-highlight + keystroke + annotation overlays"]
     J --> N["Optional MicrophoneAudioCapturer"]
+    J --> N2["Optional RecordingCameraController overlay, included by ScreenCaptureKit"]
 
     K --> O["stopRecording()"]
     L --> O
@@ -72,6 +73,15 @@ flowchart TD
 - Tracks: two discrete AAC tracks are written (system + mic). Post-stop, `RecordingAudioCompatibilityExporter.normalizeIfNeeded` mixes multitrack output down to one stereo AAC-LC track (192 kbps, per-input headroom `1/trackCount`) for player/upload compatibility, atomically replacing the file. The pre-mix multitrack file is preserved as an editor-only sidecar via `RecordingMetadataStore.storeAudioSource` under `Captures/RecordingMetadata/AudioSources/`, with track-role metadata (`RecordingAudioSourceTrackRole.systemAudio/.microphone` keyed by `AVAssetTrack.trackID`).
 - Metering: `RecordingAudioLevelMeter` computes per-source RMS off the capture queues and publishes a smoothed 0...1 level (attack/decay envelope, noise floor, silence knee) at up to 60 Hz on main. It drives the ambient `RecordingWaveformView` behind the recording status bar — shown only when mic capture is on and output mode is not GIF. `freeze()/unfreeze()` hold the level across pause.
 
+## Live Camera Overlay
+
+- `RecordingCameraController` is the camera deep module. Its small hardware interface owns permission, AVFoundation discovery/session creation, the preview window, lifecycle, and reconnect behavior; `CameraOverlayLayout` owns normalized placement and size constraints.
+- Device discovery supports Continuity Camera, USB cameras, and other AVFoundation video inputs. macOS 14+ requests `.continuityCamera` and `.external`; macOS 13 uses compatible legacy device types. Selection priority is explicit stored device, system-preferred camera, Continuity Camera, then the first available input.
+- The toolbar camera menu selects Off, System Preferred, or a concrete device; it also switches between 16:9 rounded rectangle, circle, and 4:3 rounded rectangle, and toggles mirroring. Microphone selection stays independent.
+- Enabling camera displays the live preview immediately. The initial frame is 25% of the recording width (clamped to 200–360 pt), 24 pt from the bottom-right edge. Dragging/resizing stays inside the recording rect; normalized center and width restore across differently sized recording areas.
+- Before `prepareRecording`, the preview window ID is supplied as an initial excepted window. Display capture re-includes that window while excluding other Snapzy windows; application capture includes the target app window plus the camera window. The same captured pixels feed MOV, MP4, GIF, and the video editor.
+- Permission denial leaves camera off and offers System Settings. A camera unavailable at start can be skipped without cancelling screen recording. Disconnecting during recording stops and hides only the camera preview; screen recording continues and the same device is automatically re-added when it reconnects.
+
 ## Overlays During Recording
 
 Snapzy windows are normally excluded from the stream; effect overlays are re-included via `ScreenRecordingManager.addExceptedWindow(windowID:)` so they appear in the video:
@@ -79,6 +89,7 @@ Snapzy windows are normally excluded from the stream; effect overlays are re-inc
 - **Click highlights** (pref `PreferencesKeys.recordingHighlightClicks`, default off): `MouseClickHighlightService` installs local+global NSEvent monitors for down/up/drag and forwards points to `MouseClickHighlightWindow` (`showClickEffect` ripple rings, hold circle while pressed, drag follow).
 - **Keystroke overlay** (pref `PreferencesKeys.recordingShowKeystrokes`, default off): `KeystrokeMonitorService` shows keystrokes only when a modifier (⌘/⌥/⌃) is held or a special key is pressed, building modifier-combo display strings; rendered by `KeystrokeOverlayWindow.showKeystroke`.
 - **Live annotations**: `RecordingAnnotationState` + `RecordingAnnotationOverlayWindow` over the recording rect, plus a popover-style `RecordingAnnotationToolbarWindow` anchored to the status bar pencil button (button position reported through a SwiftUI `PreferenceKey`). Tools: selection, rectangle, oval, arrow, line, pencil, highlighter, with per-tool auto-clear modes (persist / time-based / count-based). Global shortcut path: `RecordingCoordinator.togglePenFromShortcut()`.
+- **Live camera**: `RecordingCameraOverlayWindow` displays the AVFoundation preview layer and remains movable/resizable before and during recording. It is created before the stream filter so it appears from the first frame.
 
 Overlay setup happens after `startRecording()` succeeds; region overlay borders are hidden and interaction disabled at the same moment.
 
@@ -120,6 +131,9 @@ The pre-record toolbar has a camera button (`RecordingToolbarView` → `Recordin
 | `Snapzy/Features/Recording/Components/RecordingStatusBarView.swift` | During-recording controls: timer, pause/resume, annotate, restart, delete, stop, waveform |
 | `Snapzy/Features/Recording/Managers/RecordingRegionOverlayWindow.swift` | Cross-display region overlay (drag/resize/reselect) |
 | `Snapzy/Features/Recording/MicrophoneAudioCapturer.swift` | Independent AVCaptureSession mic capture, 48 kHz LPCM pinning |
+| `Snapzy/Features/Recording/Services/RecordingCameraController.swift` | Camera discovery, permission, preview session, device fallback and reconnect lifecycle |
+| `Snapzy/Features/Recording/Managers/RecordingCameraOverlayWindow.swift` | Interactive, constrained camera picture-in-picture window |
+| `Snapzy/Features/Recording/Models/RecordingCameraModels.swift` | Camera device/configuration types and normalized overlay layout |
 | `Snapzy/Services/Capture/ScreenRecordingManager.swift` | SCStream + writer pipeline, state machine, audio normalization, metadata save |
 | `Snapzy/Services/Capture/RecordingMouseTracker.swift` | Cursor sampling for Smart Camera |
 | `Snapzy/Services/Capture/RecordingMetadata.swift` | Metadata v5 model, store layout, index, migration, orphan cleanup |

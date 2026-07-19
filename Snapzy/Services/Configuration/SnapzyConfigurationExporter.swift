@@ -92,12 +92,25 @@ enum SnapzyConfigurationExporter {
     writer.value("capture_system_audio", RecordingToolbarPreferences.captureAudio(defaults: defaults))
     writer.value("capture_microphone", RecordingToolbarPreferences.captureMicrophone(defaults: defaults))
     writer.value("microphone_device_id", RecordingToolbarPreferences.microphoneDeviceID(defaults: defaults))
+    writer.value("capture_camera", RecordingToolbarPreferences.captureCamera(defaults: defaults))
+    writer.value("camera_device_id", RecordingToolbarPreferences.cameraDeviceID(defaults: defaults))
+    writer.value("camera_shape", RecordingToolbarPreferences.cameraShape(defaults: defaults).rawValue)
+    writer.value("camera_mirrored", RecordingToolbarPreferences.cameraMirrored(defaults: defaults))
     writer.value("remember_last_area", defaults.boolValue(PreferencesKeys.recordingRememberLastArea, default: true))
     writer.value("include_snapzy", defaults.boolValue(PreferencesKeys.recordingIncludeOwnApp, default: false))
     writer.value("show_cursor", RecordingToolbarPreferences.showCursor(defaults: defaults))
     writer.value("highlight_clicks", RecordingToolbarPreferences.highlightClicks(defaults: defaults))
     writer.value("show_keystrokes", RecordingToolbarPreferences.showKeystrokes(defaults: defaults))
     writer.value("video_editor_zoom_transition_duration", defaults.doubleValue(PreferencesKeys.videoEditorZoomTransitionDuration, default: 0.4))
+
+    writer.section("recording.camera_layout")
+    let cameraLayout = defaults.data(forKey: PreferencesKeys.recordingCameraLayout)
+      .flatMap { try? JSONDecoder().decode(CameraOverlayLayout.self, from: $0) }
+      ?? .default
+    writer.value("center_x", Double(cameraLayout.normalizedCenterX))
+    writer.value("center_y", Double(cameraLayout.normalizedCenterY))
+    writer.value("width", Double(cameraLayout.normalizedWidth))
+    writer.value("uses_default_placement", cameraLayout.usesDefaultPlacement)
 
     writer.section("recording.mouse_highlight")
     let color = storedMouseColor(defaults: defaults)

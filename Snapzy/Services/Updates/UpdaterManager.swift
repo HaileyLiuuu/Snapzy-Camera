@@ -16,6 +16,10 @@ enum UpdateChannel: String, CaseIterable {
 final class UpdaterManager: NSObject, SPUUpdaterDelegate {
   static let shared = UpdaterManager()
 
+  private static var isOfficialDistribution: Bool {
+    Bundle.main.bundleIdentifier == "com.trongduong.snapzy"
+  }
+
   /// Current channel from UserDefaults; missing or invalid value resolves to stable.
   static var channel: UpdateChannel {
     UpdateChannel(rawValue: UserDefaults.standard.string(forKey: PreferencesKeys.updateChannel) ?? "") ?? .stable
@@ -30,14 +34,21 @@ final class UpdaterManager: NSObject, SPUUpdaterDelegate {
   private override init() {
     super.init()
     controller = SPUStandardUpdaterController(
-      startingUpdater: true,
+      startingUpdater: Self.isOfficialDistribution,
       updaterDelegate: self,
       userDriverDelegate: nil
     )
-    DiagnosticLogger.shared.log(.info, .update, "Updater initialized")
+    DiagnosticLogger.shared.log(
+      .info,
+      .update,
+      Self.isOfficialDistribution
+        ? "Updater initialized"
+        : "Updater disabled for custom distribution"
+    )
   }
 
   func checkForUpdates() {
+    guard Self.isOfficialDistribution else { return }
     DiagnosticLogger.shared.log(.info, .update, "Manual check for updates triggered")
     updater.checkForUpdates()
   }

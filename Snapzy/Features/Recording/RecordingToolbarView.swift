@@ -41,8 +41,9 @@ struct RecordingToolbarView: View {
 
       RecordingToolbarDivider()
 
-      // Audio quick controls
+      // Camera and audio quick controls
       HStack(spacing: ToolbarConstants.groupSpacing) {
+        ToolbarCameraMenuButton(state: state)
         ToolbarMicToggleButton(state: state)
         ToolbarSystemAudioToggleButton(state: state)
       }

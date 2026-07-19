@@ -687,6 +687,7 @@ final class ScreenRecordingManager: NSObject, ObservableObject {
     captureSystemAudio: Bool = true,
     captureMicrophone: Bool = false,
     microphoneDeviceID: String? = nil,
+    initialExceptedWindowIDs: [CGWindowID] = [],
     showCursor: Bool = true,
     saveDirectory: URL,
     processingDirectory: URL? = nil,
@@ -717,6 +718,7 @@ final class ScreenRecordingManager: NSObject, ObservableObject {
       "systemAudio": "\(captureSystemAudio)",
       "microphone": "\(captureMicrophone)",
       "microphoneDevice": microphoneDeviceID ?? RecordingMicrophoneDevice.systemDefaultID,
+      "initialExceptedWindows": "\(initialExceptedWindowIDs.count)",
       "showCursor": "\(showCursor)",
       "excludeOwnApp": "\(excludeOwnApplication)",
       "excludeDesktopIcons": "\(excludeDesktopIcons)",
@@ -738,7 +740,7 @@ final class ScreenRecordingManager: NSObject, ObservableObject {
     self.excludeDesktopWidgetsFromCapture = excludeDesktopWidgets
     self.captureWindowTarget = windowTarget
     self.excludedWindowIDs = Set(excludedWindowIDs)
-    self.exceptedWindowIDs.removeAll()
+    self.exceptedWindowIDs = Set(initialExceptedWindowIDs)
 
     let captureManager = ScreenCaptureManager.shared
     await captureManager.checkPermission()

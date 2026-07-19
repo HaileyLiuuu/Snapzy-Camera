@@ -269,6 +269,19 @@ final class AppStatusBarController: ObservableObject {
     }
   }
 
+  static func quitMenuTitle(baseTitle: String, isCameraDistribution: Bool) -> String {
+    guard isCameraDistribution else { return baseTitle }
+    return baseTitle.replacingOccurrences(of: "Snapzy", with: "Snapzy Camera")
+  }
+
+  private static var isCameraDistribution: Bool {
+    #if SNAPZY_CAMERA
+    true
+    #else
+    false
+    #endif
+  }
+
   private func statusItemAttributedTitle(for state: RecordingState) -> NSAttributedString {
     let title = Self.menuBarTitleString(
       for: state,
@@ -672,7 +685,10 @@ final class AppStatusBarController: ObservableObject {
 
     // Quit
     let quitItem = NSMenuItem(
-      title: L10n.Menu.quitSnapzy,
+      title: Self.quitMenuTitle(
+        baseTitle: L10n.Menu.quitSnapzy,
+        isCameraDistribution: Self.isCameraDistribution
+      ),
       action: #selector(quitAction),
       keyEquivalent: "q"
     )

@@ -80,6 +80,30 @@ final class SnapzyConfigurationServiceTests: XCTestCase {
     XCTAssertEqual(document.value(at: "quick_access", "two_finger_swipe_to_dismiss")?.boolValue, false)
   }
 
+  func testExportIncludesNormalizedCameraOverlayLayout() throws {
+    let defaults = UserDefaultsFactory.make()
+    let layout = CameraOverlayLayout(
+      normalizedCenterX: 0.2,
+      normalizedCenterY: 0.8,
+      normalizedWidth: 0.35
+    )
+    defaults.set(
+      try JSONEncoder().encode(layout),
+      forKey: PreferencesKeys.recordingCameraLayout
+    )
+
+    let source = SnapzyConfigurationExporter.exportTOML(defaults: defaults)
+    let document = try SimpleTOMLParser.parse(source)
+
+    XCTAssertEqual(document.value(at: "recording", "camera_layout", "center_x")?.doubleValue, 0.2)
+    XCTAssertEqual(document.value(at: "recording", "camera_layout", "center_y")?.doubleValue, 0.8)
+    XCTAssertEqual(document.value(at: "recording", "camera_layout", "width")?.doubleValue, 0.35)
+    XCTAssertEqual(
+      document.value(at: "recording", "camera_layout", "uses_default_placement")?.boolValue,
+      false
+    )
+  }
+
   func testEnsureConfigExistsDoesNotOverwriteExistingFile() throws {
     let homeDirectory = temporaryHomeDirectory()
     defer { try? FileManager.default.removeItem(at: homeDirectory) }

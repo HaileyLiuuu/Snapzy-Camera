@@ -102,6 +102,8 @@ struct RecordingStatusBarView: View {
         }
       )
 
+      ToolbarCameraMenuButton(state: state)
+
       RecordingToolbarDivider()
 
       // Restart button

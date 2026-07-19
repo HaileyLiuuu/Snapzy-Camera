@@ -32,6 +32,50 @@ final class SnapzyConfigurationImporterTests: XCTestCase {
     XCTAssertEqual(defaults.object(forKey: PreferencesKeys.recordingFPS) as? Int, 60)
   }
 
+  func testImportAppliesCameraRecordingSettings() {
+    let defaults = UserDefaultsFactory.make()
+    let source = """
+    schema_version = 1
+
+    [recording]
+    capture_camera = true
+    camera_device_id = "continuity-device"
+    camera_shape = "circle"
+    camera_mirrored = true
+    """
+
+    let result = SnapzyConfigurationImporter.importTOML(source, defaults: defaults)
+
+    XCTAssertFalse(result.hasErrors)
+    XCTAssertEqual(defaults.object(forKey: PreferencesKeys.recordingCaptureCamera) as? Bool, true)
+    XCTAssertEqual(defaults.string(forKey: PreferencesKeys.recordingCameraDeviceID), "continuity-device")
+    XCTAssertEqual(defaults.string(forKey: PreferencesKeys.recordingCameraShape), "circle")
+    XCTAssertEqual(defaults.object(forKey: PreferencesKeys.recordingCameraMirrored) as? Bool, true)
+  }
+
+  func testImportAppliesNormalizedCameraOverlayLayout() throws {
+    let defaults = UserDefaultsFactory.make()
+    let source = """
+    schema_version = 1
+
+    [recording.camera_layout]
+    center_x = 0.25
+    center_y = 0.75
+    width = 0.3
+    uses_default_placement = false
+    """
+
+    let result = SnapzyConfigurationImporter.importTOML(source, defaults: defaults)
+
+    XCTAssertFalse(result.hasErrors)
+    let data = try XCTUnwrap(defaults.data(forKey: PreferencesKeys.recordingCameraLayout))
+    let layout = try JSONDecoder().decode(CameraOverlayLayout.self, from: data)
+    XCTAssertEqual(layout.normalizedCenterX, 0.25)
+    XCTAssertEqual(layout.normalizedCenterY, 0.75)
+    XCTAssertEqual(layout.normalizedWidth, 0.3)
+    XCTAssertFalse(layout.usesDefaultPlacement)
+  }
+
   func testImportRejectsUnsupportedSchemaBeforeMutatingDefaults() {
     let defaults = UserDefaultsFactory.make()
     defaults.set("png", forKey: PreferencesKeys.screenshotFormat)

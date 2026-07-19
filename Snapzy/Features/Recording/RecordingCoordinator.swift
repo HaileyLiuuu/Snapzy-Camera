@@ -22,6 +22,8 @@ final class RecordingCoordinator: ObservableObject {
   private var selectedWindowTarget: WindowCaptureTarget?
   private let captureManager = ScreenCaptureManager.shared
   private let recorder = ScreenRecordingManager.shared
+  private let cameraController = RecordingCameraController.shared
+  private var cameraPreviewTask: Task<Void, Never>?
   private var isStartingRecording = false
   private var localEscapeMonitor: Any?
   private var globalEscapeMonitor: Any?
@@ -45,13 +47,24 @@ final class RecordingCoordinator: ObservableObject {
     let captureAudio: Bool
     let captureMicrophone: Bool
     let microphoneDeviceID: String
+    let captureCamera: Bool
+    let cameraDeviceID: String
+    let cameraShape: CameraOverlayShape
+    let cameraMirrored: Bool
     let outputMode: RecordingOutputMode
     let showCursor: Bool
     let highlightClicks: Bool
     let showKeystrokes: Bool
   }
 
-  private init() {}
+  private init() {
+    cameraController.onOverlayWindowChanged = { [weak self] windowID in
+      guard let self, let windowID, self.recorder.isActive else { return }
+      Task {
+        await self.recorder.addExceptedWindow(windowID: windowID)
+      }
+    }
+  }
 
   private let tempCaptureManager = TempCaptureManager.shared
 
@@ -301,6 +314,7 @@ final class RecordingCoordinator: ObservableObject {
 
     showRegionOverlay(for: rect, interactionEnabled: captureMode != .application)
     setupEscapeMonitors()
+    syncCameraPreview()
   }
 
   private func configureToolbarCallbacks(_ toolbar: RecordingToolbarWindow) {
@@ -325,6 +339,9 @@ final class RecordingCoordinator: ObservableObject {
     toolbar.onCaptureModeChanged = { [weak self] mode in
       self?.handleCaptureModeChange(mode)
     }
+    toolbar.state.onCameraConfigurationChanged = { [weak self] in
+      self?.syncCameraPreview()
+    }
   }
 
   private func currentToolbarConfiguration() -> ToolbarConfiguration? {
@@ -335,6 +352,10 @@ final class RecordingCoordinator: ObservableObject {
       captureAudio: toolbarWindow.captureAudio,
       captureMicrophone: toolbarWindow.captureMicrophone,
       microphoneDeviceID: toolbarWindow.microphoneDeviceID,
+      captureCamera: toolbarWindow.captureCamera,
+      cameraDeviceID: toolbarWindow.cameraDeviceID,
+      cameraShape: toolbarWindow.cameraShape,
+      cameraMirrored: toolbarWindow.cameraMirrored,
       outputMode: toolbarWindow.outputMode,
       showCursor: toolbarWindow.state.showCursor,
       highlightClicks: toolbarWindow.state.highlightClicks,
@@ -352,6 +373,10 @@ final class RecordingCoordinator: ObservableObject {
       toolbar.captureAudio = configuration.captureAudio
       toolbar.captureMicrophone = configuration.captureMicrophone
       toolbar.microphoneDeviceID = configuration.microphoneDeviceID
+      toolbar.captureCamera = configuration.captureCamera
+      toolbar.cameraDeviceID = configuration.cameraDeviceID
+      toolbar.cameraShape = configuration.cameraShape
+      toolbar.cameraMirrored = configuration.cameraMirrored
       toolbar.outputMode = configuration.outputMode
       toolbar.state.showCursor = configuration.showCursor
       toolbar.state.highlightClicks = configuration.highlightClicks
@@ -374,6 +399,8 @@ final class RecordingCoordinator: ObservableObject {
     selectedRect = rect
     selectedWindowTarget = windowTarget
     saveLastAreaRect(rect)
+
+    updateCameraPreviewFrame(for: rect)
 
     let interactionEnabled = captureMode != .application
     for overlay in regionOverlayWindows {
@@ -400,6 +427,7 @@ final class RecordingCoordinator: ObservableObject {
       overlay.updateHighlightRect(rect)
     }
     toolbarWindow?.updateAnchorRect(rect)
+    updateCameraPreviewFrame(for: rect)
   }
 
   /// Finalize a drag/resize: persist the rect and reposition the toolbar.
@@ -407,6 +435,7 @@ final class RecordingCoordinator: ObservableObject {
     guard let rect = selectedRect else { return }
     saveLastAreaRect(rect)
     toolbarWindow?.updateAnchorRect(rect)
+    updateCameraPreviewFrame(for: rect)
   }
 
   private func handleSelectionResult(
@@ -493,6 +522,7 @@ final class RecordingCoordinator: ObservableObject {
     toolbarWindow?.onRestart = nil
     toolbarWindow?.onStop = nil
     toolbarWindow?.onCaptureModeChanged = nil
+    toolbarWindow?.state.onCameraConfigurationChanged = nil
     toolbarWindow?.onAnnotateButtonOffsetChanged = nil
     toolbarWindow?.close()
     toolbarWindow = nil
@@ -538,6 +568,7 @@ final class RecordingCoordinator: ObservableObject {
     let savedCaptureAudio = window.captureAudio
     let savedCaptureMicrophone = window.captureMicrophone
     let savedMicrophoneDeviceID = window.microphoneDeviceID
+    let savedCaptureCamera = window.captureCamera
     let savedShowCursor = window.state.showCursor
     DiagnosticLogger.shared.log(.info, .recording, "Recording restart requested", context: [
       "format": savedFormat.rawValue,
@@ -573,6 +604,14 @@ final class RecordingCoordinator: ObservableObject {
           exportDirectory: saveDirectory
         )
 
+        if savedCaptureCamera {
+          do {
+            try await self.prepareCameraForRecording(rect: rect, window: window)
+          } catch let error as RecordingCameraError {
+            guard self.showCameraErrorAlert(error, window: window) else { return }
+          }
+        }
+
         try await recorder.prepareRecording(
           rect: rect,
           windowTarget: self.selectedWindowTarget,
@@ -582,6 +621,9 @@ final class RecordingCoordinator: ObservableObject {
           captureSystemAudio: savedCaptureAudio,
           captureMicrophone: savedCaptureMicrophone,
           microphoneDeviceID: savedMicrophoneDeviceID,
+          initialExceptedWindowIDs: window.captureCamera
+            ? self.cameraController.overlayWindowID.map { [$0] } ?? []
+            : [],
           showCursor: savedShowCursor,
           saveDirectory: savePlan.finalDirectory,
           processingDirectory: savePlan.processingDirectory,
@@ -614,6 +656,162 @@ final class RecordingCoordinator: ObservableObject {
   }
 
   // MARK: - Private
+
+  private func cameraConfiguration(from window: RecordingToolbarWindow) -> RecordingCameraConfiguration {
+    RecordingCameraConfiguration(
+      deviceID: window.cameraDeviceID,
+      shape: window.cameraShape,
+      mirrored: window.cameraMirrored
+    )
+  }
+
+  private func syncCameraPreview() {
+    guard let rect = selectedRect, let window = toolbarWindow else { return }
+
+    cameraPreviewTask?.cancel()
+    cameraPreviewTask = nil
+
+    guard window.captureCamera else {
+      cameraController.hide()
+      return
+    }
+
+    let configuration = cameraConfiguration(from: window)
+    cameraPreviewTask = Task { [weak self, weak window] in
+      guard let self, let window else { return }
+      do {
+        if self.cameraController.requestedDeviceID == configuration.deviceID,
+           self.cameraController.activeDeviceID != nil {
+          self.cameraController.update(
+            configuration: configuration,
+            recordingRect: rect
+          )
+        } else {
+          try await self.cameraController.show(
+            configuration: configuration,
+            in: rect
+          )
+        }
+
+        guard !Task.isCancelled,
+              let windowID = self.cameraController.overlayWindowID,
+              self.recorder.isActive
+        else {
+          return
+        }
+        await self.recorder.addExceptedWindow(windowID: windowID)
+      } catch let error as RecordingCameraError {
+        guard !Task.isCancelled else { return }
+        window.captureCamera = false
+        UserDefaults.standard.set(false, forKey: PreferencesKeys.recordingCaptureCamera)
+        self.cameraController.hide()
+        self.showCameraPreviewError(error)
+      } catch {
+        guard !Task.isCancelled else { return }
+        self.cameraController.hide()
+        self.showCameraPreviewError(.deviceUnavailable)
+      }
+    }
+  }
+
+  private func updateCameraPreviewFrame(for rect: CGRect) {
+    guard let window = toolbarWindow,
+          window.captureCamera,
+          cameraController.activeDeviceID != nil
+    else {
+      return
+    }
+    cameraController.update(
+      configuration: cameraConfiguration(from: window),
+      recordingRect: rect
+    )
+  }
+
+  private func prepareCameraForRecording(
+    rect: CGRect,
+    window: RecordingToolbarWindow
+  ) async throws {
+    guard window.captureCamera else { return }
+    cameraPreviewTask?.cancel()
+    cameraPreviewTask = nil
+
+    let configuration = cameraConfiguration(from: window)
+    if cameraController.requestedDeviceID == configuration.deviceID,
+       cameraController.activeDeviceID != nil {
+      cameraController.update(
+        configuration: configuration,
+        recordingRect: rect
+      )
+    } else {
+      try await cameraController.show(
+        configuration: configuration,
+        in: rect
+      )
+    }
+
+    guard cameraController.overlayWindowID != nil else {
+      throw RecordingCameraError.deviceUnavailable
+    }
+  }
+
+  private func showCameraPreviewError(_ error: RecordingCameraError) {
+    let alert = NSAlert()
+    alert.messageText = error == .permissionDenied
+      ? L10n.Camera.accessRequiredTitle
+      : L10n.Camera.unavailableTitle
+    alert.informativeText = error == .permissionDenied
+      ? L10n.Camera.permissionMessage
+      : L10n.Camera.unavailableMessage
+    alert.alertStyle = .warning
+    if error == .permissionDenied {
+      alert.addButton(withTitle: L10n.Common.openSystemSettings)
+      alert.addButton(withTitle: L10n.Common.cancel)
+      if alert.runModal() == .alertFirstButtonReturn,
+         let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Camera") {
+        NSWorkspace.shared.open(url)
+      }
+    } else {
+      alert.addButton(withTitle: L10n.Common.ok)
+      alert.runModal()
+    }
+  }
+
+  private func showCameraErrorAlert(
+    _ error: RecordingCameraError,
+    window: RecordingToolbarWindow
+  ) -> Bool {
+    let alert = NSAlert()
+    alert.messageText = error == .permissionDenied
+      ? L10n.Camera.accessRequiredTitle
+      : L10n.Camera.unavailableTitle
+    alert.informativeText = error == .permissionDenied
+      ? L10n.Camera.permissionMessage
+      : L10n.Camera.unavailableMessage
+    alert.alertStyle = .warning
+    if error == .permissionDenied {
+      alert.addButton(withTitle: L10n.Common.openSystemSettings)
+    }
+    alert.addButton(withTitle: L10n.Camera.continueWithoutCamera)
+    alert.addButton(withTitle: L10n.Common.cancel)
+
+    let response = alert.runModal()
+    if error == .permissionDenied, response == .alertFirstButtonReturn {
+      if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Camera") {
+        NSWorkspace.shared.open(url)
+      }
+      return false
+    }
+
+    let continueResponse: NSApplication.ModalResponse = error == .permissionDenied
+      ? .alertSecondButtonReturn
+      : .alertFirstButtonReturn
+    guard response == continueResponse else { return false }
+
+    window.captureCamera = false
+    UserDefaults.standard.set(false, forKey: PreferencesKeys.recordingCaptureCamera)
+    cameraController.hide()
+    return true
+  }
 
   private func showRegionOverlay(for rect: CGRect, interactionEnabled: Bool) {
     for screen in NSScreen.screens {
@@ -673,6 +871,7 @@ final class RecordingCoordinator: ObservableObject {
 
     Task {
       do {
+        try await self.prepareCameraForRecording(rect: rect, window: window)
         let exclusionConfig = self.recordingCaptureExclusionConfiguration()
         DiagnosticLogger.shared.log(.debug, .recording, "Recording capture exclusion resolved", context: [
           "excludeOwnApp": "\(exclusionConfig.excludeOwnApplication)",
@@ -692,6 +891,9 @@ final class RecordingCoordinator: ObservableObject {
           captureSystemAudio: captureSystemAudio,
           captureMicrophone: captureMicrophone,
           microphoneDeviceID: microphoneDeviceID,
+          initialExceptedWindowIDs: window.captureCamera
+            ? self.cameraController.overlayWindowID.map { [$0] } ?? []
+            : [],
           showCursor: showCursor,
           saveDirectory: savePlan.finalDirectory,
           processingDirectory: savePlan.processingDirectory,
@@ -725,6 +927,12 @@ final class RecordingCoordinator: ObservableObject {
         window.showRecordingStatusBar(recorder: recorder, visible: isHoverBarVisiblePreference)
         finishRecordingStartAttempt()
 
+      } catch let error as RecordingCameraError {
+        DiagnosticLogger.shared.logError(.recording, error, "Camera setup failed")
+        finishRecordingStartAttempt()
+        if showCameraErrorAlert(error, window: window) {
+          startRecording()
+        }
       } catch let error as RecordingError {
         DiagnosticLogger.shared.logError(.recording, error, "Recording setup failed")
         finishRecordingStartAttempt()
@@ -822,6 +1030,9 @@ final class RecordingCoordinator: ObservableObject {
           fps: fps,
           captureSystemAudio: captureSystemAudio,
           captureMicrophone: false,
+          initialExceptedWindowIDs: window.captureCamera
+            ? self.cameraController.overlayWindowID.map { [$0] } ?? []
+            : [],
           showCursor: showCursor,
           saveDirectory: savePlan.finalDirectory,
           processingDirectory: savePlan.processingDirectory,
@@ -1065,6 +1276,10 @@ final class RecordingCoordinator: ObservableObject {
 
     // Close annotation windows
     cleanupAnnotationOverlay()
+
+    cameraPreviewTask?.cancel()
+    cameraPreviewTask = nil
+    cameraController.hide()
 
     // Close region overlay windows
     closePreRecordUI()

@@ -205,6 +205,25 @@ enum SnapzyConfigurationImporter {
     collectString(&reader, "recording", "microphone_device_id", mutations: &mutations) {
       defaults.set($0, forKey: PreferencesKeys.recordingMicrophoneDeviceID)
     }
+    collectBool(&reader, "recording", "capture_camera", mutations: &mutations) {
+      defaults.set($0, forKey: PreferencesKeys.recordingCaptureCamera)
+    }
+    collectString(&reader, "recording", "camera_device_id", mutations: &mutations) {
+      defaults.set($0, forKey: PreferencesKeys.recordingCameraDeviceID)
+    }
+    collectEnumString(
+      &reader,
+      "recording",
+      "camera_shape",
+      allowed: CameraOverlayShape.allCases.map(\.rawValue),
+      mutations: &mutations
+    ) {
+      defaults.set($0, forKey: PreferencesKeys.recordingCameraShape)
+    }
+    collectBool(&reader, "recording", "camera_mirrored", mutations: &mutations) {
+      defaults.set($0, forKey: PreferencesKeys.recordingCameraMirrored)
+    }
+    collectCameraLayout(&reader, defaults: defaults, mutations: &mutations)
     collectBool(&reader, "recording", "remember_last_area", mutations: &mutations) {
       defaults.set($0, forKey: PreferencesKeys.recordingRememberLastArea)
     }
@@ -262,6 +281,49 @@ enum SnapzyConfigurationImporter {
     }
     collectDouble(&reader, "recording", "video_editor_zoom_transition_duration", range: 0.15...0.75, mutations: &mutations) {
       defaults.set($0, forKey: PreferencesKeys.videoEditorZoomTransitionDuration)
+    }
+  }
+
+  private static func collectCameraLayout(
+    _ reader: inout SnapzyConfigurationReader,
+    defaults: UserDefaults,
+    mutations: inout [() -> Void]
+  ) {
+    let centerX = reader.double("recording", "camera_layout", "center_x")
+    let centerY = reader.double("recording", "camera_layout", "center_y")
+    let width = reader.double("recording", "camera_layout", "width")
+    let usesDefaultPlacement = reader.bool(
+      "recording",
+      "camera_layout",
+      "uses_default_placement"
+    )
+    let valuesArePresent = [centerX, centerY, width].contains { $0 != nil }
+      || usesDefaultPlacement != nil
+    guard valuesArePresent else { return }
+    guard let centerX, let centerY, let width, let usesDefaultPlacement else {
+      reader.error("recording.camera_layout requires center_x, center_y, width, and uses_default_placement")
+      return
+    }
+    guard (0...1).contains(centerX),
+          (0...1).contains(centerY),
+          (0...1).contains(width)
+    else {
+      reader.error("recording.camera_layout center_x, center_y, and width must be in 0.0...1.0")
+      return
+    }
+
+    let layout = CameraOverlayLayout(
+      normalizedCenterX: centerX,
+      normalizedCenterY: centerY,
+      normalizedWidth: width,
+      usesDefaultPlacement: usesDefaultPlacement
+    )
+    guard let data = try? JSONEncoder().encode(layout) else {
+      reader.error("recording.camera_layout could not be encoded")
+      return
+    }
+    mutations.append {
+      defaults.set(data, forKey: PreferencesKeys.recordingCameraLayout)
     }
   }
 

@@ -82,6 +82,26 @@ final class AppStatusBarControllerTests: XCTestCase {
     }
   }
 
+  func testQuitMenuTitle_identifiesCameraDistribution() {
+    XCTAssertEqual(
+      AppStatusBarController.quitMenuTitle(
+        baseTitle: "Quit Snapzy",
+        isCameraDistribution: true
+      ),
+      "Quit Snapzy Camera"
+    )
+  }
+
+  func testQuitMenuTitle_preservesOfficialDistributionTitle() {
+    XCTAssertEqual(
+      AppStatusBarController.quitMenuTitle(
+        baseTitle: L10n.Menu.quitSnapzy,
+        isCameraDistribution: false
+      ),
+      L10n.Menu.quitSnapzy
+    )
+  }
+
   func testWindowDidClose_revertsActivationPolicyWhenNoOtherVisibleWindows() {
     // 1. Setup initial elevated state
     controller.didElevateForSettingsForTesting = true
