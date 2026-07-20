@@ -77,9 +77,13 @@
 
 ## 安装
 
-> 需要 **macOS 13.0** 或更高版本，并将 Xcode 安装在 `/Applications/Xcode.app`。
+> 需要 **macOS 13.0** 或更高版本。
 
-Snapzy Camera 目前以源码形式发布。克隆本 fork 后运行开发构建安装脚本：
+从 [GitHub Releases](https://github.com/HaileyLiuuu/Snapzy-Camera/releases) 下载 `Snapzy-Camera-v1.30.0-beta.7.dmg`，打开后将 **Snapzy Camera.app** 拖入 **Applications**。
+
+此自定义构建使用 ad-hoc 签名，尚未经过 Apple notarization。首次启动时 macOS 可能会拦截；请右键 **Snapzy Camera.app**，选择 **打开**，随后在系统设置中授予屏幕录制、摄像头和麦克风权限。
+
+开发者也可以克隆本 fork，并使用安装在 `/Applications/Xcode.app` 的 Xcode 本地构建：
 
 ```bash
 git clone https://github.com/HaileyLiuuu/Snapzy-Camera.git
@@ -90,9 +94,6 @@ cd Snapzy-Camera
 脚本会构建一个 ad-hoc 签名的 Debug 应用，并安装到 `/Applications/Snapzy Camera.app`。若已有旧的自定义版，会先将旧版移入废纸篓；官方 `/Applications/Snapzy.app` 不会被覆盖。
 
 自定义版使用 Bundle ID `com.haileyliu.snapzy-camera` 和 URL scheme `snapzy-camera://`，因此 macOS 会单独请求屏幕录制、摄像头和麦克风权限。请勿同时运行官方版和自定义版，以免全局快捷键冲突。
-
-> [!WARNING]
-> 此开发构建使用 ad-hoc 签名，尚未经过 Apple notarization。目前没有可下载的公开二进制发行包；未来发布安装包时应使用 Developer ID 签名并完成 Apple 公证。
 
 如果你只需要不含摄像头浮层的官方签名版 Snapzy，请访问[原项目仓库](https://github.com/duongductrong/Snapzy)。
 

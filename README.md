@@ -73,9 +73,13 @@
 
 ## Install
 
-> Requires **macOS 13.0** or later and Xcode installed at `/Applications/Xcode.app`.
+> Requires **macOS 13.0** or later.
 
-Snapzy Camera is currently distributed as source code. Clone this fork and run the development installer:
+Download `Snapzy-Camera-v1.30.0-beta.7.dmg` from [GitHub Releases](https://github.com/HaileyLiuuu/Snapzy-Camera/releases), open it, and drag **Snapzy Camera.app** to **Applications**.
+
+This custom build is ad-hoc signed and is not notarized by Apple. On first launch, macOS may block the app; right-click **Snapzy Camera.app** and choose **Open**, then grant Screen Recording, Camera, and Microphone permissions in System Settings.
+
+Developers can also clone this fork and build locally with Xcode installed at `/Applications/Xcode.app`:
 
 ```bash
 git clone https://github.com/HaileyLiuuu/Snapzy-Camera.git
@@ -86,9 +90,6 @@ cd Snapzy-Camera
 The script builds an ad-hoc signed Debug app and installs it as `/Applications/Snapzy Camera.app`. If a previous custom build exists, it is moved to the Trash first. The official `/Applications/Snapzy.app` is not replaced.
 
 The custom app uses Bundle ID `com.haileyliu.snapzy-camera` and URL scheme `snapzy-camera://`. macOS therefore asks separately for Screen Recording, Camera, and Microphone permissions. Do not run the official and custom apps simultaneously because their global shortcuts can conflict.
-
-> [!WARNING]
-> This development build is ad-hoc signed and is not notarized by Apple. There is no downloadable public binary release yet. A future public binary should use Developer ID signing and Apple notarization.
 
 For the original signed Snapzy release without the camera overlay, use the [official repository](https://github.com/duongductrong/Snapzy).
 
