@@ -13,8 +13,8 @@ cask "snapzy-camera" do
 
   zap trash: [
     "~/Library/Application Support/Snapzy Camera",
-    "~/Library/Preferences/com.haileyliu.snapzy-camera.plist",
     "~/Library/Caches/com.haileyliu.snapzy-camera",
+    "~/Library/Preferences/com.haileyliu.snapzy-camera.plist",
   ]
 
   caveats <<~EOS
