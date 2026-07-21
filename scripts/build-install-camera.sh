@@ -46,8 +46,11 @@ fi
 
 /usr/libexec/PlistBuddy -c 'Set :CFBundleName Snapzy Camera' "$BUILT_APP/Contents/Info.plist"
 
-BUILT_IDENTIFIER=$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$BUILT_APP/Contents/Info.plist")
-BUILT_SCHEME=$(/usr/libexec/PlistBuddy -c 'Print :CFBundleURLTypes:0:CFBundleURLSchemes:0' "$BUILT_APP/Contents/Info.plist")
+STAGED_APP="$BUILD_ROOT/Snapzy Camera.app"
+/usr/bin/ditto "$BUILT_APP" "$STAGED_APP"
+
+BUILT_IDENTIFIER=$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$STAGED_APP/Contents/Info.plist")
+BUILT_SCHEME=$(/usr/libexec/PlistBuddy -c 'Print :CFBundleURLTypes:0:CFBundleURLSchemes:0' "$STAGED_APP/Contents/Info.plist")
 if [[ "$BUILT_IDENTIFIER" != "$EXPECTED_BUNDLE_IDENTIFIER" || "$BUILT_SCHEME" != "snapzy-camera" ]]; then
   print -u2 "Refusing to install an app with unexpected identity: $BUILT_IDENTIFIER / $BUILT_SCHEME"
   exit 1
@@ -57,16 +60,16 @@ fi
 # designated requirement. A default ad-hoc signature uses the build's cdhash
 # as its requirement, so macOS TCC keeps showing an enabled Screen Recording
 # toggle while rejecting the next locally rebuilt app as a different identity.
-/usr/bin/codesign --force --deep --sign - --entitlements "$ENTITLEMENTS" "$BUILT_APP"
+/usr/bin/codesign --force --deep --sign - --entitlements "$ENTITLEMENTS" "$STAGED_APP"
 /usr/bin/codesign \
   --force \
   --sign - \
   --entitlements "$ENTITLEMENTS" \
   --requirements "=$DESIGNATED_REQUIREMENT" \
-  "$BUILT_APP"
-/usr/bin/codesign --verify --deep --strict "$BUILT_APP"
+  "$STAGED_APP"
+/usr/bin/codesign --verify --deep --strict "$STAGED_APP"
 
-BUILT_REQUIREMENT=$(/usr/bin/codesign -d -r- "$BUILT_APP" 2>&1 | tail -1)
+BUILT_REQUIREMENT=$(/usr/bin/codesign -d -r- "$STAGED_APP" 2>&1 | tail -1)
 if [[ "$BUILT_REQUIREMENT" != "$DESIGNATED_REQUIREMENT" ]]; then
   print -u2 "Refusing to install an app with an unstable designated requirement: $BUILT_REQUIREMENT"
   exit 1
@@ -78,7 +81,7 @@ if [[ -e "$INSTALL_APP" ]]; then
   print "Previous custom build moved to: $BACKUP_APP"
 fi
 
-/usr/bin/ditto "$BUILT_APP" "$INSTALL_APP"
+/usr/bin/ditto "$STAGED_APP" "$INSTALL_APP"
 /usr/bin/codesign --verify --deep --strict "$INSTALL_APP"
 
 INSTALLED_REQUIREMENT=$(/usr/bin/codesign -d -r- "$INSTALL_APP" 2>&1 | tail -1)
